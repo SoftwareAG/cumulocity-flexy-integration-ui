@@ -1,0 +1,1 @@
+export const FLEXY_REGISTRATION_PATH = 'flexy-registration';
