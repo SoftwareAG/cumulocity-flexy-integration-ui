@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule as NgRouterModule } from '@angular/router';
 import { UpgradeModule as NgUpgradeModule } from '@angular/upgrade/static';
-import { CoreModule, RouterModule } from '@c8y/ngx-components';
+import { CoreModule, NavigatorService, RouterModule } from '@c8y/ngx-components';
 import { AssetsNavigatorModule } from '@c8y/ngx-components/assets-navigator';
 import { SubAssetsModule } from '@c8y/ngx-components/sub-assets';
 import { DeviceGridExampleModule } from '@c8y/ngx-components/device-grid-example';
@@ -21,7 +21,9 @@ import {
 import { BinaryFileDownloadModule } from '@c8y/ngx-components/binary-file-download';
 import { SearchModule } from '@c8y/ngx-components/search';
 import { LoraProtocolModule } from '@c8y/ngx-components/protocol-lora';
-
+//custom modules
+import { FlexyRegistrationModule } from './src/modules/ewon-flexy-registration.module'
+import { CustomNavigatorService } from './src/services/custom-navigator.service';
 @NgModule({
   imports: [
     // Upgrade module must be the first
@@ -45,8 +47,11 @@ import { LoraProtocolModule } from '@c8y/ngx-components/protocol-lora';
     BinaryFileDownloadModule,
     SearchModule,
     LoraProtocolModule,
-    SubAssetsModule
-  ]
+    SubAssetsModule,
+    //custom modules
+    FlexyRegistrationModule
+  ],
+  providers: [CustomNavigatorService, { provide: NavigatorService, useExisting: CustomNavigatorService }]
 })
 export class AppModule extends HybridAppModule {
   constructor(protected upgrade: NgUpgradeModule) {
