@@ -49,7 +49,7 @@
   "homepage": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui#readme",
   "c8y": {
     "application": {
-      "name": "ewon-flexy-integration",
+      "name": "EWON Flexy Integration",
       "contextPath": "ewon-flexy-integration",
       "key": "ewon-flexy-integration-application-key",
       "upgrade": true,
