@@ -22,8 +22,7 @@ import { BinaryFileDownloadModule } from '@c8y/ngx-components/binary-file-downlo
 import { SearchModule } from '@c8y/ngx-components/search';
 import { LoraProtocolModule } from '@c8y/ngx-components/protocol-lora';
 //custom modules
-import { FlexyRegistrationModule } from './src/modules/ewon-flexy-registration.module'
-import { CustomNavigatorService } from './src/services/custom-navigator.service';
+import { FlexyRegistrationModule } from './src/modules/ewon-flexy-registration/ewon-flexy-registration.module'
 @NgModule({
   imports: [
     // Upgrade module must be the first
@@ -51,7 +50,7 @@ import { CustomNavigatorService } from './src/services/custom-navigator.service'
     //custom modules
     FlexyRegistrationModule
   ],
-  providers: [CustomNavigatorService, { provide: NavigatorService, useExisting: CustomNavigatorService }]
+  providers: []
 })
 export class AppModule extends HybridAppModule {
   constructor(protected upgrade: NgUpgradeModule) {

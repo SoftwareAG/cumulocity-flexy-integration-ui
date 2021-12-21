@@ -1,0 +1,42 @@
+<c8y-title>{{ "EWON Flexy Registration" | translate }}</c8y-title>
+
+<div class="card card--fullpage">
+  <div class="card-header separator">
+    <h4 class="card-title">{{ "Integration Settings" | translate }}</h4>
+  </div>
+    <div class="card-block">
+      <h4>{{ "Talk2M Login" | translate }}</h4>
+      <div class="form-group">
+        <label>{{ "Username" | translate }}</label>
+        <input class="form-control" type="text" [(ngModel)]="settings.username"/>
+      </div>
+      <div class="form-group">
+        <label>{{ "Password" | translate }}</label>
+        <input class="form-control" type="password" [(ngModel)]="settings.password"/>
+      </div>
+      <div class="form-group">
+        <label>{{ "Developer ID" | translate }}</label>
+        <input class="form-control" type="text" [(ngModel)]="settings.devId"/>
+      </div>
+
+      <hr/>
+
+      <h4>{{ "Cumulocity Setting" | translate }}</h4>
+      <div class="form-group">
+        <label for="exampleSelect">{{
+          "Management Tenant" | translate
+        }}</label>
+        <div class="c8y-select-wrapper">
+          <select id="exampleSelect" class="form-control" [(ngModel)]="settings.tenant">
+            <option>cumulocity.com</option>
+            <option>eu-latest.cumulocity.com</option>
+            <option>emea.cumulocity.com</option>
+          </select>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer separator">
+      <input type="submit" value="Save" class="btn btn-primary" />
+    </div>
+</div>
