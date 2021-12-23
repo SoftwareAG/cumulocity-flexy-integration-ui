@@ -38,8 +38,8 @@ export class BulkRegistrationComponent implements OnInit {
         // Is session still active
         if(this._config && this._config.session && this._config.devId){
           await this.talk2m.isSessionActive(this._config.session, this._config.devId).then(
-            () => {
-              this.isSessionConnected = true;
+            (result) => {
+              this.isSessionConnected = result;
               this.talk2m.getewons(this._config.session, this._config.devId).then(
                 (response) => {
                     console.log("---------------- GET EWONS");
@@ -49,6 +49,8 @@ export class BulkRegistrationComponent implements OnInit {
                       this.items.push({"name" : ewon["name"] , "description" : ewon["description"]});
                     });
                     this.isLoading = false;
+                }, (error) => {
+                  this.isLoading = false;
                 }
               )
             }
