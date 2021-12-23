@@ -109,7 +109,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Check credentials from tenant options
     this.flexyCredentials.getCredentials().then(
-      (options) => {
+      async (options) => {
         console.log("------------------------");
         options.forEach(option => {
           this._config[option.key] = option.value;
@@ -118,16 +118,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
         // Is session still active
         if(this._config && this._config.session && this._config.devId){
-          this.talk2m.getaccountinfo(this._config.session, this._config.devId).then(
-            (response) => {
-              console.log("getaccountinfo ", response);
-              this.isSessionConnected = true;
-              this.alert.success("Session is still active.");
-            }, (error) => {
-              console.log("error ", error);
-              this.alert.info("Session has expired. Please re-connect.")
-            }
-          );
+          this.isSessionConnected = await this.talk2m.isSessionActive(this._config.session, this._config.devId);
         }        
       },
       (error) => {

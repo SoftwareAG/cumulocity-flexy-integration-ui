@@ -25,9 +25,16 @@ export class Talk2MService {
 
   }
 
-  async isSessionActive(): Promise<boolean>{
+  async isSessionActive(session: string, devId: string): Promise<boolean>{
 
-    return false;
+    return this.getaccountinfo(session, devId).then(
+      () => {
+        return true;
+      }, (error) => {
+        return false;
+      }
+    );
+    
   }
 
   async logout(session: string, devId: string) : Promise<HttpResponse<any> >{
@@ -46,7 +53,7 @@ export class Talk2MService {
       return response;
   }
 
-  async getewons(session: string, devId: string, pool?: string) {
+  async getewons(session: string, devId: string, pool?: string) : Promise<HttpResponse<any> > {
     let url_service = "";
     if (pool) {
         url_service =
@@ -62,18 +69,7 @@ export class Talk2MService {
         "/getewons?t2msession=" + session + "&t2mdeveloperid=" + devId;
     }
 
-    this.http
-      .get<any>(TALK2M_BASEURL + url_service, { observe: "response" })
-      .subscribe(
-        (response) => {
-          console.log("getewons ", response);
-          return response;
-        },
-        (error) => {
-          console.log("error ", error);
-          this.alert.warning("Get EWONS failed. Reason: " + error.statusText);
-          return error;
-        }
-      );
+    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: "response" }).toPromise();
+    return response;
   }
 }

@@ -30,12 +30,7 @@ export class EWONFlexyCredentialsTenantoptionsService {
   }
 
   async getCredentials(): Promise<ITenantOption[]> {
-    // const option: ITenantOption = {
-    //   category: FLEXY_TENANTOPTIONS_CATEGORY,
-    //   key: key,
-    // };
-    // const { data } = await this.tenantOptionsService.detail(option);
-    const filter = {
+      const filter = {
       category: FLEXY_TENANTOPTIONS_CATEGORY,
       pageSize: 100,
       withTotalPages: true,
