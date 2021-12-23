@@ -1,3 +1,63 @@
-<p>
-  bulk-registration works!
-</p>
+<ng-container *ngIf="items.length > 0; else noDevices">
+
+<!-- List of ewon items -->
+<div class="list-group">
+  <!-- Display each gateway as item per row -->
+  <ng-container *ngFor="let item of items; let i = index">
+    <div class="list-group-item flex-row">
+      <!-- Action dropdown -->
+      <div class="list-item-actions">
+        <div class="settings dropdown" dropdown>
+          <button
+            type="button"
+            title="Options"
+            dropdownToggle
+            class="dropdown-toggle c8y-dropdown"
+          >
+            <i c8yIcon="ellipsis-v"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-right" *dropdownMenu>
+            <li>
+              <button title="Delete">
+                <i c8y-icon="trash" class="dlt-c8y-icon-trash"></i>&nbsp;<span
+                  translate
+                  >Delete</span
+                >
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <!-- Checkbox -->
+      <div class="list-item-checkbox">
+        <label title="Select" class="c8y-checkbox">
+          <input type="checkbox" />
+          <span></span>
+        </label>
+      </div>
+      <!-- Icon -->
+      <div class="list-item-icon">
+        <i title="Flexy Gateway" c8yIcon="wi-fi-router"></i>
+      </div>
+      <!-- Details -->
+      <div class="list-item-body">
+        <div class="flex-row row">
+          <span class="col-sm-4 col-xs-12">{{item.name}}</span>
+          <div class="col-sm-6 col-xs-12 text-muted">
+            <i c8yIcon="edit"></i>&nbsp;<span translate>{{item.description}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>
+</ng-container>
+
+<!-- empty view -->
+<ng-template #noDevices>
+  <div class="c8y-empty-state text-center">
+    <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device"></h1>
+    <h3>{{ 'There are no EWON Flexy gateways.' | translate }}</h3>
+    <h4>{{ 'Please check your settings.' | translate }}</h4>
+  </div>
+</ng-template>

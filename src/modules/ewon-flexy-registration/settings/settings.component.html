@@ -1,22 +1,33 @@
 <c8y-title>{{ "EWON Flexy Registration" | translate }}</c8y-title>
 
-<div class="card card--fullpage">
+<c8y-action-bar-item [placement]="'right'">
+  <div class="c8y-realtime">
+    <span [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"></span> 
+    Talk2M Session
+  </div>
+</c8y-action-bar-item>
+
+<div class="card">
   <div class="card-header separator">
     <h4 class="card-title">{{ "Integration Settings" | translate }}</h4>
   </div>
     <div class="card-block">
       <h4>{{ "Talk2M Login" | translate }}</h4>
       <div class="form-group">
+        <label>{{ "Account" | translate }}</label>
+        <input class="form-control" type="text" [(ngModel)]="config.account"/>
+      </div>
+      <div class="form-group">
         <label>{{ "Username" | translate }}</label>
-        <input class="form-control" type="text" [(ngModel)]="settings.username"/>
+        <input class="form-control" type="text" [(ngModel)]="config.username"/>
       </div>
       <div class="form-group">
         <label>{{ "Password" | translate }}</label>
-        <input class="form-control" type="password" [(ngModel)]="settings.password"/>
+        <input class="form-control" type="password" [(ngModel)]="config.password"/>
       </div>
       <div class="form-group">
         <label>{{ "Developer ID" | translate }}</label>
-        <input class="form-control" type="text" [(ngModel)]="settings.devId"/>
+        <input class="form-control" type="text" [(ngModel)]="config.devId"/>
       </div>
 
       <hr/>
@@ -27,7 +38,7 @@
           "Management Tenant" | translate
         }}</label>
         <div class="c8y-select-wrapper">
-          <select id="exampleSelect" class="form-control" [(ngModel)]="settings.tenant">
+          <select id="exampleSelect" class="form-control" [(ngModel)]="config.tenant">
             <option>cumulocity.com</option>
             <option>eu-latest.cumulocity.com</option>
             <option>emea.cumulocity.com</option>
@@ -37,6 +48,9 @@
       </div>
     </div>
     <div class="card-footer separator">
-      <input type="submit" value="Save" class="btn btn-primary" />
+      <input type="submit" value="Save & Connect" class="btn btn-primary" (click)="onConnect(config)"/>
+      <input type="submit" value="Logout" class="btn btn-warning" (click)="onLogout(config)"/>
     </div>
 </div>
+
+
