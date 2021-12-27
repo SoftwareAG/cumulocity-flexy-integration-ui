@@ -30,3 +30,8 @@ export interface FlexySettings {
         protocol?: string;
     }>;
   }
+
+  export declare const enum FlexyIntegrated {
+    Integrated = "Successful",
+    Not_integrated = "Unsupported"
+}

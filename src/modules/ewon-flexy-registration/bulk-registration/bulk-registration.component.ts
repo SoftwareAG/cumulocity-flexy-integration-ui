@@ -1,6 +1,6 @@
-import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActionControl, AlertService, Column, ColumnDataType, DataGridComponent, Pagination } from '@c8y/ngx-components';
-import { EwonFlexyStructure, FlexySettings } from '../../../interfaces/ewon-flexy-registration.interface';
+import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../interfaces/ewon-flexy-registration.interface';
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
 
@@ -58,6 +58,7 @@ export class BulkRegistrationComponent implements OnInit {
                     (response) => {    
                         for (const ewon of response.body.ewons) {
                           ewon.pool = pool.name;
+                          ewon.integrated = FlexyIntegrated.Not_integrated;
                         }
                         this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
                         console.log(this.rows);
@@ -93,6 +94,14 @@ export class BulkRegistrationComponent implements OnInit {
 
   }
 
+  gridChanges(event){
+    console.log(event);
+  }
+
+  poolFilter(event){
+    console.log(event);
+  }
+
   getDefaultColumns(): Column[] {
     return [
       {
@@ -112,6 +121,12 @@ export class BulkRegistrationComponent implements OnInit {
         header: 'Description',
         path: 'description',
         dataType: ColumnDataType.TextLong
+      },{
+        name: 'integrated',
+        header: 'Integrated',
+        path: 'integrated',
+        filterable: true,
+        dataType: ColumnDataType.TextShort
       },
     ];
   }

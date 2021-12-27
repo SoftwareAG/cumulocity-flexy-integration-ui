@@ -16,7 +16,16 @@
     [actionControls]="actionControls"
     [rows]="rows"
     [selectable]="true"
+    (itemsSelect)="gridChanges($event)"
+    (onFilter)="poolFilter($event)"
     >
+    <c8y-column name="integrated">
+      <ng-container *c8yCellRendererDef="let context">
+        <span class = "d-flex j-c-center" *ngIf="context.value == 'Successful'"><i class="dlt-c8y-icon-check-circle status-successful" style="color: #008800;"></i></span>
+        <span class = "d-flex j-c-center" *ngIf="context.value == 'Unsupported'"><i class="dlt-c8y-icon-block status-unsupported" style="color: #58656D;"></i></span>
+      </ng-container>
+    </c8y-column>
+    
     </c8y-data-grid>
   </ng-container>
 
