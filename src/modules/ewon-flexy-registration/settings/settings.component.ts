@@ -36,23 +36,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
   
   onLogout(config?: FlexySettings) {
     if (this.isSessionConnected){
-      this.talk2m.logout(config.session, config.devId).then(
+      this.talk2m.logout(this._config.session, this._config.devId).then(
         (response) => {
+          console.log("logout ", response);
           this.isSessionConnected = false;
-          this.alert.info("Logout current session.");
+          this.alert.info("Session logout.");
+        }, (error)=>{
+          this.alert.info("Logout failed.", error);
+          console.log("logout ", error);
         });
     }else{
+      
       this.alert.info("No connction established.");
     }
   }
 
   onConnect(config?: FlexySettings): boolean | Promise<boolean> | Observable<boolean> {
-    // Connect to Talk2M
-    this.flexyCredentials.updateCredentials(config).then(
+    
+    if (config && config.account && config.devId && config.password && config.tenant && config.username /*&& config.token*/){
+      // Connect to Talk2M
+      this.flexyCredentials.updateCredentials(config).then(
       () => {
         this.alert.success("Update credentials successfully.");
-        if (config && config.account && config.devId && config.password && config.tenant && config.username){
-
           // Logout before establish new session
           if (config.session && this.isSessionConnected){
             this.talk2m.logout(config.session, config.devId).then(
@@ -63,6 +68,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
                 this.talk2m.login(config.account, config.username, config.password, config.devId).then( 
                   (response) => {
                     this.isSessionConnected = true;
+                    this._config.session = response.body.t2msession;
                     this.flexyCredentials.updateCredentials({"session": response.body.t2msession});
                     this.alert.success("Successfully established connection to Talk2M.");
                   }, 
@@ -77,6 +83,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
             this.talk2m.login(config.account, config.username, config.password, config.devId).then( 
               (response) => {
                 this.isSessionConnected = true;
+                this._config.session = response.body.t2msession;
                 this.flexyCredentials.updateCredentials({"session": response.body.t2msession});
                 this.alert.success("Successfully established connection to Talk2M.");
               }, 
@@ -86,15 +93,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
               }
             );
           }  
-        }else{
-          this.alert.warning("Login Talk2M failed. Missing parameter.");
-        }
       },
       (error) => {
         console.warn("Update credentials failed ", error);
         this.alert.warning("Update credentials failed. Reason: ", error.statusText)
       });
     return true;
+    }else{
+      this.alert.warning("Login Talk2M failed. Missing parameter.");
+    }
   }
 
   ngOnDestroy(): void {

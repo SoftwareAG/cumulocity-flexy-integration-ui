@@ -5,6 +5,7 @@ export interface FlexySettings {
     devId?: string,
     tenant?: string,
     session?: string,
+    token?: string,
  } 
  export interface EwonFlexyStructure {
     id: string | number;
