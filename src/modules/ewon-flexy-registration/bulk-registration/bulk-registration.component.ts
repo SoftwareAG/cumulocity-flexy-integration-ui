@@ -76,7 +76,7 @@ export class BulkRegistrationComponent implements OnInit {
               }              
             },
             (error) => {
-              this.alert.warning("Connection failed. ", error);
+              this.alert.warning("Session is disconnected. Please reconnect.");
               this.isLoading = false;
               this.isSessionConnected = false;
             }

@@ -47,7 +47,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   onConnect(config?: FlexySettings): boolean | Promise<boolean> | Observable<boolean> {
-    console.log("onSubmit ", config , this._config);
     // Connect to Talk2M
     this.flexyCredentials.updateCredentials(config).then(
       () => {
@@ -64,8 +63,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
                 this.talk2m.login(config.account, config.username, config.password, config.devId).then( 
                   (response) => {
                     this.isSessionConnected = true;
-                    console.log("login ", response);
-                    console.log(response.body.t2msession);
                     this.flexyCredentials.updateCredentials({"session": response.body.t2msession});
                     this.alert.success("Successfully established connection to Talk2M.");
                   }, 
@@ -80,8 +77,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
             this.talk2m.login(config.account, config.username, config.password, config.devId).then( 
               (response) => {
                 this.isSessionConnected = true;
-                console.log("login ", response);
-                console.log(response.body.t2msession);
                 this.flexyCredentials.updateCredentials({"session": response.body.t2msession});
                 this.alert.success("Successfully established connection to Talk2M.");
               }, 
