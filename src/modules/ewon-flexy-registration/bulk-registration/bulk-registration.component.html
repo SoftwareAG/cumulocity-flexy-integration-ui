@@ -5,81 +5,43 @@
   </div>
 </c8y-action-bar-item>
 
-<ng-container *ngIf="!isLoading && items.length > 0;">
+<div class="content-fullpage">
 
-<!-- List of ewon items -->
-<div class="list-group">
-  <!-- Display each gateway as item per row -->
-  <ng-container *ngFor="let item of items; let i = index">
-    <div class="list-group-item flex-row">
-      <!-- Action dropdown -->
-      <div class="list-item-actions">
-        <div class="settings dropdown" dropdown>
-          <button
-            type="button"
-            title="Options"
-            dropdownToggle
-            class="dropdown-toggle c8y-dropdown"
-          >
-            <i c8yIcon="ellipsis-v"></i>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-right" *dropdownMenu>
-            <li>
-              <button title="Delete">
-                <i c8y-icon="trash" class="dlt-c8y-icon-trash"></i>&nbsp;<span
-                  translate
-                  >Delete</span
-                >
-              </button>
-            </li>
-          </ul>
-        </div>
+  <!-- List of ewon items -->
+  <ng-container *ngIf="!isLoading && rows.length > 0;">
+    <c8y-data-grid
+    [title]="'EWON Flexy Registration' | translate"
+    [columns]="columns"
+    [pagination]="pagination"
+    [actionControls]="actionControls"
+    [rows]="rows"
+    [selectable]="true"
+    >
+    </c8y-data-grid>
+  </ng-container>
+
+  <!--Loading spinner-->
+  <ng-container *ngIf="isLoading;">
+    <div class="c8y-empty-state text-center">
+      <div class="spinner" style="position: relative">
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
       </div>
-      <!-- Checkbox -->
-      <div class="list-item-checkbox">
-        <label title="Select" class="c8y-checkbox">
-          <input type="checkbox" />
-          <span></span>
-        </label>
-      </div>
-      <!-- Icon -->
-      <div class="list-item-icon">
-        <i title="Flexy Gateway" c8yIcon="wi-fi-router"></i>
-      </div>
-      <!-- Details -->
-      <div class="list-item-body">
-        <div class="flex-row row">
-          <span class="col-sm-4 col-xs-12">{{item.name}}</span>
-          <div class="col-sm-6 col-xs-12 text-muted">
-            <i c8yIcon="edit"></i>&nbsp;<span translate>{{item.description}}</span>
-          </div>
-        </div>
-      </div>
+      <h3 translate="">Request for EWON devices.</h3>
+      <p translate="">This process may take some few seconds.</p>
     </div>
   </ng-container>
-</div>
-</ng-container>
 
-<ng-container *ngIf="isLoading;">
-  <div class="c8y-empty-state text-center">
-    <!--Loading spinner-->
-    <div class="spinner" style="position: relative">
-      <div class="rect1"></div>
-      <div class="rect2"></div>
-      <div class="rect3"></div>
-      <div class="rect4"></div>
-      <div class="rect5"></div>
+  <!-- empty view -->
+  <ng-container *ngIf="!isLoading && rows.length == 0;">
+    <div class="c8y-empty-state text-center">
+      <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device"></h1>
+      <h3>{{ 'There are no EWON Flexy gateways.' | translate }}</h3>
+      <h4>{{ 'Please check your settings.' | translate }}</h4>
     </div>
-    <h3 translate="">Request for EWON devices.</h3>
-    <p translate="">This process may take some few seconds.</p>
-  </div>
-</ng-container>
+  </ng-container>
 
-<!-- empty view -->
-<ng-container *ngIf="!isLoading && items.length == 0;">
-  <div class="c8y-empty-state text-center">
-    <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device"></h1>
-    <h3>{{ 'There are no EWON Flexy gateways.' | translate }}</h3>
-    <h4>{{ 'Please check your settings.' | translate }}</h4>
-  </div>
-</ng-container>
+</div>
