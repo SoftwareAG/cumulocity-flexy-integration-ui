@@ -40,7 +40,8 @@
     <div class="c8y-empty-state text-center">
       <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device"></h1>
       <h3>{{ 'There are no EWON Flexy gateways.' | translate }}</h3>
-      <h4>{{ 'Please check your settings.' | translate }}</h4>
+      <h4 *ngIf="!isSessionConnected">{{ 'Session is disconnected.' | translate }}</h4>
+      <h4 *ngIf="isSessionConnected">{{ 'Provided session does not contain any devices.' | translate }}</h4>
     </div>
   </ng-container>
 

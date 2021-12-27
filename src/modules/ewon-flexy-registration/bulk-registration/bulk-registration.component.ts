@@ -46,21 +46,34 @@ export class BulkRegistrationComponent implements OnInit {
 
         // Is session still active
         if(this._config && this._config.session && this._config.devId){
-          await this.talk2m.isSessionActive(this._config.session, this._config.devId).then(
+          await this.talk2m.getaccountinfo(this._config.session, this._config.devId).then(
             (result) => {
-              this.isSessionConnected = result;
-              this.talk2m.getewons(this._config.session, this._config.devId).then(
-                (response) => {
-                    console.log("---------------- GET EWONS");
-                    this.rows = response.body.ewons as EwonFlexyStructure[];
-                    console.log(this.rows);
-                    this.isLoading = false;
-                }, (error) => {
-                  this.alert.warning("Connection failed. ", error);
-                  this.isLoading = false;
-                  this.isSessionConnected = false;
+              this.isSessionConnected = true;
+              console.log("---------------- GET EWONS");
+              // Are pools defined?
+              if (result.body.pools && result.body.pools.length > 0){
+                for (const pool of result.body.pools) {
+                  console.log("pool = ", pool.name);
+                  this.talk2m.getewons(this._config.session, this._config.devId, pool.id).then(
+                    (response) => {    
+                        for (const ewon of response.body.ewons) {
+                          ewon.pool = pool.name;
+                        }
+                        this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
+                        console.log(this.rows);
+                        this.isLoading = false;
+                    }
+                  );
                 }
-              )
+              }else{
+                this.talk2m.getewons(this._config.session, this._config.devId).then(
+                  (response) => { 
+                      this.rows = response.body.ewons as EwonFlexyStructure[];
+                      console.log(this.rows);
+                      this.isLoading = false;
+                  }
+                );
+              }              
             },
             (error) => {
               this.alert.warning("Connection failed. ", error);
@@ -86,6 +99,12 @@ export class BulkRegistrationComponent implements OnInit {
         name: 'name',
         header: 'Name',
         path: 'name',
+        filterable: true,
+        dataType: ColumnDataType.TextShort
+      },{
+        name: 'pool',
+        header: 'Pool',
+        path: 'pool',
         filterable: true,
         dataType: ColumnDataType.TextShort
       },{

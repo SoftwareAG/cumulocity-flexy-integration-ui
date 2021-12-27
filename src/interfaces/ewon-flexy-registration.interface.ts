@@ -8,6 +8,7 @@ export interface FlexySettings {
  } 
  export interface EwonFlexyStructure {
     id: string | number;
+    pool?: string;
     name?: string;
     encodedName?: string;
     status?: string;
