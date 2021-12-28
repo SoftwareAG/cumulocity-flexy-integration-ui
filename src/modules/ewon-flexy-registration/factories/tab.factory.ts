@@ -1,3 +1,4 @@
+import { FLEXY_DATAMAILBOX_PATH } from './../../../constants/flexy-integration.constants';
 import { FLEXY_PATH, FLEXY_SETTINGS_PATH, FLEXY_REGISTRATION_PATH } from '../../../constants/flexy-integration.constants';
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,6 +23,12 @@ export class FlexyTabFactory implements TabFactory {
           label: 'Registration',
           icon: 'cloud-connection',
           priority: -1,
+        },
+        {
+          path: `${FLEXY_PATH}/${FLEXY_DATAMAILBOX_PATH}`,
+          label: 'Data Mailbox',
+          icon: 'cloud-download',
+          priority: -2,
         }
       ]
     }
