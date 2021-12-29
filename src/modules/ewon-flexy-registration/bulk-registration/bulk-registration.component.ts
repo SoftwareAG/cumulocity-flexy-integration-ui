@@ -1,3 +1,4 @@
+import { InventoryService } from '@c8y/ngx-components/api';
 import { Component, OnInit } from '@angular/core';
 import { ActionControl, AlertService, Column, ColumnDataType, Pagination } from '@c8y/ngx-components';
 //custom
@@ -5,6 +6,7 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../int
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
+import { templateVisitAll } from '@angular/compiler';
 
 @Component({
   selector: 'app-bulk-registration',
@@ -103,8 +105,12 @@ export class BulkRegistrationComponent implements OnInit {
 
 
   }
+
+  ngOnDestroy(): void {
+    // this.flexyRegistration.closeSubscriptionOnDeviceRequestRegistration();
+  }
   
-  startRegistration(){
+  async startRegistration(){
     console.log("----------------------");
     console.log("- START REGISTRATION -");
     console.log("----------------------");
@@ -116,17 +122,49 @@ export class BulkRegistrationComponent implements OnInit {
       // https://cumulocity.com/guides/device-sdk/rest/#step-0-request-device-credentials
       if(ewon.registered == FlexyIntegrated.Not_integrated){
         console.log("Start registering device id = " + ewon.id);
+
         // 1. Create device request
-          // 1.1 Listen on status changed to "WAITING_ACCEPTANCE"
-          // 1.2 Change status to acceptance 
-        // 2. Create inventoty managed object
-        // 3. Assign externalId to inventory 
+        await this.flexyRegistration.createDeviceRequestRegistration(ewon.id.toString()).then(
+          (result) => {
+            // 1.1 Bootstraps the device credentials
+            this.flexyRegistration.requestDeviceCredentials(ewon.id.toString()).then(
+              () => {},
+              (error) => {
+                if(error.res.status == 404){
+                  console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
+                  // 1.2 Change status to acceptance 
+                  this.flexyRegistration.acceptDeviceRequest(ewon.id.toString()).then(
+                    () => {
+                      // 2. Create inventoty managed object
+                      this.flexyRegistration.createDeviceInventory(ewon.name).then(
+                        (result) => {
+                          // 3. Assign externalId to inventory 
+                          this.flexyRegistration.createIdentidyForDevice(result.id, ewon.id.toString()).then(
+                            () => {
+                              this.rows[this.rows.findIndex(element => element.id == item)].registered = FlexyIntegrated.Integrated;
+                            }
+                          );
+                        }, (error) => {
+                          this.alert.warning("Create device invenotry failed.", error);
+                        }
+                    );
+                    }
+                  );
+                }else{
+                  console.error("Unexpected error code.", error.res);
+                }
+              }
+            );
+          }
+          );
+        
       }else{
         this.alert.info("Device with externalId '" + ewon.id + "' is already registered.");
       }
     }
     
   }
+
   onRefresh(event){
     console.log("Fetch gateways from talk2m again...", event);
   }
