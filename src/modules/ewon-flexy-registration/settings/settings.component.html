@@ -1,5 +1,5 @@
 <c8y-title>{{ "EWON Flexy Registration" | translate }}</c8y-title>
-
+<!--Action Bar-->
 <c8y-action-bar-item [placement]="'right'">
   <div class="c8y-realtime">
     <span [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"></span> 
@@ -7,6 +7,7 @@
   </div>
 </c8y-action-bar-item>
 
+<!--Settings Card-->
 <div class="card">
   <div class="card-header separator">
     <h4 class="card-title">{{ "Integration Settings" | translate }}</h4>

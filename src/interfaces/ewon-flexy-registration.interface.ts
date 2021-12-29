@@ -11,6 +11,7 @@ export interface FlexySettings {
     id: string | number;
     pool?: string;
     name?: string;
+    registered?:string;
     encodedName?: string;
     status?: string;
     description?: string;
@@ -32,6 +33,6 @@ export interface FlexySettings {
   }
 
   export declare const enum FlexyIntegrated {
-    Integrated = "Successful",
-    Not_integrated = "Unsupported"
+    Integrated = "yes",
+    Not_integrated = "no"
 }

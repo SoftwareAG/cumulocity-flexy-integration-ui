@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { ActionControl, AlertService, Column, ColumnDataType, DataGridComponent, Pagination } from '@c8y/ngx-components';
+import { ActionControl, AlertService, Column, ColumnDataType, Pagination } from '@c8y/ngx-components';
+//custom
 import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../interfaces/ewon-flexy-registration.interface';
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
+import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
 
 @Component({
   selector: 'app-bulk-registration',
   templateUrl: './bulk-registration.component.html',
-  providers: [Talk2MService, EWONFlexyCredentialsTenantoptionsService],
+  providers: [Talk2MService, EWONFlexyCredentialsTenantoptionsService, EWONFlexyDeviceRegistrationService],
 })
 export class BulkRegistrationComponent implements OnInit {
   
@@ -15,6 +17,7 @@ export class BulkRegistrationComponent implements OnInit {
 
   public isSessionConnected: boolean;
   public isLoading: boolean;
+  public selectedItems: Array<number>;
 
   columns: Column[] = [];
   rows: EwonFlexyStructure[] = [];
@@ -28,10 +31,12 @@ export class BulkRegistrationComponent implements OnInit {
   constructor( private alert: AlertService,
     private talk2m: Talk2MService,
     private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+    private flexyRegistration: EWONFlexyDeviceRegistrationService
     ) { 
     this.isSessionConnected = false;
     this.isLoading = true;
     this.columns = this.getDefaultColumns();
+    this.selectedItems = [];
   }
 
   ngOnInit() {
@@ -58,9 +63,14 @@ export class BulkRegistrationComponent implements OnInit {
                     (response) => {    
                         for (const ewon of response.body.ewons) {
                           ewon.pool = pool.name;
-                          ewon.integrated = FlexyIntegrated.Not_integrated;
+                          this.flexyRegistration.isDeviceRegistered(ewon.id).then(
+                            (result) => {
+                              ewon.registered = (result) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+                            }
+                          );                          
                         }
                         this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
+                                        
                         console.log(this.rows);
                         this.isLoading = false;
                     }
@@ -93,9 +103,37 @@ export class BulkRegistrationComponent implements OnInit {
 
 
   }
+  
+  startRegistration(){
+    console.log("----------------------");
+    console.log("- START REGISTRATION -");
+    console.log("----------------------");
+    console.log("register device ids...", this.selectedItems);
 
-  gridChanges(event){
+    for (const item of this.selectedItems) {
+      const ewon = this.rows.find(element => element.id == item);
+
+      // https://cumulocity.com/guides/device-sdk/rest/#step-0-request-device-credentials
+      if(ewon.registered == FlexyIntegrated.Not_integrated){
+        console.log("Start registering device id = " + ewon.id);
+        // 1. Create device request
+          // 1.1 Listen on status changed to "WAITING_ACCEPTANCE"
+          // 1.2 Change status to acceptance 
+        // 2. Create inventoty managed object
+        // 3. Assign externalId to inventory 
+      }else{
+        this.alert.info("Device with externalId '" + ewon.id + "' is already registered.");
+      }
+    }
+    
+  }
+  onRefresh(event){
+    console.log("Fetch gateways from talk2m again...", event);
+  }
+
+  selectItems(event){
     console.log(event);
+    this.selectedItems = event;
   }
 
   poolFilter(event){
@@ -122,9 +160,9 @@ export class BulkRegistrationComponent implements OnInit {
         path: 'description',
         dataType: ColumnDataType.TextLong
       },{
-        name: 'integrated',
-        header: 'Integrated',
-        path: 'integrated',
+        name: 'registered',
+        header: 'Cumulocity Registered',
+        path: 'registered',
         filterable: true,
         dataType: ColumnDataType.TextShort
       },

@@ -5,4 +5,6 @@ export const FLEXY_DATAMAILBOX_PATH = 'datamailbox';
 
 export const FLEXY_TENANTOPTIONS_CATEGORY = 'flexy';
 
+export const FLEXY_SERIALTYPE = 'flexy_id';
+
 export const TALK2M_BASEURL = 'https://m2web.talk2m.com/t2mapi';
