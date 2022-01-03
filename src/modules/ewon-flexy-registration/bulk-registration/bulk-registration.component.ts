@@ -23,6 +23,7 @@ export class BulkRegistrationComponent implements OnInit {
 
   public completionPercent: number;
   public selectedItems: Array<number>;
+  public poolGroupList: Map<string,string>;
 
   public report = {
     failed: [],
@@ -47,6 +48,7 @@ export class BulkRegistrationComponent implements OnInit {
     this.isLoading = true;
     this.isRegistratingFlexy = false;
 
+    this.poolGroupList = new Map;
     this.completionPercent = 0;
     this.columns = this.getDefaultColumns();
     this.selectedItems = [];
@@ -128,7 +130,7 @@ export class BulkRegistrationComponent implements OnInit {
     console.log("register device ids...", this.selectedItems);
     this.isRegistratingFlexy = true;
 
-    // 0. Delete already created device request for id
+    // 0.1 Delete already created device request for id
     await this.flexyRegistration.getDeviceRequestRegistration().then(
       (result) => {
           for (const item of this.selectedItems) {
@@ -136,6 +138,27 @@ export class BulkRegistrationComponent implements OnInit {
               this.flexyRegistration.deleteDeviceRequestRegistration(item.toString());
             }
           }
+      }
+    );
+
+    //0.2 Create group for pool definition
+    await this.flexyRegistration.getDeviceGroupInventoryList().then(
+      async (result) => {
+        for (const item of this.selectedItems) {
+          const ewon = this.rows.find(element => element.id == item);
+          if (this.poolGroupList.has(ewon.pool)){
+            continue;
+          }
+          if(ewon.pool && result.find(group => group.name == ewon.pool)){
+            this.poolGroupList.set(ewon.pool, result[result.findIndex(group => group.name == ewon.pool)].id) ;
+          }else if(ewon.pool && !result.find(group => group.name == ewon.pool)){
+            await this.flexyRegistration.createDeviceGroupInventory(ewon.pool).then(
+              (result) => {
+                this.poolGroupList.set(ewon.pool, result.id);
+              }
+            );
+          }
+        }
       }
     );
     
@@ -164,7 +187,19 @@ export class BulkRegistrationComponent implements OnInit {
                         async (result) => {
                           // 3. Assign externalId to inventory 
                           await this.flexyRegistration.createIdentidyForDevice(result.id, ewon.id.toString()).then(
-                            () => {
+                            async (result) => {
+                              // 4. Assign group to inventory
+                              if (ewon.pool && this.poolGroupList.has(ewon.pool)){
+                                console.log("List of groups:", this.poolGroupList);
+                                console.log("child group = " + this.poolGroupList.get(ewon.pool) + " parent device = " + result.managedObject.id.toString())
+                                await this.flexyRegistration.addGroupChildAssetToDevice(this.poolGroupList.get(ewon.pool), result.managedObject.id.toString()).then(
+                                  (result) => {
+                                    console.log("addGroupChildAssetToDevice result", result);
+                                  }, (error) => {
+                                    console.log("addGroupChildAssetToDevice error", error);
+                                  }
+                                );
+                              }
                               this.rows[this.rows.findIndex(element => element.id == item)].registered = FlexyIntegrated.Integrated;
                               this.report.successful.push(ewon.id);
                               this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
