@@ -49,11 +49,25 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
+  async getDeviceRequestRegistration(): Promise<IDeviceRegistration[]>{
+    const filter: object = {
+           pageSize: 1000,
+           withTotalPages: true
+         };
+    const {data, res, paging} = await this.deviceRegistration.list(filter);
+    return data;
+  }
+
   async createDeviceRequestRegistration(id:string): Promise<IDeviceRegistration>{
     const registrationObject: IDeviceRegistrationCreate = {
             id: id,
           };
     const {data, res} = await this.deviceRegistration.create(registrationObject);
+    return data;
+  }
+
+  async deleteDeviceRequestRegistration(id:string){
+    const {data, res} = await this.deviceRegistration.delete(id);
     return data;
   }
 

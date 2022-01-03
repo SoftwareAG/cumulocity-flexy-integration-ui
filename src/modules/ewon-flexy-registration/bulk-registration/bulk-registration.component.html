@@ -27,7 +27,21 @@
   </div>
 </div>
 -->
-
+<!--Registration Progress bar-->
+<ng-container *ngIf="isRegistratingFlexy">
+<div class="d-block">
+<div class="progress progress-striped active ">
+  <div
+    class="progress-bar"
+    role="progressbar"
+    aria-valuenow="0"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [style.width.%]="completionPercent"
+  ></div>
+</div>
+</div>
+</ng-container>
 <!--Table of EWON Flexy gateways-->
 <div class="d-block">
   <!-- List of ewon items -->

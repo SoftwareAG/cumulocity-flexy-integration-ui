@@ -19,7 +19,15 @@ export class BulkRegistrationComponent implements OnInit {
 
   public isSessionConnected: boolean;
   public isLoading: boolean;
+  public isRegistratingFlexy: boolean;
+
+  public completionPercent: number;
   public selectedItems: Array<number>;
+
+  public report = {
+    failed: [],
+    successful : []
+  };
 
   columns: Column[] = [];
   rows: EwonFlexyStructure[] = [];
@@ -37,6 +45,9 @@ export class BulkRegistrationComponent implements OnInit {
     ) { 
     this.isSessionConnected = false;
     this.isLoading = true;
+    this.isRegistratingFlexy = false;
+
+    this.completionPercent = 0;
     this.columns = this.getDefaultColumns();
     this.selectedItems = [];
   }
@@ -115,54 +126,78 @@ export class BulkRegistrationComponent implements OnInit {
     console.log("- START REGISTRATION -");
     console.log("----------------------");
     console.log("register device ids...", this.selectedItems);
+    this.isRegistratingFlexy = true;
 
-    for (const item of this.selectedItems) {
+    // 0. Delete already created device request for id
+    await this.flexyRegistration.getDeviceRequestRegistration().then(
+      (result) => {
+          for (const item of this.selectedItems) {
+            if (result.find(element => element.id == item.toString())){
+              this.flexyRegistration.deleteDeviceRequestRegistration(item.toString());
+            }
+          }
+      }
+    );
+    
+    // Loop through selected items to register
+    for await (const item of this.selectedItems) {
       const ewon = this.rows.find(element => element.id == item);
 
-      // https://cumulocity.com/guides/device-sdk/rest/#step-0-request-device-credentials
       if(ewon.registered == FlexyIntegrated.Not_integrated){
         console.log("Start registering device id = " + ewon.id);
 
         // 1. Create device request
         await this.flexyRegistration.createDeviceRequestRegistration(ewon.id.toString()).then(
-          (result) => {
+          async (result) => {
+            console.log(ewon.id + ' createDeviceRequestRegistration: ', result);
             // 1.1 Bootstraps the device credentials
-            this.flexyRegistration.requestDeviceCredentials(ewon.id.toString()).then(
+            await this.flexyRegistration.requestDeviceCredentials(ewon.id.toString()).then(
               () => {},
-              (error) => {
+              async (error) => {
                 if(error.res.status == 404){
                   console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
                   // 1.2 Change status to acceptance 
-                  this.flexyRegistration.acceptDeviceRequest(ewon.id.toString()).then(
-                    () => {
+                  await this.flexyRegistration.acceptDeviceRequest(ewon.id.toString()).then(
+                    async () => {
                       // 2. Create inventoty managed object
-                      this.flexyRegistration.createDeviceInventory(ewon.name).then(
-                        (result) => {
+                      await this.flexyRegistration.createDeviceInventory(ewon.name).then(
+                        async (result) => {
                           // 3. Assign externalId to inventory 
-                          this.flexyRegistration.createIdentidyForDevice(result.id, ewon.id.toString()).then(
+                          await this.flexyRegistration.createIdentidyForDevice(result.id, ewon.id.toString()).then(
                             () => {
                               this.rows[this.rows.findIndex(element => element.id == item)].registered = FlexyIntegrated.Integrated;
+                              this.report.successful.push(ewon.id);
+                              this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
                             }
                           );
                         }, (error) => {
                           this.alert.warning("Create device invenotry failed.", error);
+                          this.report.failed.push(ewon.id);
+                          this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
                         }
                     );
                     }
                   );
                 }else{
                   console.error("Unexpected error code.", error.res);
+                  this.report.failed.push(ewon.id);
+                  this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
                 }
               }
             );
-          }
-          );
-        
+          }, (error) => {
+            this.alert.warning("Device request already exists.", error);
+            this.report.failed.push(ewon.id);
+          });
       }else{
         this.alert.info("Device with externalId '" + ewon.id + "' is already registered.");
+        this.report.failed.push(ewon.id);
+        this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
       }
     }
-    
+    this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
+    this.alert.info("Registration finished.", JSON.stringify(this.report));
+    this.isRegistratingFlexy = false;
   }
 
   onRefresh(event){
@@ -170,7 +205,6 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   selectItems(event){
-    console.log(event);
     this.selectedItems = event;
   }
 
