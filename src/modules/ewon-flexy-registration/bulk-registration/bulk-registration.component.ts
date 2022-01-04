@@ -122,6 +122,71 @@ export class BulkRegistrationComponent implements OnInit {
   ngOnDestroy(): void {
     // this.flexyRegistration.closeSubscriptionOnDeviceRequestRegistration();
   }
+
+  private async deleteExistingRequests() {
+    const existingRequests = await this.flexyRegistration.getDeviceRequestRegistration();
+    const promises = this.selectedItems
+      .filter(item => existingRequests.find(element => element.id == item.toString()))
+      .map(item => this.flexyRegistration.deleteDeviceRequestRegistration(item.toString()));
+    await Promise.all(promises);
+  }
+
+  private async registerAllDevices() {
+    // Loop through selected items to register and register them in parallel
+    const promises = this.selectedItems.map(item => 
+      this.registerDevice(item)
+        .then(() => this.report.successful.push(item), () => this.report.failed.push(item))
+        .then(() => this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100)
+    );
+    await Promise.all(promises);
+  }
+
+  private async registerDevice(item: number) {
+    const ewon = this.rows.find(element => element.id == item);
+
+    if (ewon.registered !== FlexyIntegrated.Not_integrated) {
+      this.alert.info("Device with externalId '" + ewon.id + "' is already registered.");
+      return;
+    }
+
+    console.log("Start registering device id = " + ewon.id);
+    // 1. Create device request
+    const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewon.id.toString()).catch((error) => {
+      this.alert.warning("Device request already exists.", error);
+      throw error;
+    });
+    console.log(ewon.id + ' createDeviceRequestRegistration: ', registration);
+    // 1.1 Bootstraps the device credentials
+    try {
+      await this.flexyRegistration.requestDeviceCredentials(ewon.id.toString());
+      // return in case we are actually able to retrieve the credentials
+      return;
+    } catch (error) {
+      if (error && error.res && error.res.status === 404) {
+        // the expected status
+      } else {
+        console.error("Unexpected error code.", error.res);
+        throw error;
+      }
+    }
+    console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
+    // 1.2 Change status to acceptance 
+    await this.flexyRegistration.acceptDeviceRequest(ewon.id.toString());
+    // 2. Create inventoty managed object
+    const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon.name).catch((error) => {
+      this.alert.warning("Create device invenotry failed.", error);
+      throw error;
+    });
+    // 3. Assign externalId to inventory 
+    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewon.id.toString());
+    // 4. Assign group to inventory
+    if (ewon.pool && this.poolGroupList.has(ewon.pool)){
+      console.log("List of groups:", this.poolGroupList);
+      console.log("child group = " + this.poolGroupList.get(ewon.pool) + " parent device = " + identityObj.managedObject.id.toString())
+      await this.flexyRegistration.addGroupChildAssetToDevice(this.poolGroupList.get(ewon.pool), identityObj.managedObject.id.toString());
+    }
+    this.rows[this.rows.findIndex(element => element.id == item)].registered = FlexyIntegrated.Integrated;
+  }
   
   async startRegistration(){
     console.log("----------------------");
@@ -131,106 +196,25 @@ export class BulkRegistrationComponent implements OnInit {
     this.isRegistratingFlexy = true;
 
     // 0.1 Delete already created device request for id
-    await this.flexyRegistration.getDeviceRequestRegistration().then(
-      (result) => {
-          for (const item of this.selectedItems) {
-            if (result.find(element => element.id == item.toString())){
-              this.flexyRegistration.deleteDeviceRequestRegistration(item.toString());
-            }
-          }
-      }
-    );
+    await this.deleteExistingRequests();
 
     //0.2 Create group for pool definition
-    await this.flexyRegistration.getDeviceGroupInventoryList().then(
-      async (result) => {
-        for (const item of this.selectedItems) {
-          const ewon = this.rows.find(element => element.id == item);
-          if (this.poolGroupList.has(ewon.pool)){
-            continue;
-          }
-          if(ewon.pool && result.find(group => group.name == ewon.pool)){
-            this.poolGroupList.set(ewon.pool, result[result.findIndex(group => group.name == ewon.pool)].id) ;
-          }else if(ewon.pool && !result.find(group => group.name == ewon.pool)){
-            await this.flexyRegistration.createDeviceGroupInventory(ewon.pool).then(
-              (result) => {
-                this.poolGroupList.set(ewon.pool, result.id);
-              }
-            );
-          }
-        }
-      }
-    );
-    
-    // Loop through selected items to register
-    for await (const item of this.selectedItems) {
+    const groups = await this.flexyRegistration.getDeviceGroupInventoryList()
+    for (const item of this.selectedItems) {
       const ewon = this.rows.find(element => element.id == item);
-
-      if(ewon.registered == FlexyIntegrated.Not_integrated){
-        console.log("Start registering device id = " + ewon.id);
-
-        // 1. Create device request
-        await this.flexyRegistration.createDeviceRequestRegistration(ewon.id.toString()).then(
-          async (result) => {
-            console.log(ewon.id + ' createDeviceRequestRegistration: ', result);
-            // 1.1 Bootstraps the device credentials
-            await this.flexyRegistration.requestDeviceCredentials(ewon.id.toString()).then(
-              () => {},
-              async (error) => {
-                if(error.res.status == 404){
-                  console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
-                  // 1.2 Change status to acceptance 
-                  await this.flexyRegistration.acceptDeviceRequest(ewon.id.toString()).then(
-                    async () => {
-                      // 2. Create inventoty managed object
-                      await this.flexyRegistration.createDeviceInventory(ewon.name).then(
-                        async (result) => {
-                          // 3. Assign externalId to inventory 
-                          await this.flexyRegistration.createIdentidyForDevice(result.id, ewon.id.toString()).then(
-                            async (result) => {
-                              // 4. Assign group to inventory
-                              if (ewon.pool && this.poolGroupList.has(ewon.pool)){
-                                console.log("List of groups:", this.poolGroupList);
-                                console.log("child group = " + this.poolGroupList.get(ewon.pool) + " parent device = " + result.managedObject.id.toString())
-                                await this.flexyRegistration.addGroupChildAssetToDevice(this.poolGroupList.get(ewon.pool), result.managedObject.id.toString()).then(
-                                  (result) => {
-                                    console.log("addGroupChildAssetToDevice result", result);
-                                  }, (error) => {
-                                    console.log("addGroupChildAssetToDevice error", error);
-                                  }
-                                );
-                              }
-                              this.rows[this.rows.findIndex(element => element.id == item)].registered = FlexyIntegrated.Integrated;
-                              this.report.successful.push(ewon.id);
-                              this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
-                            }
-                          );
-                        }, (error) => {
-                          this.alert.warning("Create device invenotry failed.", error);
-                          this.report.failed.push(ewon.id);
-                          this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
-                        }
-                    );
-                    }
-                  );
-                }else{
-                  console.error("Unexpected error code.", error.res);
-                  this.report.failed.push(ewon.id);
-                  this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
-                }
-              }
-            );
-          }, (error) => {
-            this.alert.warning("Device request already exists.", error);
-            this.report.failed.push(ewon.id);
-          });
-      }else{
-        this.alert.info("Device with externalId '" + ewon.id + "' is already registered.");
-        this.report.failed.push(ewon.id);
-        this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
+      if (this.poolGroupList.has(ewon.pool)){
+        continue;
+      }
+      const group = groups.find(group => group.name == ewon.pool)
+      if (ewon.pool && group) {
+        this.poolGroupList.set(ewon.pool, group.id) ;
+      } else if(ewon.pool && !group) {
+        const createdGroup = await this.flexyRegistration.createDeviceGroupInventory(ewon.pool)
+        this.poolGroupList.set(ewon.pool, createdGroup.id);
       }
     }
-    this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100;
+    
+    await this.registerAllDevices();
     this.alert.info("Registration finished.", JSON.stringify(this.report));
     this.isRegistratingFlexy = false;
   }
