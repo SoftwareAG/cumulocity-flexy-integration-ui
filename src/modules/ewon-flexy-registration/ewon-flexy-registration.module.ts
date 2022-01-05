@@ -9,9 +9,10 @@ import { CoreModule } from '@c8y/ngx-components';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
-import { FLEXY_PATH, FLEXY_SETTINGS_PATH, FLEXY_REGISTRATION_PATH } from '../../constants/flexy-integration.constants';
+import { FLEXY_PATH, FLEXY_SETTINGS_PATH, FLEXY_REGISTRATION_PATH, FLEXY_DATAMAILBOX_PATH } from '../../constants/flexy-integration.constants';
 import { SettingsComponent } from './settings/settings.component';
 import { BulkRegistrationComponent } from './bulk-registration/bulk-registration.component';
+import { DataMailboxDownloadComponent } from './datamailbox-download/datamailbox-download.component';
 
 const moduleRoutes: Routes = [
   {
@@ -29,6 +30,10 @@ const moduleRoutes: Routes = [
       {
         path: FLEXY_REGISTRATION_PATH,
         component: BulkRegistrationComponent
+      },
+      {
+        path: FLEXY_DATAMAILBOX_PATH,
+        component: DataMailboxDownloadComponent
       }
     ]
   }
@@ -55,8 +60,8 @@ const moduleNavigation: Provider[] = [
     CoreModule,
     TooltipModule,
   ],
-  declarations: [SettingsComponent, BulkRegistrationComponent],
-  entryComponents: [SettingsComponent, BulkRegistrationComponent],
+  declarations: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent],
+  entryComponents: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent],
   providers: [...moduleNavigation]
 })
 export class FlexyRegistrationModule {}
