@@ -1,4 +1,4 @@
-import { InventoryService } from '@c8y/ngx-components/api';
+import { IDeviceRegistration } from '@c8y/client';
 import { Component, OnInit } from '@angular/core';
 import { ActionControl, AlertService, Column, ColumnDataType, Pagination } from '@c8y/ngx-components';
 //custom
@@ -6,7 +6,6 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../int
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
-import { templateVisitAll } from '@angular/compiler';
 
 @Component({
   selector: 'app-bulk-registration',
@@ -24,6 +23,7 @@ export class BulkRegistrationComponent implements OnInit {
   public completionPercent: number;
   public selectedItems: Array<number>;
   public poolGroupList: Map<string,string>;
+  public existingRequests: IDeviceRegistration[];
 
   public report = {
     failed: [],
@@ -49,6 +49,7 @@ export class BulkRegistrationComponent implements OnInit {
     this.isRegistratingFlexy = false;
 
     this.poolGroupList = new Map;
+    this.existingRequests = [];
     this.completionPercent = 0;
     this.columns = this.getDefaultColumns();
     this.selectedItems = [];
@@ -150,28 +151,28 @@ export class BulkRegistrationComponent implements OnInit {
     }
 
     console.log("Start registering device id = " + ewon.id);
-    // 1. Create device request
-    const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewon.id.toString()).catch((error) => {
-      this.alert.warning("Device request already exists.", error);
-      throw error;
-    });
-    console.log(ewon.id + ' createDeviceRequestRegistration: ', registration);
-    // 1.1 Bootstraps the device credentials
-    try {
-      await this.flexyRegistration.requestDeviceCredentials(ewon.id.toString());
-      // return in case we are actually able to retrieve the credentials
-      return;
-    } catch (error) {
-      if (error && error.res && error.res.status === 404) {
-        // the expected status
-      } else {
-        console.error("Unexpected error code.", error.res);
-        throw error;
+    // 1. Create device request if not exists
+    const existingRequest = this.existingRequests.find(element => element.id == item.toString());
+    if (!existingRequest){
+      const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewon.id.toString());
+      console.log(ewon.id + ' createDeviceRequestRegistration: ', registration);
+     // 1.1 Bootstraps the device credentials
+      try {
+        await this.flexyRegistration.requestDeviceCredentials(ewon.id.toString());
+        // return in case we are actually able to retrieve the credentials
+        return;
+      } catch (error) {
+        if (error && error.res && error.res.status === 404) {
+          // the expected status
+        } else {
+          console.error("Unexpected error code.", error.res);
+          throw error;
+        }
       }
+      console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
+      // 1.2 Change status to acceptance 
+      await this.flexyRegistration.acceptDeviceRequest(ewon.id.toString());
     }
-    console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
-    // 1.2 Change status to acceptance 
-    await this.flexyRegistration.acceptDeviceRequest(ewon.id.toString());
     // 2. Create inventoty managed object
     const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon.name).catch((error) => {
       this.alert.warning("Create device invenotry failed.", error);
@@ -195,8 +196,8 @@ export class BulkRegistrationComponent implements OnInit {
     console.log("register device ids...", this.selectedItems);
     this.isRegistratingFlexy = true;
 
-    // 0.1 Delete already created device request for id
-    await this.deleteExistingRequests();
+    // 0.1 Get existing device requests
+    this.existingRequests = await this.flexyRegistration.getDeviceRequestRegistration();
 
     //0.2 Create group for pool definition
     const groups = await this.flexyRegistration.getDeviceGroupInventoryList()
