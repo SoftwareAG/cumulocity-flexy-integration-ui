@@ -124,14 +124,6 @@ export class BulkRegistrationComponent implements OnInit {
     // this.flexyRegistration.closeSubscriptionOnDeviceRequestRegistration();
   }
 
-  private async deleteExistingRequests() {
-    const existingRequests = await this.flexyRegistration.getDeviceRequestRegistration();
-    const promises = this.selectedItems
-      .filter(item => existingRequests.find(element => element.id == item.toString()))
-      .map(item => this.flexyRegistration.deleteDeviceRequestRegistration(item.toString()));
-    await Promise.all(promises);
-  }
-
   private async registerAllDevices() {
     // Loop through selected items to register and register them in parallel
     const promises = this.selectedItems.map(item => 
