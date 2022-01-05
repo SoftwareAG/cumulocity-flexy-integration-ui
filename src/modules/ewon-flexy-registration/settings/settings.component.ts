@@ -96,7 +96,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       },
       (error) => {
         console.warn("Update credentials failed ", error);
-        this.alert.warning("Update credentials failed. Reason: ", error.statusText)
+        this.alert.warning("Update credentials failed. ", JSON.stringify(error))
       });
     return true;
     }else{
@@ -113,6 +113,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.flexyCredentials.getCredentials().then(
       async (options) => {
         console.log("------------------------");
+        console.log("tenant credentials = ", options);
         options.forEach(option => {
           this._config[option.key] = option.value;
         });
@@ -124,7 +125,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }        
       },
       (error) => {
-        this.alert.warning("Get credentials failed. Reason: ", error);
+        this.alert.warning("Get credentials failed.", JSON.stringify(error.res));
       }
     );
   }
