@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { IManagedObject, IExternalIdentity, DeviceRegistrationService, IDeviceRegistrationCreate, IDeviceRegistration, IDeviceBootstrapOptions, IDeviceCredentials, IIdentified } from "@c8y/client";
 import { InventoryService, IdentityService } from "@c8y/ngx-components/api";
+import { EwonFlexyStructure } from "src/interfaces/ewon-flexy-registration.interface";
 import { FLEXY_DEVICETYPE, FLEXY_SERIALTYPE } from './../constants/flexy-integration.constants';
 
 @Injectable()
@@ -13,14 +14,31 @@ export class EWONFlexyDeviceRegistrationService {
   ) {}
 
   // InventoryService
-  async createDeviceInventory(name:string): Promise<IManagedObject> {
-    const partialManagedObj: Partial<IManagedObject> = {
+  async createDeviceInventory(ewon:EwonFlexyStructure): Promise<IManagedObject> {
+    let partialManagedObj: Partial<IManagedObject> = {
              pageSize: 1,
              withTotalPages: true,
-             name: name,
+             name: ewon.name,
              type:  FLEXY_DEVICETYPE,
-             c8y_IsDevice: {}
-           };   
+             c8y_IsDevice: {},
+             talk2m: {
+              encodedName : ewon.encodedName,
+              description : ewon.description,
+              m2webServer : ewon.m2webServer,
+              ewonServices : [],
+              customAttributes : [],
+              lanDevices : []
+             }
+           };
+    for (const attribute of ewon.customAttributes) {
+      partialManagedObj.talk2m.customAttributes.push(attribute);
+    }  
+    for (const services of ewon.ewonServices) {
+      partialManagedObj.talk2m.ewonServices.push(services);
+    } 
+    for (const lanDevice of ewon.lanDevices) {
+      partialManagedObj.talk2m.lanDevices.push(lanDevice);
+    }
     const { data, res } = await this.inventoryService.create(partialManagedObj);
     return data;
   }
