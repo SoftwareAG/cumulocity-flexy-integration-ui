@@ -30,6 +30,7 @@ export interface FlexySettings {
         port?: number;
         protocol?: string;
     }>;
+    dmLastSyncDate?:Date;
   }
 
   export declare const enum FlexyIntegrated {
