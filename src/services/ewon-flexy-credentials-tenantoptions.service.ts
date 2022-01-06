@@ -11,13 +11,13 @@ export class EWONFlexyCredentialsTenantoptionsService {
     private alert: AlertService
   ) {}
 
-  async updateCredentials(config: any) {
+  async updateCredentials(config: any){
 
     const user = await this.userService.current();
     const base64 = btoa(user.data.id).replace("=","").replace("+","-").replace("/","_");
 
     const listKeys = Object.keys(config)
-    for await (const iterate of listKeys) {
+    for (const iterate of listKeys) {
 
       if (iterate === "password"){
         continue;
@@ -27,9 +27,8 @@ export class EWONFlexyCredentialsTenantoptionsService {
         key: iterate,
         value: config[iterate],
       };
-      const { data, res } = await this.tenantOptionsService.update(option);
+      this.tenantOptionsService.update(option);
     }
-    
   }
 
   async getCredentials(): Promise<ITenantOption[]> {
