@@ -13,6 +13,7 @@ import { FLEXY_PATH, FLEXY_SETTINGS_PATH, FLEXY_REGISTRATION_PATH, FLEXY_DATAMAI
 import { SettingsComponent } from './settings/settings.component';
 import { BulkRegistrationComponent } from './bulk-registration/bulk-registration.component';
 import { DataMailboxDownloadComponent } from './datamailbox-download/datamailbox-download.component';
+import { MicroserviceIntegrationService } from '../../services/c8y-microservice-talk2m-integration.service';
 
 const moduleRoutes: Routes = [
   {
@@ -48,7 +49,7 @@ const moduleNavigation: Provider[] = [
     provide: HOOK_TABS,
     useClass: FlexyTabFactory,
     multi: true
-  }
+  }, MicroserviceIntegrationService
 ];
 
 @NgModule({

@@ -5,14 +5,18 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Tab, TabFactory } from '@c8y/ngx-components';
 import { merge, Observable } from 'rxjs';
 import { filter, map, take, timeout } from 'rxjs/operators';
+import { MicroserviceIntegrationService } from '../../../services/c8y-microservice-talk2m-integration.service';
 
 @Injectable()
 export class FlexyTabFactory implements TabFactory {
-  constructor(private router: Router) {}
+  constructor(private router: Router,
+    private c8yMicroservice: MicroserviceIntegrationService) {}
 
-  get(activatedRoute?: ActivatedRoute): Tab[] {
+  async get(activatedRoute?: ActivatedRoute): Promise<Tab[]> {
     if (this.router.url.includes(`${FLEXY_PATH}`)) {
-      return [
+
+      const isMicroserviceEnabled = await this.c8yMicroservice.isMicroserviceEnabled();
+      let tabs =  [
         {
           path: `${FLEXY_PATH}/${FLEXY_SETTINGS_PATH}`,
           label: 'Settings',
@@ -31,6 +35,10 @@ export class FlexyTabFactory implements TabFactory {
           priority: -2,
         }
       ]
+      if (!isMicroserviceEnabled){
+        tabs = tabs.slice(0 , -1);
+      }
+      return tabs;
     }
     return [];
   }
