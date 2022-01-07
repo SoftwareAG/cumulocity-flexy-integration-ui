@@ -135,7 +135,7 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   private async registerDevice(item: number) {
-    const ewon = this.rows.find(element => element.id == item);
+    const ewon: EwonFlexyStructure = this.rows.find(element => element.id == item);
 
     if (ewon.registered !== FlexyIntegrated.Not_integrated) {
       this.alert.info("Device with externalId '" + ewon.id + "' is already registered.");
@@ -166,10 +166,11 @@ export class BulkRegistrationComponent implements OnInit {
       await this.flexyRegistration.acceptDeviceRequest(ewon.id.toString());
     }
     // 2. Create inventoty managed object
-    const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon.name).catch((error) => {
+    const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
       this.alert.warning("Create device invenotry failed.", error);
       throw error;
     });
+    console.log("created inventory: ", deviceInventoryObj);
     // 3. Assign externalId to inventory 
     const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewon.id.toString());
     // 4. Assign group to inventory

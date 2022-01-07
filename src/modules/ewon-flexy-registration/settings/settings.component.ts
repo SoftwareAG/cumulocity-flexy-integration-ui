@@ -57,7 +57,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
       // Connect to Talk2M
       this.flexyCredentials.updateCredentials(config).then(
       () => {
-        this.alert.success("Update credentials successfully.");
           // Logout before establish new session
           if (config.session && this.isSessionConnected){
             this.talk2m.logout(config.session, config.devId).then(
@@ -66,11 +65,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
                 console.log("logout ", response);
                  // Login
                 this.talk2m.login(config.account, config.username, config.password, config.devId).then( 
-                  (response) => {
+                  async (response) => {
                     this.isSessionConnected = true;
-                    this._config.session = response.body.t2msession;
-                    this.flexyCredentials.updateCredentials({"session": response.body.t2msession});
                     this.alert.success("Successfully established connection to Talk2M.");
+                    
+                    this._config.session = response.body.t2msession;
+                    const accountInfo = await this.talk2m.getaccountinfo(this._config.session, this._config.devId);
+
+                    let toUpdate = {session : response.body.t2msession};
+                    // remove all "" after stringify
+                    var re = new RegExp("\"", 'g');
+                    for (const key in accountInfo.body) {
+                      toUpdate["talk2m." + key] = JSON.stringify(accountInfo.body[key]).replace(re,"");
+                    }
+                    //update session and account info
+                    this.flexyCredentials.updateCredentials(toUpdate);
+                    this.alert.success("Update credentials successfully.");
                   }, 
                   (error) => {
                     console.log("error ", error);
