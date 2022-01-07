@@ -80,6 +80,25 @@ export class EWONFlexyDeviceRegistrationService {
     )
     return data;
   }
+  
+  async getDeviceManagedObjectWithExternalId(externalId:string): Promise<IIdentified>{
+    const identity: IExternalIdentity = {
+      type: FLEXY_SERIALTYPE,
+      externalId: externalId
+    };
+    const data = await this.identityService.detail(identity).then(
+      (identity) => {
+        //const managedObjId: number =identity.data.managedObject.id;
+        //inventoryService
+        return identity.data.managedObject;
+      }, (error) => {
+        console.debug("Managed object with external id " + externalId + " does not exists.");
+        throw error;
+      }
+    );
+    return data;
+  }
+
   async createIdentidyForDevice(deviceId:string, externalId:string): Promise<IExternalIdentity>{
     const identity: IExternalIdentity = {
             type: FLEXY_SERIALTYPE,

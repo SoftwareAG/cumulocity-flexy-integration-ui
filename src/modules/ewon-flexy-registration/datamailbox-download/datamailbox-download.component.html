@@ -12,7 +12,7 @@
     <!-- List of ewon items -->
     <ng-container *ngIf="!isLoading && rows.length > 0;">
       <c8y-data-grid
-      [title]="'EWON Flexy Registration' | translate"
+      [title]="'EWON Flexy Data Synchronization' | translate"
       [columns]="columns"
       [pagination]="pagination"
       [actionControls]="actionControls"
@@ -28,7 +28,7 @@
           </c8y-column>
       </c8y-data-grid>
       <button *ngIf="selectedItems.length > 0;" type="button" class="btn btn-primary btn btn-block" (click)="startRegistration()">
-        <h4 class="m-r-16" style="margin: 1rem; text-align: left;">Register {{selectedItems.length}} selected items.</h4>
+        <h4 class="m-r-16" style="margin: 1rem; text-align: left;">Synchronize {{selectedItems.length}} selected items.</h4>
       </button>
     </ng-container>
   
