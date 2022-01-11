@@ -6,6 +6,7 @@ import { Observable } from "rxjs";
 import { FlexySettings } from "../../../interfaces/ewon-flexy-registration.interface";
 import { Talk2MService } from "../../../services/talk2m.service";
 import { EWONFlexyCredentialsTenantoptionsService } from "../../../services/ewon-flexy-credentials-tenantoptions.service";
+import { TALK2M_DEVELOPERID } from "../../../constants/flexy-integration.constants";
 
 @Component({
   selector: "app-settings",
@@ -40,7 +41,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   
   onLogout(config?: FlexySettings) {
     if (this.isSessionConnected){
-      this.talk2m.logout(this._config.session, this._config.devId).then(
+      this.talk2m.logout(this._config.session).then(
         (response) => {
           console.log("logout ", response);
           this.isSessionConnected = false;
@@ -56,25 +57,25 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   onConnect(config?: FlexySettings): boolean | Promise<boolean> | Observable<boolean> {
-    
-    if (config && config.account && config.devId && config.password && config.tenant && config.username /*&& config.token*/){
+ 
+    if (config && config.account  && config.password && config.tenant && config.username /*&& config.token*/){
       // Connect to Talk2M
       this.flexyCredentials.updateCredentials(config).then(
       () => {
           // Logout before establish new session
           if (config.session && this.isSessionConnected){
-            this.talk2m.logout(config.session, config.devId).then(
+            this.talk2m.logout(config.session).then(
               (response) => {
                 this.isSessionConnected = false;
                 console.log("logout ", response);
                  // Login
-                this.talk2m.login(config.account, config.username, config.password, config.devId).then( 
+                this.talk2m.login(config.account, config.username, config.password).then( 
                   async (response) => {
                     this.isSessionConnected = true;
                     this.alert.success("Successfully established connection to Talk2M.");
                     
                     this._config.session = response.body.t2msession;
-                    const accountInfo = await this.talk2m.getaccountinfo(this._config.session, this._config.devId);
+                    const accountInfo = await this.talk2m.getaccountinfo(this._config.session);
 
                     let toUpdate = {session : response.body.t2msession};
                     // remove all "" after stringify
@@ -94,7 +95,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
             );
           // Login
           }else{
-            this.talk2m.login(config.account, config.username, config.password, config.devId).then( 
+            this.talk2m.login(config.account, config.username, config.password).then( 
               (response) => {
                 this.isSessionConnected = true;
                 this._config.session = response.body.t2msession;
@@ -136,8 +137,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
         console.log(this._config);
 
         // Is session still active
-        if(this._config && this._config.session && this._config.devId){
-          this.isSessionConnected = await this.talk2m.isSessionActive(this._config.session, this._config.devId);
+        if(this._config && this._config.session){
+          this.isSessionConnected = await this.talk2m.isSessionActive(this._config.session);
         }        
       },
       (error) => {

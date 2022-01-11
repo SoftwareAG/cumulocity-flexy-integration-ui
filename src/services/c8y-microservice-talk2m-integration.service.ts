@@ -1,4 +1,4 @@
-import { C8Y_MICROSERVICE_ENDPOINT, GET_OPTIONS } from './../constants/flexy-integration.constants';
+import { C8Y_MICROSERVICE_ENDPOINT, GET_OPTIONS, TALK2M_DEVELOPERID } from './../constants/flexy-integration.constants';
 import { FetchClient, TenantService } from '@c8y/client';
 import { Injectable } from "@angular/core";
 import { AlertService } from '@c8y/ngx-components';
@@ -37,10 +37,10 @@ export class MicroserviceIntegrationService {
         return result;
     }
 
-    async getEwons(token:string, devId: string): Promise<any>{
+    async getEwons(token:string): Promise<any>{
 
         let endpoint = C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS;
-        const data = {TOKEN: token, DEVID: devId};
+        const data = {TOKEN: token, DEVID: TALK2M_DEVELOPERID};
 
         for (const key in C8Y_MICROSERVICE_ENDPOINT.VARIABLE) {
             const variable = C8Y_MICROSERVICE_ENDPOINT.VARIABLE[key];

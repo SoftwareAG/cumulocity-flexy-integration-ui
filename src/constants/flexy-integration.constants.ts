@@ -12,6 +12,7 @@ export const FLEXY_EXTERNALID_PREFIX = 'flexy_';
 export const FLEXY_DEVICETYPE = 'c8y_EwonFlexy';
 
 export const TALK2M_BASEURL = 'https://m2web.talk2m.com/t2mapi';
+export const TALK2M_DEVELOPERID = 'c86cfaf7-f353-40c5-9263-8cacbfd411a2'
 
 export const C8Y_MICROSERVICE_ENDPOINT = {
     URL: { 
@@ -19,7 +20,7 @@ export const C8Y_MICROSERVICE_ENDPOINT = {
     },
     VARIABLE: {
         TOKEN: '{t2mtoken}',
-        DEVID: '{t2mdevid}',
+        DEVID: TALK2M_DEVELOPERID,
       } ,
     APPKEY: 'ewon-talk2m-integration'
 }

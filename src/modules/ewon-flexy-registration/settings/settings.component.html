@@ -27,10 +27,6 @@
           <input class="form-control" type="password" [(ngModel)]="config.password"/>
           <p id="helpinput" class="help-block">{{ "Password won't be saved. If the session disconnect, you may have to re-enter your password once again." | translate }}</p>
         </div>
-        <div class="form-group">
-          <label>{{ "Developer ID" | translate }}</label>
-          <input class="form-control" type="text" [(ngModel)]="config.devId"/>
-        </div>
       </div>
      
       <div class="card-block" *ngIf="isMicroserviceEnabled">

@@ -44,9 +44,9 @@ import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-fle
               this._config[option.key] = option.value;
             });
             console.log(this._config);
-            if(this._config.devId && this._config.token){
+            if(this._config.token){
               this.isSessionConnected = await this.c8yMSService.isMicroserviceEnabled();
-              const ewons: EwonFlexyStructure[] =  await this.c8yMSService.getEwons(this._config.token,this._config.devId);
+              const ewons: EwonFlexyStructure[] =  await this.c8yMSService.getEwons(this._config.token);
               
               for (const ewon of ewons) {
                 try {
@@ -59,7 +59,7 @@ import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-fle
                 }
               }
             }else{
-              this.alert.warning("Missing credentials to conntect.", JSON.stringify({t2mtoke: this._config.token, t2mdevid: this._config.devId}));
+              this.alert.warning("Missing credentials to conntect.", JSON.stringify({t2mtoke: this._config.token}));
             }
             this.isLoading = false;
           });
