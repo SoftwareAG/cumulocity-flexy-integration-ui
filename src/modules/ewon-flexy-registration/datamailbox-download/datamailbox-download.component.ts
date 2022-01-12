@@ -1,3 +1,4 @@
+import { HttpResponse } from '@angular/common/http';
 import { Component, OnInit } from "@angular/core";
 import { ActionControl, AlertService, Column, ColumnDataType, Pagination } from "@c8y/ngx-components";
 import { EWONFlexyCredentialsTenantoptionsService } from "../../../services/ewon-flexy-credentials-tenantoptions.service";
@@ -50,9 +51,9 @@ import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-fle
               
               for (const ewon of ewons) {
                 try {
-                  const device = await this.flexyRegistrationService.isDeviceRegistered(ewon.id+"");
-                  ewon.registered = (device) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
-                  this.rows = this.rows.concat(ewons);
+                  const isRegistered = await this.flexyRegistrationService.isDeviceRegistered(ewon.id+"");
+                  ewon.registered = (isRegistered) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+                  this.rows = this.rows.concat(ewon);
                 }catch (error) {
                   this.isLoading = false;
                   continue;
@@ -67,6 +68,17 @@ import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-fle
 
     selectItems(event){
       this.selectedItems = event;
+    }
+
+    async startSynchronisation(){
+      console.log("-------------------------");
+      console.log("- START SYNCHRONISATION -");
+      console.log("-------------------------");
+      console.log("register device ids...", this.selectedItems);
+
+      const response =  await this.c8yMSService.syncData(this._config.token);
+      console.log("response", response);
+
     }
 
     getDefaultColumns(): Column[] {
@@ -100,6 +112,12 @@ import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-fle
           name: 'dmLastSyncDate',
           header: 'DataMailbox last sync date',
           path: 'lastSynchroDate',
+          filterable: false,
+          dataType: ColumnDataType.TextShort
+        },{
+          name: 'c8yLastSyncDate',
+          header: 'Cumulocity last sync date',
+          path: 'c8yLastSynchroDate',
           filterable: false,
           dataType: ColumnDataType.TextShort
         }

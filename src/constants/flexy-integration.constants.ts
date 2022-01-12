@@ -17,10 +17,12 @@ export const TALK2M_DEVELOPERID = 'c86cfaf7-f353-40c5-9263-8cacbfd411a2'
 export const C8Y_MICROSERVICE_ENDPOINT = {
     URL: { 
         GET_EWONS: '/service/ewon-talk2m-integration/datamailbox/getewons?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}',
+        SYNC_DATA: '/service/ewon-talk2m-integration/datamailbox/syncdata?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}&tenantId={tenantId}',
     },
     VARIABLE: {
         TOKEN: '{t2mtoken}',
-        DEVID: TALK2M_DEVELOPERID,
+        DEVID: '{t2mdevid}',
+        TENANTID: '{tenantId}'
       } ,
     APPKEY: 'ewon-talk2m-integration'
 }

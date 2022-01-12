@@ -38,19 +38,12 @@ export class MicroserviceIntegrationService {
     }
 
     async getEwons(token:string): Promise<any>{
-
-        let endpoint = C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS;
+  
         const data = {TOKEN: token, DEVID: TALK2M_DEVELOPERID};
+        //let endpoint = C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS;
+        let endpoint = this.buildEndpoint( C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS, data);
+        console.log("request endpoint: ", endpoint);
 
-        for (const key in C8Y_MICROSERVICE_ENDPOINT.VARIABLE) {
-            const variable = C8Y_MICROSERVICE_ENDPOINT.VARIABLE[key];
-            const index = C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS.indexOf(variable);
-      
-            if (index >= 0 && data.hasOwnProperty(key)) {
-              endpoint = endpoint.replace(variable, data[key]);
-            }
-          }
-    
         const result = await this.fetch.fetch( endpoint, GET_OPTIONS ).then(
             async (response) => {
                 return await response.json().then((details) => {
@@ -61,5 +54,25 @@ export class MicroserviceIntegrationService {
         console.log("c8y get ewons: ", result.ewons);
 
         return result.ewons;
+    }
+
+    async syncData(token:string): Promise<any>{
+        const data = {TOKEN: token, DEVID: TALK2M_DEVELOPERID, TENANTID: 't769416337'};
+        let endpoint = this.buildEndpoint( C8Y_MICROSERVICE_ENDPOINT.URL.SYNC_DATA, data);
+        console.log("request endpoint: ", endpoint);
+    }
+
+    protected buildEndpoint(endpoint:string, data:any): string{
+        const ep = endpoint;
+        for (const key in C8Y_MICROSERVICE_ENDPOINT.VARIABLE) {
+            const variable = C8Y_MICROSERVICE_ENDPOINT.VARIABLE[key];
+            const index = ep.indexOf(variable);
+      
+            if (index >= 0 && data.hasOwnProperty(key)) {
+              endpoint = endpoint.replace(variable, data[key]);
+            }
+          }
+
+        return endpoint;
     }
 }
