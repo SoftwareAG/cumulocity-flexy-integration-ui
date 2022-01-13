@@ -1,16 +1,21 @@
 import { HttpResponse } from '@angular/common/http';
-import { Component, OnInit } from "@angular/core";
+import { AfterViewInit, Component, EventEmitter, OnInit, Output, ViewChild } from "@angular/core";
 import { ActionControl, AlertService, Column, ColumnDataType, Pagination } from "@c8y/ngx-components";
+import { BsModalService } from "ngx-bootstrap/modal";
+
 import { EWONFlexyCredentialsTenantoptionsService } from "../../../services/ewon-flexy-credentials-tenantoptions.service";
 import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from "../../../interfaces/ewon-flexy-registration.interface";
 import { MicroserviceIntegrationService } from './../../../services/c8y-microservice-talk2m-integration.service';
 import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-flexy-device-registration.service';
+import {SynchjobCardComponent} from './synchjob-card/synchjob-card.component';
+import {SynchjobModalComponent} from './synchjob-modal/synchjob-modal.component';
+import {SynchJobService} from './synchjob-modal/synchjob-modal.service';
 @Component({
     selector: "app-datamailbox-download",
     templateUrl: "./datamailbox-download.component.html",
-    providers: [EWONFlexyCredentialsTenantoptionsService, EWONFlexyDeviceRegistrationService, MicroserviceIntegrationService]
+    providers: [EWONFlexyCredentialsTenantoptionsService, EWONFlexyDeviceRegistrationService, MicroserviceIntegrationService, SynchJobService]
   })
-  export class DataMailboxDownloadComponent implements OnInit {
+  export class DataMailboxDownloadComponent implements OnInit, AfterViewInit {
     
     public isSessionConnected:boolean;
     public isLoading:boolean;
@@ -27,14 +32,20 @@ import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-fle
     private _config: FlexySettings = {};
 
     constructor( private alert: AlertService,
-      private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
-      private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
-      private c8yMSService: MicroserviceIntegrationService){
-      this.isSessionConnected = false;
-      this.isLoading = true;
-      
-      this.columns = this.getDefaultColumns();
-      this.selectedItems = [];
+                  private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+                  private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
+                  private c8yMSService: MicroserviceIntegrationService,
+                  public syncJobService: SynchJobService)
+      {
+        this.isSessionConnected = false;
+        this.isLoading = true;
+        
+        this.columns = this.getDefaultColumns();
+        this.selectedItems = [];
+    }
+    ngAfterViewInit(): void {
+          console.log('DataMailboxDownloadComponent Loaded');
+          
     }
     ngOnInit(): void {
         // Check credentials from tenant options

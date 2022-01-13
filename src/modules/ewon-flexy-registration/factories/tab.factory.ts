@@ -25,13 +25,13 @@ export class FlexyTabFactory implements TabFactory {
         {
           path: `${FLEXY_PATH}/${FLEXY_REGISTRATION_PATH}`,
           label: 'Registration',
-          icon: 'cloud-connection',
+          icon: 'c8y-icon c8y-icon-device-connect',
           priority: -1,
         },
         {
           path: `${FLEXY_PATH}/${FLEXY_DATAMAILBOX_PATH}`,
           label: 'Data Mailbox',
-          icon: 'cloud-download',
+          icon: 'cloud-connection',
           priority: -2,
         }
       ]

@@ -1,0 +1,48 @@
+<div class="p-b-16">
+  <div *ngIf="isModal" class="modal-header modal-header-primary text-center">
+    <i [c8yIcon]="'c8y-icon-duocolor c8y-icon-saas'" style="font-size: 32px;"></i>
+    <h3 class="p-t-16">{{ 'Add synchronize job' }}</h3>
+  </div>
+  <c8y-stepper
+    (onStepChange)="navigate($event)"
+    [disableDefaultIcons]="{ edit: true, done: false }"
+    [customClasses]="['m-l-40', 'm-r-40', 'm-t-32']"
+    linear
+  >
+    <!-- Step One -->
+    <cdk-step [stepControl]="formGroupStepOne" label="Device name">
+      <div class="m-l-40 m-r-40 m-t-32">
+        <h4 title="Device name" class="p-b-8">
+          Enter the device name
+        </h4>
+      </div>
+      <c8y-stepper-buttons></c8y-stepper-buttons>
+    </cdk-step>
+    <!-- Step Two -->
+    <cdk-step [stepControl]="formGroupStepTwo" label="Device type">
+      <div class="m-l-40 m-r-40 m-t-32">
+        <h4 title="Enter device type" class="p-b-8">
+          Enter the device type
+        </h4>
+      </div>
+      <c8y-stepper-buttons
+        title="Save device"
+        (onNext)="save()"
+        [labels]="{ next: 'Save' }"
+        [pending]="pendingStatus"
+      ></c8y-stepper-buttons>
+    </cdk-step>
+    <!-- Final step -->
+    <cdk-step state="final" label="Job done!">
+      <div class="m-l-40 m-r-40 m-t-32">
+        <h4 class="p-b-32 text-center">
+          Your device is now ready to save the world!
+        </h4>
+      </div>
+      <c8y-stepper-buttons
+        (onBack)="close(isModal)"
+        [labels]="{ back: 'Got it!' }"
+      ></c8y-stepper-buttons>
+    </cdk-step>
+  </c8y-stepper>
+</div>

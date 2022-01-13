@@ -14,6 +14,9 @@ import { SettingsComponent } from './settings/settings.component';
 import { BulkRegistrationComponent } from './bulk-registration/bulk-registration.component';
 import { DataMailboxDownloadComponent } from './datamailbox-download/datamailbox-download.component';
 import { MicroserviceIntegrationService } from '../../services/c8y-microservice-talk2m-integration.service';
+import { SynchjobCardComponent } from './datamailbox-download/synchjob-card/synchjob-card.component';
+import { SynchjobModalComponent } from './datamailbox-download/synchjob-modal/synchjob-modal.component';
+import { SynchJobService } from './datamailbox-download/synchjob-modal/synchjob-modal.service';
 
 const moduleRoutes: Routes = [
   {
@@ -49,7 +52,7 @@ const moduleNavigation: Provider[] = [
     provide: HOOK_TABS,
     useClass: FlexyTabFactory,
     multi: true
-  }, MicroserviceIntegrationService
+  }, MicroserviceIntegrationService, SynchJobService
 ];
 
 @NgModule({
@@ -61,8 +64,8 @@ const moduleNavigation: Provider[] = [
     CoreModule,
     TooltipModule,
   ],
-  declarations: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent],
-  entryComponents: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent],
+  declarations: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobCardComponent, SynchjobModalComponent],
+  entryComponents: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobModalComponent],
   providers: [...moduleNavigation]
 })
 export class FlexyRegistrationModule {}
