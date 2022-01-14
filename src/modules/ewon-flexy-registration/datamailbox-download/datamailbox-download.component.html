@@ -1,7 +1,7 @@
 <c8y-title>{{ "EWON Flexy Synchronisation" | translate }}</c8y-title>
 <!--Action Bar connected-->
 <c8y-action-bar-item [placement]="'right'" [priority]="-99999">
-  <div class="c8y-realtime">
+  <div class="c8y-realtime" [ngStyle]="!isSessionConnected ? {'display': 'none'}:''">
     <span
       [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"
     ></span>
