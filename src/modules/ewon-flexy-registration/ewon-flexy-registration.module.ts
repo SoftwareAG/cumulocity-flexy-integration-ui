@@ -2,8 +2,9 @@ import { FlexyTabFactory } from './factories/tab.factory';
 import { FlexyNavigatorNodeFactory } from './factories/navigator-node.factory';
 import { NgModule, Provider } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Routes, RouterModule } from '@angular/router';
+
 import { HOOK_NAVIGATOR_NODES, HOOK_TABS } from '@c8y/ngx-components';
 import { CoreModule } from '@c8y/ngx-components';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
@@ -59,10 +60,12 @@ const moduleNavigation: Provider[] = [
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     BsDropdownModule,
     RouterModule.forChild(moduleRoutes),
     CoreModule,
     TooltipModule,
+    
   ],
   declarations: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobCardComponent, SynchjobModalComponent],
   entryComponents: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobModalComponent],

@@ -1,7 +1,7 @@
 <div class="p-b-16">
   <div *ngIf="isModal" class="modal-header modal-header-primary text-center">
     <i [c8yIcon]="'c8y-icon-duocolor c8y-icon-saas'" style="font-size: 32px;"></i>
-    <h3 class="p-t-16">{{ 'Add synchronize job' }}</h3>
+    <h3 class="p-t-16">{{ 'Add Onloading Job' }}</h3>
   </div>
   <c8y-stepper
     (onStepChange)="navigate($event)"
@@ -9,31 +9,76 @@
     [customClasses]="['m-l-40', 'm-r-40', 'm-t-32']"
     linear
   >
+  <!-- Override icon -->
+    <ng-template c8yStepperIcon="final">
+      <span [c8yIcon]="'check-circle-o'"></span>
+    </ng-template>
     <!-- Step One -->
-    <cdk-step [stepControl]="formGroupStepOne" label="Device name">
+    <cdk-step [stepControl]="formGroupStepOne" label="Configure Job">
       <div class="m-l-40 m-r-40 m-t-32">
-        <h4 title="Device name" class="p-b-8">
-          Enter the device name
+        <h4 title="Job name" class="p-b-8">
+          Configure Job
         </h4>
+        <c8y-form-group>
+          <div [formGroup]="formGroupStepOne">
+            <label>{{ "Job name" | translate }}</label>
+            <input class="form-control" 
+                    type="text"  
+                    formControlName="name"
+                    placeholder="Enter the job name" 
+                    #nameRef
+                    required/>
+            <c8y-messages>
+              <c8y-message *ngIf="!formGroupStepOne.untouched && !nameRef.value">
+                  Enter the name of the Job
+              </c8y-message>
+            </c8y-messages>
+          </div>
+        </c8y-form-group>
+        <c8y-form-group>
+          <div [formGroup]="formGroupStepOne">
+            <label>{{ "Description" | translate }}</label>
+            <input class="form-control" 
+                    type="text"  
+                    formControlName="description"
+                    placeholder="Enter the job description" 
+                    #descriptionRef
+                    />
+          </div>
+        </c8y-form-group>
       </div>
-      <c8y-stepper-buttons></c8y-stepper-buttons>
+      <c8y-stepper-buttons (onNext)="onMovingForward($event,$event)"></c8y-stepper-buttons> 
     </cdk-step>
     <!-- Step Two -->
-    <cdk-step [stepControl]="formGroupStepTwo" label="Device type">
+    <cdk-step [stepControl]="formGroupStepTwo" label="Select devices">
       <div class="m-l-40 m-r-40 m-t-32">
-        <h4 title="Enter device type" class="p-b-8">
-          Enter the device type
+        <h4 title="Select your devices" class="p-b-8">
+          Select your devices
         </h4>
+        <c8y-form-group>
+          <div [formGroup]="formGroupStepTwo">        
+            <!-- Data Grid ??-->
+            <c8y-data-grid
+              [columns]="columns"
+              [pagination]="pagination"
+              [actionControls]="actionControls"
+              [rows]="rows"
+              [selectable]="true"
+              (itemsSelect)="selectItems($event)"
+              >
+            </c8y-data-grid>
+          </div>
+        </c8y-form-group>
       </div>
       <c8y-stepper-buttons
-        title="Save device"
+        title="Add job"
         (onNext)="save()"
-        [labels]="{ next: 'Save' }"
+        [labels]="{ next: 'Add' }"
         [pending]="pendingStatus"
       ></c8y-stepper-buttons>
     </cdk-step>
     <!-- Final step -->
-    <cdk-step state="final" label="Job done!">
+    <cdk-step state="final" label="Configuration done">
       <div class="m-l-40 m-r-40 m-t-32">
         <h4 class="p-b-32 text-center">
           Your device is now ready to save the world!
