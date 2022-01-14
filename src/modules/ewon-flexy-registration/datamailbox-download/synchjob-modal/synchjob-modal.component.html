@@ -66,6 +66,12 @@
               [selectable]="true"
               (itemsSelect)="selectItems($event)"
               >
+              <c8y-column name="registered">
+                <ng-container *c8yCellRendererDef="let context">
+                  <span class = "d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle status-successful" style="color: #008800;; padding-left:1rem;"></i></span>
+                  <span class = "d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block status-unsupported" style="color: #58656D;; padding-left:1rem;"></i></span>
+                </ng-container>
+              </c8y-column>
             </c8y-data-grid>
           </div>
         </c8y-form-group>
@@ -73,7 +79,7 @@
       <c8y-stepper-buttons
         title="Add job"
         (onNext)="save()"
-        [labels]="{ next: 'Add' }"
+        [labels]="{ next: 'Add job' }"
         [pending]="pendingStatus"
       ></c8y-stepper-buttons>
     </cdk-step>
@@ -81,12 +87,12 @@
     <cdk-step state="final" label="Configuration done">
       <div class="m-l-40 m-r-40 m-t-32">
         <h4 class="p-b-32 text-center">
-          Your device is now ready to save the world!
+          Your job was successfully created.
         </h4>
       </div>
       <c8y-stepper-buttons
         (onBack)="close(isModal)"
-        [labels]="{ back: 'Got it!' }"
+        [labels]="{ back: 'Close' }"
       ></c8y-stepper-buttons>
     </cdk-step>
   </c8y-stepper>

@@ -1,10 +1,15 @@
 import { OnloadingJob } from './../../../../interfaces/c8y-custom-objects.interface';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ActionControl, C8yStepper, Column, ColumnDataType, Item, ModalLabels, Pagination } from "@c8y/ngx-components";
+import { ActionControl, AlertService, C8yStepper, Column, ColumnDataType, Item, ModalLabels, Pagination } from "@c8y/ngx-components";
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { Subject } from "rxjs";
 import { SynchJobService } from "./synchjob-modal.service";
+import { EWONFlexyCredentialsTenantoptionsService } from '../../../../services/ewon-flexy-credentials-tenantoptions.service';
+import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../../interfaces/ewon-flexy-registration.interface';
+import { MicroserviceIntegrationService } from '../../../../services/c8y-microservice-talk2m-integration.service';
+import { EWONFlexyDeviceRegistrationService } from '../../../../services/ewon-flexy-device-registration.service';
+import { DataMailboxDownloadComponent } from '../datamailbox-download.component';
 
 
 enum step {
@@ -15,13 +20,19 @@ enum step {
 
 @Component({
     selector: 'app-synchjob-modal',
-    templateUrl: './synchjob-modal.component.html'
+    templateUrl: './synchjob-modal.component.html',
+    providers: [EWONFlexyCredentialsTenantoptionsService, 
+                EWONFlexyDeviceRegistrationService,
+                ]
   })
   export class SynchjobModalComponent implements OnInit {
 
+    private _config: FlexySettings = {};
+    
+    public isLoading:boolean;
+
     formGroupStepOne: FormGroup;
     formGroupStepTwo: FormGroup;
-    selectedDevices: Item[];
 
     pendingStatus: boolean = false;
 
@@ -29,7 +40,7 @@ enum step {
     stepper: C8yStepper;
 
     columns: Column[] = [];
-    rows: [] = [];
+    rows: EwonFlexyStructure[] = [];
 
     actionControls: ActionControl[] = [];
     pagination: Pagination = {
@@ -40,10 +51,17 @@ enum step {
     private onClose: Subject<any> = new Subject();
     //labels : ModalLabels = {ok: "customOK", cancel: "customCancel"};
 
-    constructor(private fb: FormBuilder,
+    constructor(private alert: AlertService,
+      private fb: FormBuilder,
       private syncJobService: SynchJobService,
-      private bsModalRef: BsModalRef){
+      private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+      private bsModalRef: BsModalRef,
+      private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
+      private c8yMSService: MicroserviceIntegrationService,
+     // private dmComponent: DataMailboxDownloadComponent
+      ){
         this.columns = this.getDefaultColumns();
+        this.rows = [];
     }
 
     ngOnInit(): void { 
@@ -55,8 +73,36 @@ enum step {
       this.formGroupStepTwo = this.fb.group({
         ewonIds: ['']
       });
+
+      // Get list of ewons to sync from microservice
+      this.flexyCredentials.getCredentials().then(
+        async (options) => {
+          console.log("------------------------");
+          options.forEach(option => {
+            this._config[option.key] = option.value;
+          });
+          console.log(this._config);
+          if(this._config.token){
+
+            const ewons: EwonFlexyStructure[] =  await this.c8yMSService.getEwons(this._config.token);
+              
+              for (const ewon of ewons) {
+                try {
+                  const isRegistered = await this.flexyRegistrationService.isDeviceRegistered(ewon.id+"");
+                  ewon.registered = (isRegistered) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+                  this.rows = this.rows.concat(ewon);
+                }catch (error) {
+                  this.isLoading = false;
+                  continue;
+                }
+              }
+            }else{
+              this.alert.warning("Missing credentials to conntect.", JSON.stringify({t2mtoke: this._config.token}));
+            }
+            this.isLoading = false;
+          });
     }
- 
+
     async navigate(clickedStepIDX: number) {
       console.log("navigate event: ", clickedStepIDX);
       const { selectedIndex: selectedStepIDX } = this.stepper;
@@ -90,14 +136,21 @@ enum step {
     async save() {
       this.pendingStatus = true;
       await this.addOnloadingJob();
+     // await this.dmComponent.refreshListOnloadingJobs();
       this.pendingStatus = false;
       this.stepper.next();
     }
 
     private async addOnloadingJob() {
       console.log("addOnloadingJob...");
-      await this.syncJobService.addOnloadingJob(
-        { } as OnloadingJob);
+      const data = await this.syncJobService.addOnloadingJob(
+        { 
+          ewonIds : this.formGroupStepTwo.value.ewonIds,
+          name : this.formGroupStepOne.value.name,
+          description : this.formGroupStepOne.value.description,
+          isActive : false
+        } as OnloadingJob);
+      console.log("create job: ", data);
     }
 
      close(isModal: boolean) {
@@ -114,8 +167,8 @@ enum step {
     }
 
     selectItems(items: []){
-      this.selectedDevices = items;
-      console.log("selectedDevices = ", this.selectedDevices);
+      this.formGroupStepTwo.value.ewonIds = items;
+      console.log("formGroupStepTwo = ", this.formGroupStepTwo);
     }
 
     getDefaultColumns(): Column[] {
@@ -126,24 +179,39 @@ enum step {
           path: 'name',
           filterable: true,
           dataType: ColumnDataType.TextShort
-        },{
-          name: 'pool',
-          header: 'Pool',
-          path: 'pool',
-          filterable: true,
-          dataType: ColumnDataType.TextShort
-        },{
-          name: 'description',
-          header: 'Description',
-          path: 'description',
-          dataType: ColumnDataType.TextLong
-        },{
+        },
+        // {
+        //   name: 'pool',
+        //   header: 'Pool',
+        //   path: 'pool',
+        //   filterable: true,
+        //   dataType: ColumnDataType.TextShort
+        // },{
+        //   name: 'description',
+        //   header: 'Description',
+        //   path: 'description',
+        //   dataType: ColumnDataType.TextLong
+        // },
+        {
           name: 'registered',
           header: 'Cumulocity Registered',
           path: 'registered',
           filterable: true,
           dataType: ColumnDataType.TextShort
+        },{
+          name: 'dmLastSyncDate',
+          header: 'DataMailbox last sync date',
+          path: 'lastSynchroDate',
+          filterable: false,
+          dataType: ColumnDataType.TextShort
         },
+        // {
+        //   name: 'c8yLastSyncDate',
+        //   header: 'Cumulocity last sync date',
+        //   path: 'c8yLastSynchroDate',
+        //   filterable: false,
+        //   dataType: ColumnDataType.TextShort
+        // }
       ];
     }
   }

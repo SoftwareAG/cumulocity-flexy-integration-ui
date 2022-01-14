@@ -14,6 +14,8 @@ export const FLEXY_DEVICETYPE = 'c8y_EwonFlexy';
 export const TALK2M_BASEURL = 'https://m2web.talk2m.com/t2mapi';
 export const TALK2M_DEVELOPERID = 'c86cfaf7-f353-40c5-9263-8cacbfd411a2'
 
+export const DM_FRAGMENTTYPE_MO = 'c8y_HMSOnloadingJob';
+
 export const C8Y_MICROSERVICE_ENDPOINT = {
     URL: { 
         GET_EWONS: '/service/ewon-talk2m-integration/datamailbox/getewons?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}',

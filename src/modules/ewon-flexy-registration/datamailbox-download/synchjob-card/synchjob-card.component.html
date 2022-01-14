@@ -1,58 +1,13 @@
-<div class="card-group" [ngClass]="listClass">
-
-    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="card">
-          <!-- Card actions - containing a dropdown -->
-          <div class="card-actions">
-            <div class="dropdown settings" dropdown>
-                <button type="button" title="Actions" dropdownToggle class="dropdown-toggle c8y-dropdown">
-                  <i c8yIcon="ellipsis-v" class="fa fw fa-ellipsis-v"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-right" *dropdownMenu>
-                  <li>
-                    <button type="button" (click)="editSimulator(simulator)">
-                      <i c8yIcon="edit"></i>
-                      {{ 'Edit' | translate }}
-                    </button>
-                  </li>
-                  <li>
-                    <button type="button" (click)="onDuplicateSelected(simulator)">
-                      <i c8yIcon="copy"></i>
-                      {{ 'Duplicate' | translate }}
-                    </button>
-                  </li>
-                  <li>
-                    <button type="button" (click)="deleteSimulatorPrompt(simulator)">
-                      <i c8yIcon="trash"></i>
-                      {{ 'Delete' | translate }}
-                    </button>
-                  </li>
-                </ul>
-              </div>
-          </div>
-          <!-- Card header containing the title -->
-          <div class="card-header separator">
-            <div class="card-icon">
-              <i c8y-icon="c8y-group-open" class="c8y-icon c8y-icon-group-open"></i>
-            </div>
-            <!-- Always add the title attribute -->
-            <div class="card-title" title="BlackBone Black">
-              BlackBone Black
-            </div>
-          </div>
-    
-          <!-- Card content -->
-          <!-- you may use the grid classes to structure the content horizontally -->
-          <!-- make sure you always add text-truncate -->
-          <div class="card-block">
-            <div class="col-xs-12 col-sm-4 text-truncate">
-              <label class="small ng-binding">Model</label> Linux MAC
-            </div>
-            <div class="col-xs-12 col-sm-4 text-truncate">
-              <label class="small ng-binding">S/N</label> CD8635STX22
-            </div>
-          </div>
-        </div>
-      </div>
-
-</div>
+<div class="card">
+  <div class="card-header separator">
+    <h4 class="card-title">It works!</h4>
+  </div>
+  <div class="bg-gray-lighter">
+    <div class="card-block">
+      <p>Some content</p>
+    </div>
+  </div>
+  <div class="card-block">
+    <p>Some other content</p>
+  </div>
+</div> 

@@ -15,37 +15,42 @@
     {{ 'Onloading Data' | translate }}
   </button>
 </c8y-action-bar-item>
-<!--Action Bar Search jobs-->
-<c8y-action-bar-item [placement]="'left'">
-  <div id="search" class="input-group input-group-search">
-    <input
-      type="search"
-      class="form-control"
-      placeholder="Search…"
-      [(ngModel)]="searchString"
-    />
-    <span class="input-group-addon">
-      <i
-        c8yIcon="search"
-        *ngIf="!searchString || searchString.length === 0"
-      ></i>
-      <i
-        c8yIcon="times"
-        class="text-muted"
-        *ngIf="searchString && searchString.length > 0"
-        (click)="data.searchString = ''"
-      ></i>
-    </span>
-  </div>
-</c8y-action-bar-item>
 
 
 <div class="d-block">
+
+  <!--Loading spinner-->
+  <ng-container *ngIf="isLoading;">
+    <div class="c8y-empty-state text-center">
+      <div class="spinner" style="position: relative">
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
+      </div>
+      <h3 translate="">Request for onloading jobs.</h3>
+      <p translate="">This process may take some few seconds.</p>
+    </div>
+  </ng-container>
+
   <!-- Empty State-->
-  <div class="c8y-empty-state text-center">
-    <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-saas"></h1>
-    <h3>{{ 'No onloading jobs to display.' | translate }}</h3>
-    <p> Add a new onloading job for your devices.</p>
-  </div>
+  <ng-container *ngIf="!isLoading && listJobs.length == 0;">
+    <div class="c8y-empty-state text-center">
+      <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-saas"></h1>
+      <h3>{{ 'No onloading jobs to display.' | translate }}</h3>
+      <p *ngIf="isSessionConnected"> Add a new onloading job for your devices.</p>
+    </div>
+  </ng-container>
+
+  <!-- Onloading Job Cards-->
+  <ng-container *ngIf="!isLoading && listJobs.length > 0;">
+    <div class="card-group interact-grid">
+      <div class="col-4 col-xs-12 col-md-4" *ngFor=" let job of listJobs">
+        <app-synchjob-card></app-synchjob-card>
+      </div>
+    </div>
+    
+  </ng-container>
   
 </div>

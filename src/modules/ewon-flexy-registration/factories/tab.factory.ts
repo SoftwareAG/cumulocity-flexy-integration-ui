@@ -3,8 +3,6 @@ import { FLEXY_PATH, FLEXY_SETTINGS_PATH, FLEXY_REGISTRATION_PATH } from '../../
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Tab, TabFactory } from '@c8y/ngx-components';
-import { merge, Observable } from 'rxjs';
-import { filter, map, take, timeout } from 'rxjs/operators';
 import { MicroserviceIntegrationService } from '../../../services/c8y-microservice-talk2m-integration.service';
 
 @Injectable()
@@ -30,7 +28,7 @@ export class FlexyTabFactory implements TabFactory {
         },
         {
           path: `${FLEXY_PATH}/${FLEXY_DATAMAILBOX_PATH}`,
-          label: 'Data Mailbox',
+          label: 'Synchronisation',
           icon: 'cloud-connection',
           priority: -2,
         }

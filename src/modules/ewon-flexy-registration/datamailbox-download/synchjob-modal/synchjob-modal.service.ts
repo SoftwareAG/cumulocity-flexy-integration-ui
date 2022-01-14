@@ -4,6 +4,7 @@ import { IManagedObject } from '@c8y/client';
 import { Injectable } from "@angular/core";
 import { BsModalService } from 'ngx-bootstrap/modal';
 import {SynchjobModalComponent} from './synchjob-modal.component';
+import { DM_FRAGMENTTYPE_MO } from './../../../../constants/flexy-integration.constants';
 
 
 @Injectable()
@@ -11,9 +12,9 @@ export class SynchJobService {
 
   private job: IManagedObject;
 
-  constructor(private modalService: BsModalService, private inventoryService: InventoryService) {
+  constructor(private modalService: BsModalService, 
+              private inventoryService: InventoryService) {
   }
-
 
   modalCreateSynchJob() {
     this.modalService.show(SynchjobModalComponent, {
@@ -23,7 +24,8 @@ export class SynchJobService {
   }
 
   addOnloadingJob(job: OnloadingJob){
-    const partialManagedObj: Partial<OnloadingJob> = job;
+    let partialManagedObj: Partial<OnloadingJob> = job;
+    partialManagedObj[DM_FRAGMENTTYPE_MO] = {}
     return this.inventoryService.create(partialManagedObj);
   }
 }
