@@ -8,9 +8,15 @@
       </button>
       <ul class="dropdown-menu dropdown-menu-right" *dropdownMenu>
         <li > 
-          <button type="button">
+          <button type="button" (click)=onDelete()>
             <i c8yicon="delete" class="dlt-c8y-icon-delete"></i>
             Delete
+          </button>
+        </li>
+        <li > 
+          <button type="button" (click)=onloadNow()>
+            <i c8yicon="cloud-connection" class="dlt-c8y-icon-cloud-connection"></i>
+            Onload now
           </button>
         </li>
       </ul>

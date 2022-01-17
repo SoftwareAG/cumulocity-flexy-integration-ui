@@ -1,6 +1,7 @@
 import { InventoryService } from '@c8y/ngx-components/api';
 import { Component, Input, OnInit } from "@angular/core";
 import { IManagedObject } from '@c8y/client';
+import { AlertService } from '@c8y/ngx-components';
 
 @Component({
     selector: 'app-synchjob-card',
@@ -15,7 +16,8 @@ import { IManagedObject } from '@c8y/client';
 
     singleModel = true;
 
-    constructor(private inventoryService: InventoryService){
+    constructor(private inventoryService: InventoryService,
+      private alert: AlertService){
       
     }
 
@@ -29,5 +31,13 @@ import { IManagedObject } from '@c8y/client';
         isActive: this.singleModel,
         };
       await this.inventoryService.update(partialUpdateObject);
+    }
+
+    onDelete() : void {
+      this.alert.info("Delete item to be done...")
+    }
+
+    onloadNow() : void {
+      this.alert.info("Onload now to be done...")
     }
   }
