@@ -1,4 +1,6 @@
+import { InventoryService } from '@c8y/ngx-components/api';
 import { Component, Input, OnInit } from "@angular/core";
+import { IManagedObject } from '@c8y/client';
 
 @Component({
     selector: 'app-synchjob-card',
@@ -13,11 +15,19 @@ import { Component, Input, OnInit } from "@angular/core";
 
     singleModel = true;
 
-    constructor(){
-      this.singleModel = this.isActive;
+    constructor(private inventoryService: InventoryService){
+      
     }
 
-    ngOnInit(): void {
+    ngOnInit(): void { this.singleModel = this.isActive; }
+
+    async changeActive() : Promise<void>{
+      console.log("change active status = ", this.singleModel); 
       
+      const partialUpdateObject: Partial<IManagedObject> = {
+        id: this.id,
+        isActive: this.singleModel,
+        };
+      await this.inventoryService.update(partialUpdateObject);
     }
   }

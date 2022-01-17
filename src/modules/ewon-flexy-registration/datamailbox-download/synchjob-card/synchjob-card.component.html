@@ -30,16 +30,17 @@
         type="button"
         class="btn m-l-auto m-r-auto"
         [(ngModel)]="singleModel"
+        (click)="changeActive()"
         btnCheckbox
         id="switch-toggle"
       >
       <ng-container>
         <span *ngIf="!singleModel">
-          <i class="dlt-c8y-icon-block status-unsupported" style="color: #58656D; padding-left:1rem;"></i>    
+          <i class="dlt-c8y-icon-block" style="color: #58656D; padding-left:1rem;"></i>    
           Inactive
         </span>
         <span *ngIf="singleModel">
-          <i class="dlt-c8y-icon-check-circle status-successful" style="color: #008800; padding-left:1rem;"></i>    
+          <i class="dlt-c8y-icon-check" style="color: #008800; padding-left:1rem;"></i>    
           Active
         </span>
       </ng-container>
