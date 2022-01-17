@@ -47,7 +47,13 @@
   <ng-container *ngIf="!isLoading && listJobs.length > 0;">
     <div class="card-group interact-grid">
       <div class="d-flex d-col a-i-stretch col-xs-12 col-md-4" *ngFor=" let job of listJobs">
-        <app-synchjob-card></app-synchjob-card>
+        <app-synchjob-card 
+            [id]="job.id"
+            [title]="job.name"
+            [description]="job.description"
+            [isActive]="job.isActive"
+            >
+        </app-synchjob-card>
       </div>
     </div>
     

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 
 @Component({
     selector: 'app-synchjob-card',
@@ -6,11 +6,18 @@ import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
   })
   export class SynchjobCardComponent implements OnInit {
 
+    @Input() title: string;
+    @Input() description: string;
+    @Input() isActive: boolean;
+    @Input() id: string;
 
-    @Input() listClass: string;
+    singleModel = true;
 
-    constructor(){}
+    constructor(){
+      this.singleModel = this.isActive;
+    }
 
-    ngOnInit(): void { }
-
+    ngOnInit(): void {
+      
+    }
   }

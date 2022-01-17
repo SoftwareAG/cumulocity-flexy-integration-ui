@@ -9,6 +9,7 @@ import { HOOK_NAVIGATOR_NODES, HOOK_TABS } from '@c8y/ngx-components';
 import { CoreModule } from '@c8y/ngx-components';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { ButtonsModule } from 'ngx-bootstrap/buttons';
 
 import { FLEXY_PATH, FLEXY_SETTINGS_PATH, FLEXY_REGISTRATION_PATH, FLEXY_DATAMAILBOX_PATH } from '../../constants/flexy-integration.constants';
 import { SettingsComponent } from './settings/settings.component';
@@ -65,7 +66,7 @@ const moduleNavigation: Provider[] = [
     RouterModule.forChild(moduleRoutes),
     CoreModule,
     TooltipModule,
-    
+    ButtonsModule
   ],
   declarations: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobCardComponent, SynchjobModalComponent],
   entryComponents: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobModalComponent],

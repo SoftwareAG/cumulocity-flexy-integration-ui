@@ -20,8 +20,8 @@
     <div class="card-icon">
       <i class="c8y-icon c8y-icon-duocolor c8y-icon-saas"></i>
     </div>
-    <div class="text-truncate card-title" title="My Title"> 
-      It works! 
+    <div class="text-truncate card-title" title="title"> 
+      {{title}}
     </div>
   </div>
   <div class="bg-gray-lighter">
@@ -31,12 +31,18 @@
         class="btn m-l-auto m-r-auto"
         [(ngModel)]="singleModel"
         btnCheckbox
-        btnCheckboxTrue="active"
-        btnCheckboxFalse="inactive"
         id="switch-toggle"
       >
-      <i class="dlt-c8y-icon-block status-unsupported" style="color: #58656D; padding-left:1rem;"></i>    
-        Inactive
+      <ng-container>
+        <span *ngIf="!singleModel">
+          <i class="dlt-c8y-icon-block status-unsupported" style="color: #58656D; padding-left:1rem;"></i>    
+          Inactive
+        </span>
+        <span *ngIf="singleModel">
+          <i class="dlt-c8y-icon-check-circle status-successful" style="color: #008800; padding-left:1rem;"></i>    
+          Active
+        </span>
+      </ng-container>
       </button>
     </div>
   </div>
@@ -44,7 +50,7 @@
     <ul class="list-group list-group-flush">
       <li class="list-group-item">
         <div class="col">
-          <p>Some descriptions...</p>
+          <p>{{description}}</p>
         </div>
       </li>
       <li class="list-group-item">
