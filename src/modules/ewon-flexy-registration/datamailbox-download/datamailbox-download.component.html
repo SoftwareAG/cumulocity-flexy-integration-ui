@@ -46,7 +46,7 @@
   <!-- Onloading Job Cards-->
   <ng-container *ngIf="!isLoading && listJobs.length > 0;">
     <div class="card-group interact-grid">
-      <div class="col-4 col-xs-12 col-md-4" *ngFor=" let job of listJobs">
+      <div class="d-flex d-col a-i-stretch col-xs-12 col-md-4" *ngFor=" let job of listJobs">
         <app-synchjob-card></app-synchjob-card>
       </div>
     </div>

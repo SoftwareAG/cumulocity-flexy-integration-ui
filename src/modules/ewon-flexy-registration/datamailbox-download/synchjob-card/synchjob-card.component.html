@@ -1,13 +1,77 @@
 <div class="card">
+  <div class="card-actions">
+    <div class="dropdown" dropdown>
+      <button type="button" dropdownToggle class="btn btn-clean btn-icon dropdown-toggle c8y-dropodown">
+        <span>
+          <i c8yIcon="menu-vertical"></i>
+        </span>  
+      </button>
+      <ul class="dropdown-menu dropdown-menu-right" *dropdownMenu>
+        <li > 
+          <button type="button">
+            <i c8yicon="delete" class="dlt-c8y-icon-delete"></i>
+            Delete
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
   <div class="card-header separator">
-    <h4 class="card-title">It works!</h4>
+    <div class="card-icon">
+      <i class="c8y-icon c8y-icon-duocolor c8y-icon-saas"></i>
+    </div>
+    <div class="text-truncate card-title" title="My Title"> 
+      It works! 
+    </div>
   </div>
   <div class="bg-gray-lighter">
-    <div class="card-block">
-      <p>Some content</p>
+    <div class="card-block separator d-flex">
+      <button
+        type="button"
+        class="btn m-l-auto m-r-auto"
+        [(ngModel)]="singleModel"
+        btnCheckbox
+        btnCheckboxTrue="active"
+        btnCheckboxFalse="inactive"
+        id="switch-toggle"
+      >
+      <i class="dlt-c8y-icon-block status-unsupported" style="color: #58656D; padding-left:1rem;"></i>    
+        Inactive
+      </button>
     </div>
   </div>
   <div class="card-block">
-    <p>Some other content</p>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <div class="col">
+          <p>Some descriptions...</p>
+        </div>
+      </li>
+      <li class="list-group-item">
+        <div class="col-sm-6">
+          <p class="text-12 text-uppercase text-light text-muted">Schedule</p>
+        </div>
+        <div class="col-sm-6">
+          <p class="text-right">every hour at minute 15</p>
+        </div>
+      </li>
+      <li class="list-group-item">
+        <div class="col-sm-6">
+          <p class="text-12 text-uppercase text-light text-muted">Last Execution</p>
+        </div>
+        <div class="col-sm-6">
+          <p class="text-right">-</p>
+        </div>
+      </li>
+      <li class="list-group-item">
+        <div class="col-sm-6">
+          <p class="text-12 text-uppercase text-light text-muted">Next Execution</p>    
+        </div>
+        <div class="col-sm-6">
+          <p class="text-right">-</p>
+        </div>
+      </li>
+      <li class="list-group-item"></li>
+    </ul>
   </div>
 </div> 
