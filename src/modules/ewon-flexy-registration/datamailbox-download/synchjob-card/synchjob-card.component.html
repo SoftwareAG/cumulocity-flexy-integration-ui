@@ -8,7 +8,7 @@
       </button>
       <ul class="dropdown-menu dropdown-menu-right" *dropdownMenu>
         <li > 
-          <button type="button" (click)=onDelete()>
+          <button type="button" (click)=delete()>
             <i c8yicon="delete" class="dlt-c8y-icon-delete"></i>
             Delete
           </button>
@@ -35,17 +35,17 @@
       <button
         type="button"
         class="btn m-l-auto m-r-auto"
-        [(ngModel)]="singleModel"
+        [(ngModel)]="toggleActive"
         (click)="changeActive()"
         btnCheckbox
         id="switch-toggle"
       >
       <ng-container>
-        <span *ngIf="!singleModel">
+        <span *ngIf="!toggleActive">
           <i class="dlt-c8y-icon-block" style="color: #58656D; padding-left:1rem;"></i>    
           Inactive
         </span>
-        <span *ngIf="singleModel">
+        <span *ngIf="toggleActive">
           <i class="dlt-c8y-icon-check" style="color: #008800; padding-left:1rem;"></i>    
           Active
         </span>

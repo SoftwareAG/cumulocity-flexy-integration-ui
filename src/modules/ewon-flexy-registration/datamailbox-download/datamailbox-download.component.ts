@@ -5,18 +5,11 @@ import { IManagedObject } from '@c8y/client';
 import { EWONFlexyCredentialsTenantoptionsService } from "../../../services/ewon-flexy-credentials-tenantoptions.service";
 import { FlexySettings } from "../../../interfaces/ewon-flexy-registration.interface";
 import { MicroserviceIntegrationService } from './../../../services/c8y-microservice-talk2m-integration.service';
-import { EWONFlexyDeviceRegistrationService } from './../../../services/ewon-flexy-device-registration.service';
-import {SynchJobService} from './synchjob-modal/synchjob-modal.service';
-import { EWONFlexySynchronizeJobService } from './../../../services/ewon-flexy-synchronize-job.service';
+import { SyncOnloadJobService } from '../../../services/synchronize-job.service';
 
 @Component({
     selector: "app-datamailbox-download",
     templateUrl: "./datamailbox-download.component.html",
-    providers: [EWONFlexyCredentialsTenantoptionsService, 
-                EWONFlexyDeviceRegistrationService, 
-                MicroserviceIntegrationService, 
-                SynchJobService, 
-                EWONFlexySynchronizeJobService]
   })
   export class DataMailboxDownloadComponent implements OnInit {
     
@@ -29,9 +22,9 @@ import { EWONFlexySynchronizeJobService } from './../../../services/ewon-flexy-s
 
     constructor( private alert: AlertService,
                   private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
-                  private flexySynchronizationService: EWONFlexySynchronizeJobService,
                   private c8yMSService: MicroserviceIntegrationService,
-                  public syncJobService: SynchJobService)
+                  public syncJobService: SyncOnloadJobService
+                  )
       {
         this.isSessionConnected = false;
         this.isLoading = true;
@@ -58,14 +51,31 @@ import { EWONFlexySynchronizeJobService } from './../../../services/ewon-flexy-s
           
           //Check if jobs exist
           await this.refreshListOnloadingJobs();
+
+          // subscribe on deleted items
+          this.syncJobService.onDelete.subscribe(
+            (onDelete) => {
+              console.log("received deleted item id = ", onDelete);
+              this.listJobs = this.listJobs.filter(function(job) { return job.id !== onDelete });
+            }
+          );
     }
 
     async refreshListOnloadingJobs(){
       this.isLoading = true;
-      const data = await this.flexySynchronizationService.listOnloadingJobs();
+      const data = await this.syncJobService.listOnloadingJobs();
       this.listJobs =  data;
       console.log("list of jobs: ", this.listJobs);
       this.isLoading = false;
+    }
+
+    openModal() {
+      this.syncJobService.openModalSynchJob().subscribe(
+        (newJob) => {
+          console.log("new job was created by modal." , newJob);
+          this.refreshListOnloadingJobs();
+        }
+      );
     }
 
   }

@@ -1,8 +1,10 @@
+
 import { InventoryService } from '@c8y/ngx-components/api';
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, ComponentRef, Input, OnInit } from "@angular/core";
 import { IManagedObject } from '@c8y/client';
 import { AlertService } from '@c8y/ngx-components';
-
+import { Observable, Subject } from 'rxjs';
+import { SyncOnloadJobService } from '../../../../services/synchronize-job.service';
 @Component({
     selector: 'app-synchjob-card',
     templateUrl: './synchjob-card.component.html'
@@ -14,30 +16,33 @@ import { AlertService } from '@c8y/ngx-components';
     @Input() isActive: boolean;
     @Input() id: string;
 
-    singleModel = true;
+    toggleActive : boolean = true;
+
+    public onDelete: Subject<IManagedObject> = new Subject();
 
     constructor(private inventoryService: InventoryService,
-      private alert: AlertService){
+      private alert: AlertService,
+      private syncJob : SyncOnloadJobService
+      ){
       
     }
 
-    ngOnInit(): void { this.singleModel = this.isActive; }
+    ngOnInit(): void { this.toggleActive = this.isActive; }
 
     async changeActive() : Promise<void>{
-      console.log("change active status = ", this.singleModel); 
-      
       const partialUpdateObject: Partial<IManagedObject> = {
         id: this.id,
-        isActive: this.singleModel,
+        isActive: this.toggleActive,
         };
       await this.inventoryService.update(partialUpdateObject);
     }
 
-    onDelete() : void {
-      this.alert.info("Delete item to be done...")
+    delete() : void {
+      this.alert.info("Deleted onloading job.");
+      this.syncJob.deleteOnloadingJob(this.id);
     }
 
     onloadNow() : void {
-      this.alert.info("Onload now to be done...")
+      this.alert.info("Onload now to be done...");
     }
   }

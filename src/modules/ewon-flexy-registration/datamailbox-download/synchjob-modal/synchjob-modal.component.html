@@ -1,5 +1,5 @@
 <div class="p-b-16">
-  <div *ngIf="isModal" class="modal-header modal-header-primary text-center">
+  <div class="modal-header modal-header-primary text-center">
     <i [c8yIcon]="'c8y-icon-duocolor c8y-icon-saas'" style="font-size: 32px;"></i>
     <h3 class="p-t-16">{{ 'Add Onloading Job' }}</h3>
   </div>
@@ -91,7 +91,7 @@
         </h4>
       </div>
       <c8y-stepper-buttons
-        (onBack)="close(isModal)"
+        (onBack)="close()"
         [labels]="{ back: 'Close' }"
       ></c8y-stepper-buttons>
     </cdk-step>

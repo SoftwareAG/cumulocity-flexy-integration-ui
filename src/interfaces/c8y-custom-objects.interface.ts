@@ -1,5 +1,5 @@
 import { IManagedObject } from '@c8y/client';
-export interface OnloadingJob extends IManagedObject  { 
+export interface IOnloadingJobObject extends IManagedObject  { 
     c8y_HMSOnloadingJob : {},
     ewonIds : [],
     name : string,

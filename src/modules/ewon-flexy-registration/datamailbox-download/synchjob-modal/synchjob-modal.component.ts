@@ -1,15 +1,15 @@
-import { OnloadingJob } from './../../../../interfaces/c8y-custom-objects.interface';
+import { IManagedObject } from '@c8y/client';
+import { IOnloadingJobObject } from './../../../../interfaces/c8y-custom-objects.interface';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActionControl, AlertService, C8yStepper, Column, ColumnDataType, Item, ModalLabels, Pagination } from "@c8y/ngx-components";
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { Subject } from "rxjs";
-import { SynchJobService } from "./synchjob-modal.service";
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../../interfaces/ewon-flexy-registration.interface';
 import { MicroserviceIntegrationService } from '../../../../services/c8y-microservice-talk2m-integration.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../../services/ewon-flexy-device-registration.service';
-import { DataMailboxDownloadComponent } from '../datamailbox-download.component';
+import { SyncOnloadJobService } from '../../../../services/synchronize-job.service';
 
 
 enum step {
@@ -21,9 +21,6 @@ enum step {
 @Component({
     selector: 'app-synchjob-modal',
     templateUrl: './synchjob-modal.component.html',
-    providers: [EWONFlexyCredentialsTenantoptionsService, 
-                EWONFlexyDeviceRegistrationService,
-                ]
   })
   export class SynchjobModalComponent implements OnInit {
 
@@ -47,13 +44,14 @@ enum step {
       pageSize: 1000,
       currentPage: 1
     };
+
+    newJob: IManagedObject;
     
-    private onClose: Subject<any> = new Subject();
-    //labels : ModalLabels = {ok: "customOK", cancel: "customCancel"};
+    public onClose: Subject<IManagedObject> = new Subject();
 
     constructor(private alert: AlertService,
       private fb: FormBuilder,
-      private syncJobService: SynchJobService,
+      private syncJobService: SyncOnloadJobService,
       private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
       private bsModalRef: BsModalRef,
       private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
@@ -69,7 +67,6 @@ enum step {
         name: ['', Validators.required],
         description: ['']
       });
-  
       this.formGroupStepTwo = this.fb.group({
         ewonIds: ['']
       });
@@ -104,7 +101,6 @@ enum step {
     }
 
     async navigate(clickedStepIDX: number) {
-      console.log("navigate event: ", clickedStepIDX);
       const { selectedIndex: selectedStepIDX } = this.stepper;
       const isMovingForward = clickedStepIDX > selectedStepIDX;
       if (isMovingForward) {
@@ -114,56 +110,35 @@ enum step {
       }
     }
     onMovingForward(clickedStepIDX: number, selectedStepIDX: number) {
-      console.log("onMovingForward event: ", {clickedStepIDX,selectedStepIDX});
-      console.log("form one: ", this.formGroupStepOne);
-      console.log("form two: ", this.formGroupStepTwo);
       this.stepper.next();
       if (clickedStepIDX === step.THIRD && selectedStepIDX === step.SECOND) {
         this.save();
       }
     }
     onMovingBackward(clickedStepIDX: number, selectedStepIDX: number) {
-      console.log("onMovingBackward event: ", {clickedStepIDX,selectedStepIDX});
-      console.log("form one: ", this.formGroupStepOne);
-      console.log("form two: ", this.formGroupStepTwo);
-      if ((clickedStepIDX === step.FIRST || step.SECOND) && selectedStepIDX === step.THIRD) {
-        this.resetStepper();
-      } else if (clickedStepIDX === step.FIRST && selectedStepIDX === step.SECOND) {
+      if (clickedStepIDX === step.FIRST && selectedStepIDX === step.SECOND) {
         this.stepper.previous();
       }
     }
 
     async save() {
       this.pendingStatus = true;
-      await this.addOnloadingJob();
-     // await this.dmComponent.refreshListOnloadingJobs();
-      this.pendingStatus = false;
-      this.stepper.next();
-    }
-
-    private async addOnloadingJob() {
-      console.log("addOnloadingJob...");
-      const data = await this.syncJobService.addOnloadingJob(
+      //create new managed object 
+      this.newJob = await this.syncJobService.createOnloadingJob(
         { 
           ewonIds : this.formGroupStepTwo.value.ewonIds,
           name : this.formGroupStepOne.value.name,
           description : this.formGroupStepOne.value.description,
           isActive : false
-        } as OnloadingJob);
-      console.log("create job: ", data);
+        } as IOnloadingJobObject);
+
+      this.pendingStatus = false;
+      this.stepper.next();
     }
 
-     close(isModal: boolean) {
-      if (isModal) {
-        this.onClose.next(null);
-        this.bsModalRef.hide();
-      } else {
-        this.resetStepper();
-      }
-    }
-    private resetStepper() {
-      this.stepper.reset();
-      this.stepper.selectedIndex = 1;
+     close() {
+       this.onClose.next(this.newJob);
+       this.bsModalRef.hide();
     }
 
     selectItems(items: []){

@@ -18,7 +18,9 @@ import { DataMailboxDownloadComponent } from './datamailbox-download/datamailbox
 import { MicroserviceIntegrationService } from '../../services/c8y-microservice-talk2m-integration.service';
 import { SynchjobCardComponent } from './datamailbox-download/synchjob-card/synchjob-card.component';
 import { SynchjobModalComponent } from './datamailbox-download/synchjob-modal/synchjob-modal.component';
-import { SynchJobService } from './datamailbox-download/synchjob-modal/synchjob-modal.service';
+import { SyncOnloadJobService } from '../../services/synchronize-job.service';
+import { EWONFlexyCredentialsTenantoptionsService } from '../../services/ewon-flexy-credentials-tenantoptions.service';
+import { EWONFlexyDeviceRegistrationService } from '../../services/ewon-flexy-device-registration.service';
 
 const moduleRoutes: Routes = [
   {
@@ -54,7 +56,11 @@ const moduleNavigation: Provider[] = [
     provide: HOOK_TABS,
     useClass: FlexyTabFactory,
     multi: true
-  }, MicroserviceIntegrationService, SynchJobService
+  }, 
+  EWONFlexyCredentialsTenantoptionsService, 
+  EWONFlexyDeviceRegistrationService,
+  MicroserviceIntegrationService, 
+  SyncOnloadJobService
 ];
 
 @NgModule({
@@ -66,10 +72,22 @@ const moduleNavigation: Provider[] = [
     RouterModule.forChild(moduleRoutes),
     CoreModule,
     TooltipModule,
-    ButtonsModule
+    ButtonsModule,
   ],
-  declarations: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobCardComponent, SynchjobModalComponent],
-  entryComponents: [SettingsComponent, BulkRegistrationComponent,DataMailboxDownloadComponent, SynchjobModalComponent],
+  declarations: [
+    SettingsComponent, 
+    BulkRegistrationComponent,
+    DataMailboxDownloadComponent, 
+    SynchjobCardComponent,
+    SynchjobModalComponent
+  ],
+  entryComponents: [
+    SettingsComponent, 
+    BulkRegistrationComponent,
+    DataMailboxDownloadComponent, 
+    SynchjobCardComponent,
+    SynchjobModalComponent
+  ],
   providers: [...moduleNavigation]
 })
 export class FlexyRegistrationModule {}
