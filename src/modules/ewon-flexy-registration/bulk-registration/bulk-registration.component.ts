@@ -6,6 +6,7 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../int
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
+import { FLEXY_EXTERNALID_PREFIX } from './../../../constants/flexy-integration.constants';
 
 @Component({
   selector: 'app-bulk-registration',
@@ -27,7 +28,7 @@ export class BulkRegistrationComponent implements OnInit {
 
   public report = {
     failed: [],
-    successful : []
+    successfull : []
   };
 
   columns: Column[] = [];
@@ -66,8 +67,8 @@ export class BulkRegistrationComponent implements OnInit {
         console.log(this._config);
 
         // Is session still active
-        if(this._config && this._config.session && this._config.devId){
-          await this.talk2m.getaccountinfo(this._config.session, this._config.devId).then(
+        if(this._config && this._config.session){
+          await this.talk2m.getaccountinfo(this._config.session).then(
             (result) => {
               this.isSessionConnected = true;
               console.log("---------------- GET EWONS");
@@ -75,7 +76,7 @@ export class BulkRegistrationComponent implements OnInit {
               if (result.body.pools && result.body.pools.length > 0){
                 for (const pool of result.body.pools) {
                   console.log("pool = ", pool.name);
-                  this.talk2m.getewons(this._config.session, this._config.devId, pool.id).then(
+                  this.talk2m.getewons(this._config.session, pool.id).then(
                     (response) => {    
                         for (const ewon of response.body.ewons) {
                           ewon.pool = pool.name;
@@ -93,7 +94,7 @@ export class BulkRegistrationComponent implements OnInit {
                   );
                 }
               }else{
-                this.talk2m.getewons(this._config.session, this._config.devId).then(
+                this.talk2m.getewons(this._config.session).then(
                   (response) => { 
                       this.rows = response.body.ewons as EwonFlexyStructure[];
                       console.log(this.rows);
@@ -128,29 +129,32 @@ export class BulkRegistrationComponent implements OnInit {
     // Loop through selected items to register and register them in parallel
     const promises = this.selectedItems.map(item => 
       this.registerDevice(item)
-        .then(() => this.report.successful.push(item), () => this.report.failed.push(item))
-        .then(() => this.completionPercent = ((this.report.failed.length + this.report.successful.length) / this.selectItems.length)*100)
+        .then(() => this.report.successfull.push(item), () => this.report.failed.push(item))
+        .then(() => this.completionPercent = ((this.report.failed.length + this.report.successfull.length) / this.selectItems.length)*100)
     );
     await Promise.all(promises);
   }
 
   private async registerDevice(item: number) {
     const ewon: EwonFlexyStructure = this.rows.find(element => element.id == item);
-
+    const externalId = ewon.id.toString();
+    
     if (ewon.registered !== FlexyIntegrated.Not_integrated) {
-      this.alert.info("Device with externalId '" + ewon.id + "' is already registered.");
+      this.alert.info("Device with externalId '" + externalId + "' is already registered.");
       return;
     }
 
-    console.log("Start registering device id = " + ewon.id);
+    console.log("Start registering device externalId = " + externalId);
     // 1. Create device request if not exists
-    const existingRequest = this.existingRequests.find(element => element.id == item.toString());
+    console.log("existing requests = ", this.existingRequests);
+    const existingRequest = this.existingRequests.find(element => element.id == FLEXY_EXTERNALID_PREFIX+externalId);
     if (!existingRequest){
-      const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewon.id.toString());
-      console.log(ewon.id + ' createDeviceRequestRegistration: ', registration);
+      console.log("create device request with external id = ", externalId)
+      const registration = await this.flexyRegistration.createDeviceRequestRegistration(externalId);
+      console.log(externalId + ' createDeviceRequestRegistration: ', registration);
      // 1.1 Bootstraps the device credentials
       try {
-        await this.flexyRegistration.requestDeviceCredentials(ewon.id.toString());
+        await this.flexyRegistration.requestDeviceCredentials(externalId);
         // return in case we are actually able to retrieve the credentials
         return;
       } catch (error) {
@@ -163,7 +167,9 @@ export class BulkRegistrationComponent implements OnInit {
       }
       console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
       // 1.2 Change status to acceptance 
-      await this.flexyRegistration.acceptDeviceRequest(ewon.id.toString());
+      await this.flexyRegistration.acceptDeviceRequest(externalId);
+    }else{
+      console.log("Request for device already exists. externalId = ", externalId);
     }
     // 2. Create inventoty managed object
     const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
@@ -172,7 +178,7 @@ export class BulkRegistrationComponent implements OnInit {
     });
     console.log("created inventory: ", deviceInventoryObj);
     // 3. Assign externalId to inventory 
-    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewon.id.toString());
+    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, externalId);
     // 4. Assign group to inventory
     if (ewon.pool && this.poolGroupList.has(ewon.pool)){
       console.log("List of groups:", this.poolGroupList);
@@ -191,6 +197,7 @@ export class BulkRegistrationComponent implements OnInit {
 
     // 0.1 Get existing device requests
     this.existingRequests = await this.flexyRegistration.getDeviceRequestRegistration();
+    console.log("List of registrations: ", this.existingRequests);
 
     //0.2 Create group for pool definition
     const groups = await this.flexyRegistration.getDeviceGroupInventoryList()

@@ -1,4 +1,4 @@
-<c8y-title>{{ "EWON Flexy Registration" | translate }}</c8y-title>
+<c8y-title>{{ "EWON Flexy Settings" | translate }}</c8y-title>
 <!--Action Bar-->
 <c8y-action-bar-item [placement]="'right'">
   <div class="c8y-realtime">
@@ -13,51 +13,47 @@
     <h4 class="card-title">{{ "Integration Settings" | translate }}</h4>
   </div>
     <div class="card-block">
-      <h4>{{ "Talk2M Login" | translate }}</h4>
-      <div class="form-group">
-        <label>{{ "Account" | translate }}</label>
-        <input class="form-control" type="text" [(ngModel)]="config.account"/>
-      </div>
-      <div class="form-group">
-        <label>{{ "Username" | translate }}</label>
-        <input class="form-control" type="text" [(ngModel)]="config.username"/>
-      </div>
-      <div class="form-group">
-        <label>{{ "Password" | translate }}</label>
-        <input class="form-control" type="password" [(ngModel)]="config.password"/>
-        <p id="helpinput" class="help-block">{{ "Password won't be saved. If the session disconnect, you may have to re-enter your password once again." | translate }}</p>
-      </div>
-      <div class="form-group">
-        <label>{{ "Developer ID" | translate }}</label>
-        <input class="form-control" type="text" [(ngModel)]="config.devId"/>
-      </div>
-
-      <hr/>
-
-      <h4>{{ "Data Mailbox Setting" | translate }}</h4>
-
-      <div class="form-group">
-        <label>{{ "Token" | translate }}</label>
-        <input class="form-control" type="text" [(ngModel)]="config.token"/>
-      </div>
-
-      <hr/>
-
-      <h4>{{ "Cumulocity Setting" | translate }}</h4>
-      <div class="form-group">
-        <label for="exampleSelect">{{
-          "Management Tenant" | translate
-        }}</label>
-        <div class="c8y-select-wrapper">
-          <select id="exampleSelect" class="form-control" [(ngModel)]="config.tenant">
-            <option>cumulocity.com</option>
-            <option>eu-latest.cumulocity.com</option>
-            <option>emea.cumulocity.com</option>
-          </select>
-          <span></span>
+        <h4>{{ "Talk2M Login" | translate }}</h4>
+        <div class="form-group">
+          <label>{{ "Account" | translate }}</label>
+          <input class="form-control" type="text" [(ngModel)]="config.account"/>
+        </div>
+        <div class="form-group">
+          <label>{{ "Username" | translate }}</label>
+          <input class="form-control" type="text" [(ngModel)]="config.username"/>
+        </div>
+        <div class="form-group">
+          <label>{{ "Password" | translate }}</label>
+          <input class="form-control" type="password" [(ngModel)]="config.password"/>
+          <p id="helpinput" class="help-block">{{ "Password won't be saved. If the session disconnect, you may have to re-enter your password once again." | translate }}</p>
         </div>
       </div>
-    </div>
+     
+      <div class="card-block" *ngIf="isMicroserviceEnabled">
+        <h4>{{ "Data Mailbox Setting" | translate }}</h4>
+
+        <div class="form-group">
+          <label>{{ "Token" | translate }}</label>
+          <input class="form-control" type="text" [(ngModel)]="config.token"/>
+        </div>
+      </div>
+      
+      <div class="card-block">
+        <h4>{{ "Cumulocity Setting" | translate }}</h4>
+        <div class="form-group">
+          <label for="exampleSelect">{{
+            "Management Tenant" | translate
+          }}</label>
+          <div class="c8y-select-wrapper">
+            <select id="exampleSelect" class="form-control" [(ngModel)]="config.tenant">
+              <option>cumulocity.com</option>
+              <option>eu-latest.cumulocity.com</option>
+              <option>emea.cumulocity.com</option>
+            </select>
+            <span></span>
+          </div>
+        </div>
+      </div>
     <div class="card-footer separator">
       <input type="submit" value="Save & Connect" class="btn btn-primary" (click)="onConnect(config)"/>
       <input type="submit" value="Logout" class="btn btn-warning" (click)="onLogout(config)"/>

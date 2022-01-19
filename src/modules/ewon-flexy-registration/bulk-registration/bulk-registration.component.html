@@ -1,3 +1,4 @@
+<c8y-title>{{ "EWON Flexy Registration" | translate }}</c8y-title>
 <!--Action Bar-->
 <c8y-action-bar-item [placement]="'right'">
   <div class="c8y-realtime">
@@ -47,7 +48,7 @@
   <!-- List of ewon items -->
   <ng-container *ngIf="!isLoading && rows.length > 0;">
     <c8y-data-grid
-    [title]="'EWON Flexy Registration' | translate"
+    [title]="'Talk2M Flexy Devices' | translate"
     [columns]="columns"
     [pagination]="pagination"
     [actionControls]="actionControls"
@@ -59,8 +60,8 @@
     >
         <c8y-column name="registered">
           <ng-container *c8yCellRendererDef="let context">
-            <span class = "d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle status-successful" style="color: #008800;; padding-left:1rem;"></i></span>
-            <span class = "d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block status-unsupported" style="color: #58656D;; padding-left:1rem;"></i></span>
+            <span class = "d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle" style="color: #008800; padding-left:1rem;"></i></span>
+            <span class = "d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block" style="color: #58656D; padding-left:1rem;"></i></span>
           </ng-container>
         </c8y-column>
     </c8y-data-grid>

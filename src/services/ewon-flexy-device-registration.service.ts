@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
 import { IManagedObject, IExternalIdentity, DeviceRegistrationService, IDeviceRegistrationCreate, IDeviceRegistration, IDeviceBootstrapOptions, IDeviceCredentials, IIdentified } from "@c8y/client";
 import { InventoryService, IdentityService } from "@c8y/ngx-components/api";
-import { EwonFlexyStructure } from "src/interfaces/ewon-flexy-registration.interface";
-import { FLEXY_DEVICETYPE, FLEXY_SERIALTYPE } from './../constants/flexy-integration.constants';
+import { EwonFlexyStructure } from "../interfaces/ewon-flexy-registration.interface";
+import { FLEXY_DEVICETYPE, FLEXY_SERIALTYPE, FLEXY_EXTERNALID_PREFIX } from './../constants/flexy-integration.constants';
 
 @Injectable()
 export class EWONFlexyDeviceRegistrationService {
@@ -66,13 +66,22 @@ export class EWONFlexyDeviceRegistrationService {
     const {data, res} = await this.inventoryService.childAssetsAdd(deviceId, groupId);
     return data;
   }
+  async getEwonDevices(){
+    const filter: object = {
+           pageSize: 100,
+           withTotalPages: true,
+           type: FLEXY_DEVICETYPE
+         };
+    const {data, res } = await this.inventoryService.list(filter);
+    return data
+  }
   //--------  
 
   // IdentityService
   async isDeviceRegistered(externalId:string): Promise<boolean> {
     const identity: IExternalIdentity = {
             type: FLEXY_SERIALTYPE,
-            externalId: externalId
+            externalId: FLEXY_EXTERNALID_PREFIX + externalId
           };
     const data = await this.identityService.detail(identity).then(
       (result) => { return true;},
@@ -80,10 +89,29 @@ export class EWONFlexyDeviceRegistrationService {
     )
     return data;
   }
+  
+  async getDeviceManagedObjectWithExternalId(externalId:string): Promise<IIdentified>{
+    const identity: IExternalIdentity = {
+      type: FLEXY_SERIALTYPE,
+      externalId: FLEXY_EXTERNALID_PREFIX + externalId
+    };
+    const data = await this.identityService.detail(identity).then(
+      (identity) => {
+        //const managedObjId: number =identity.data.managedObject.id;
+        //inventoryService
+        return identity.data.managedObject;
+      }, (error) => {
+        console.debug("Managed object with external id " + FLEXY_EXTERNALID_PREFIX + externalId + " does not exists.");
+        throw error;
+      }
+    );
+    return data;
+  }
+
   async createIdentidyForDevice(deviceId:string, externalId:string): Promise<IExternalIdentity>{
     const identity: IExternalIdentity = {
             type: FLEXY_SERIALTYPE,
-            externalId: externalId,
+            externalId: FLEXY_EXTERNALID_PREFIX + externalId,
             managedObject: {
               id: deviceId
             }
@@ -105,7 +133,7 @@ export class EWONFlexyDeviceRegistrationService {
 
   async createDeviceRequestRegistration(id:string): Promise<IDeviceRegistration>{
     const registrationObject: IDeviceRegistrationCreate = {
-            id: id,
+            id: FLEXY_EXTERNALID_PREFIX + id,
           };
     const {data, res} = await this.deviceRegistration.create(registrationObject);
     return data;
@@ -125,12 +153,12 @@ export class EWONFlexyDeviceRegistrationService {
         pass: 'Fhdt1bb1f'
       }
     };
-    const {data, res} = await this.deviceRegistration.bootstrap(id, options);
+    const {data, res} = await this.deviceRegistration.bootstrap(FLEXY_EXTERNALID_PREFIX + id, options);
     return data;
   }
 
   async acceptDeviceRequest(id:string){
-    const {data, res} = await this.deviceRegistration.accept(id);
+    const {data, res} = await this.deviceRegistration.accept(FLEXY_EXTERNALID_PREFIX + id);
     return data;
   }
   //--------

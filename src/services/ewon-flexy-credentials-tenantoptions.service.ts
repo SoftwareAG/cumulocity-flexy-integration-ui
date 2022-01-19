@@ -11,10 +11,15 @@ export class EWONFlexyCredentialsTenantoptionsService {
     private alert: AlertService
   ) {}
 
-  async updateCredentials(config: any){
-
+  protected async getBase64Userid(): Promise<string>{
     const user = await this.userService.current();
     const base64 = btoa(user.data.id).replace("=","").replace("+","-").replace("/","_");
+    return base64;
+  }
+
+  async updateCredentials(config: any) {
+
+    const base64 = await this.getBase64Userid();
 
     const listKeys = Object.keys(config)
     for (const iterate of listKeys) {
@@ -33,8 +38,7 @@ export class EWONFlexyCredentialsTenantoptionsService {
 
   async getCredentials(): Promise<ITenantOption[]> {
 
-    const user = await this.userService.current();
-    const base64 = btoa(user.data.id).replace("=","").replace("+","-").replace("/","_");
+    const base64 = await this.getBase64Userid();
     const filter = {
       category: FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64,
       pageSize: 100,

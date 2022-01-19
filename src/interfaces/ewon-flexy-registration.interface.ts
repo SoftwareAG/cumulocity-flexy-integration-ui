@@ -1,8 +1,7 @@
 export interface FlexySettings { 
     account?: string,
     username?: string,
-    password?: string,
-    devId?: string,
+    password?: string
     tenant?: string,
     session?: string,
     token?: string,
@@ -30,6 +29,8 @@ export interface FlexySettings {
         port?: number;
         protocol?: string;
     }>;
+    dmLastSyncDate?:Date;
+    c8yLastSyncDate?:Date;
   }
 
   export declare const enum FlexyIntegrated {

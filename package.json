@@ -30,7 +30,7 @@
     "typescript": "3.5.3"
   },
   "scripts": {
-    "start": "c8ycli server -u https://psfactory.eu-latest.cumulocity.com",
+    "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "ng": "ng",
     "build": "rimraf dist && c8ycli build",
     "deploy": "c8ycli deploy",
@@ -59,7 +59,7 @@
       "contentSecurityPolicy": "base-uri 'none'; default-src 'self' 'unsafe-inline' http: https: ws: wss:; connect-src 'self' *.billwerk.com http: https: ws: wss:;  script-src 'self' open.mapquestapi.com *.twitter.com *.twimg.com *.aptrinsic.com 'unsafe-inline' 'unsafe-eval' data:; style-src * 'unsafe-inline' blob:; img-src * data:; font-src * data:; frame-src *;",
       "dynamicOptionsUrl": "/apps/public/public-options/options.json",
       "icon": {
-        "class": "c8y-icon-duocolor c8y-icon-rocket"
+        "class": "c8y-icon-duocolor c8y-icon-cloud-container"
       }
     },
     "cli": {}
