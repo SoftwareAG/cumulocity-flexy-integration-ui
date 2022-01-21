@@ -122,18 +122,23 @@ enum step {
     }
 
     async save() {
-      this.pendingStatus = true;
-      //create new managed object 
-      this.newJob = await this.syncJobService.createOnloadingJob(
-        { 
-          ewonIds : this.formGroupStepTwo.value.ewonIds,
-          name : this.formGroupStepOne.value.name,
-          description : this.formGroupStepOne.value.description,
-          isActive : false
-        } as IOnloadingJobObject);
 
-      this.pendingStatus = false;
-      this.stepper.next();
+      if (this.formGroupStepTwo.value.ewonIds > 0){
+          this.pendingStatus = true;
+          //create new managed object 
+          this.newJob = await this.syncJobService.createOnloadingJob(
+            { 
+              ewonIds : this.formGroupStepTwo.value.ewonIds,
+              name : this.formGroupStepOne.value.name,
+              description : this.formGroupStepOne.value.description,
+              isActive : false
+            } as IOnloadingJobObject);
+
+          this.pendingStatus = false;
+          this.stepper.next();
+      }else{
+        this.alert.info("Please select one item.");
+      }
     }
 
      close() {
