@@ -7,8 +7,8 @@ export const FLEXY_DATAMAILBOX_PATH = 'datamailbox';
 
 export const FLEXY_TENANTOPTIONS_CATEGORY = 'flexy';
 
-export const FLEXY_SERIALTYPE = 'flexy_id';
-export const FLEXY_EXTERNALID_PREFIX = 'flexy_';
+export const FLEXY_SERIALTYPE = 'talk2m_id';
+export const FLEXY_EXTERNALID_PREFIX = 'HMS-Talk2M-';
 export const FLEXY_DEVICETYPE = 'c8y_EwonFlexy';
 
 export const TALK2M_BASEURL = 'https://m2web.talk2m.com/t2mapi';
