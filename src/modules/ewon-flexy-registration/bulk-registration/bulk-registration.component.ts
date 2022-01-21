@@ -65,9 +65,17 @@ export class BulkRegistrationComponent implements OnInit {
           this._config[option.key] = option.value;
         });
         console.log(this._config);
+        
+        // No credentials available, then stop here.
+        if (Object.keys(this._config).length  === 0){
+          this.alert.warning("No credentials are defined. Could not establish a connection.");
+          this.isLoading = false;
+          this.isSessionConnected = false;
+          return;
+        }
 
         // Is session still active
-        if(this._config && this._config.session){
+        if(this._config.session){
           await this.talk2m.getaccountinfo(this._config.session).then(
             (result) => {
               this.isSessionConnected = true;
@@ -109,7 +117,11 @@ export class BulkRegistrationComponent implements OnInit {
               this.isSessionConnected = false;
             }
           );
-        }        
+        }else{
+          this.alert.info("Session is no longer active. Please re-connect.");
+          this.isLoading = false;
+          this.isSessionConnected = false;
+        }       
       },
       (error) => {
         this.alert.warning("Get credentials failed. ", error);
