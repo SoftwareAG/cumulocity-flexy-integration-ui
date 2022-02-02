@@ -7,6 +7,7 @@ import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon
 import { Talk2MService } from '../../../services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
 import { FLEXY_EXTERNALID_PREFIX } from './../../../constants/flexy-integration.constants';
+import { RegisterFlexyManualService } from '../../../services/register-flexy-manual.service';
 
 @Component({
   selector: 'app-bulk-registration',
@@ -43,7 +44,8 @@ export class BulkRegistrationComponent implements OnInit {
   constructor( private alert: AlertService,
     private talk2m: Talk2MService,
     private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
-    private flexyRegistration: EWONFlexyDeviceRegistrationService
+    private flexyRegistration: EWONFlexyDeviceRegistrationService,
+    public registerManuallyService: RegisterFlexyManualService
     ) { 
     this.isSessionConnected = false;
     this.isLoading = true;
@@ -245,7 +247,12 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   openModal() {
-    // TODO
+    this.registerManuallyService.openModalRegistration().subscribe(
+      (newFlexy) => {
+        console.log("new Flexy was created by modal." , newFlexy);
+        //TODO add Flexy to list
+      }
+    );
   }
 
   getDefaultColumns(): Column[] {
