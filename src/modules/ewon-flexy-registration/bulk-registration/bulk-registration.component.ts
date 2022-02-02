@@ -244,6 +244,10 @@ export class BulkRegistrationComponent implements OnInit {
     console.log(event);
   }
 
+  openModal() {
+    // TODO
+  }
+
   getDefaultColumns(): Column[] {
     return [
       {
