@@ -18,7 +18,7 @@ export class RegisterFlexyManualService {
       openModalRegistration() : Observable<IManagedObject> {
         const modalRef = this.modalService.show(RegistrationModalComponent, {
           initialState: { isModal: true },
-          class: 'modal-lg'
+          class: 'modal-sm'
         });
         const modal : RegistrationModalComponent = modalRef.content;
         return modal.onClose.asObservable();

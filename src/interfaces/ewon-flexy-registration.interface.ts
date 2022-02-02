@@ -5,6 +5,8 @@ export interface FlexySettings {
     tenant?: string,
     session?: string,
     token?: string,
+    device_user?: string
+    device_pass?: string,
  } 
  export interface EwonFlexyStructure {
     id: string | number;
