@@ -18,15 +18,15 @@ export const DM_FRAGMENTTYPE_MO = 'c8y_HMSOnloadingJob';
 
 export const C8Y_MICROSERVICE_ENDPOINT = {
     URL: { 
-        GET_EWONS: '/service/ewon-talk2m-integration/datamailbox/getewons?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}',
-        SYNC_DATA: '/service/ewon-talk2m-integration/datamailbox/syncdata?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}&tenantId={tenantId}',
+        GET_EWONS: '/service/ewon-flexy-integration/datamailbox/getewons?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}',
+        SYNC_DATA: '/service/ewon-flexy-integration/datamailbox/syncdata?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}&tenantId={tenantId}',
     },
     VARIABLE: {
         TOKEN: '{t2mtoken}',
         DEVID: '{t2mdevid}',
         TENANTID: '{tenantId}'
       } ,
-    APPKEY: 'ewon-talk2m-integration'
+    APPKEY: 'ewon-flexy-integration'
 }
 
 export const GET_OPTIONS: IFetchOptions = {
