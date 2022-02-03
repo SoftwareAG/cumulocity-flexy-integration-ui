@@ -19,6 +19,7 @@ export interface FlexySettings {
     description?: string;
     customAttributes?: Array<string>;
     m2webServer?: string;
+    serialNumber?: string;
     lanDevices?: Array<{
         name?: string;
         description?: string;

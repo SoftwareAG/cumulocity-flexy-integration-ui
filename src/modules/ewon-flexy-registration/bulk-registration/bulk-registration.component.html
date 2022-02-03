@@ -8,7 +8,7 @@
 </c8y-action-bar-item>
 <!--Action Bar Add Sync job-->
 <c8y-action-bar-item [itemClass]="'btn-group'" [placement]="'right'" >
-  <button class="btn btn-link" (click)="openModal()" style="margin:-1rem; padding-right:2rem;">
+  <button class="btn btn-link" (click)="openModal()" style="margin:-1rem; padding-right:2rem;" [ngStyle]="!isSessionConnected ? {'display': 'none'} : ''">
     <i c8yIcon="plus-circle"></i>
     {{ 'Register Flexy manually' | translate }}
   </button>

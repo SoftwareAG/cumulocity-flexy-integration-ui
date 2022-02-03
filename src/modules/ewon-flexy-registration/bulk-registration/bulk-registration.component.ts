@@ -6,7 +6,7 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../int
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
-import { FLEXY_EXTERNALID_PREFIX } from './../../../constants/flexy-integration.constants';
+import { FLEXY_EXTERNALID_TALK2M_PREFIX } from './../../../constants/flexy-integration.constants';
 import { RegisterFlexyManualService } from '../../../services/register-flexy-manual.service';
 
 @Component({
@@ -90,7 +90,7 @@ export class BulkRegistrationComponent implements OnInit {
                     (response) => {    
                         for (const ewon of response.body.ewons) {
                           ewon.pool = pool.name;
-                          this.flexyRegistration.isDeviceRegistered(ewon.id).then(
+                          this.flexyRegistration.isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX).then(
                             (result) => {
                               ewon.registered = (result) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
                             }
@@ -161,14 +161,14 @@ export class BulkRegistrationComponent implements OnInit {
     console.log("Start registering device ewonId = " + ewonId);
     // 1. Create device request if not exists
     console.log("existing requests = ", this.existingRequests);
-    const existingRequest = this.existingRequests.find(element => element.id == FLEXY_EXTERNALID_PREFIX+ewonId);
+    const existingRequest = this.existingRequests.find(element => element.id == FLEXY_EXTERNALID_TALK2M_PREFIX+ewonId);
     if (!existingRequest){
       console.log("create device request with external id = ", ewonId)
-      const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewonId);
+      const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
       console.log(ewonId + ' createDeviceRequestRegistration: ', registration);
      // 1.1 Bootstraps the device credentials
       try {
-        await this.flexyRegistration.requestDeviceCredentials(ewonId);
+        await this.flexyRegistration.requestDeviceCredentials(ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
         // return in case we are actually able to retrieve the credentials
         return;
       } catch (error) {
@@ -181,7 +181,7 @@ export class BulkRegistrationComponent implements OnInit {
       }
       console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
       // 1.2 Change status to acceptance 
-      await this.flexyRegistration.acceptDeviceRequest(ewonId);
+      await this.flexyRegistration.acceptDeviceRequest(ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
     }else{
       console.log("Request for device already exists. ewonId = ", ewonId);
     }
@@ -192,7 +192,7 @@ export class BulkRegistrationComponent implements OnInit {
     });
     console.log("created inventory: ", deviceInventoryObj);
     // 3. Assign externalId to inventory 
-    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewonId);
+    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
     // 4. Assign group to inventory
     if (ewon.pool && this.poolGroupList.has(ewon.pool)){
       console.log("List of groups:", this.poolGroupList);
