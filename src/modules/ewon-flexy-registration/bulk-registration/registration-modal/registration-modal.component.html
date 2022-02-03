@@ -10,6 +10,10 @@
       <div class="card-block">
         <h4>{{ "Flexy Credentials" | translate }}</h4>
         <div class="form-group">
+          <label>{{ "Device Name" | translate }}</label>
+          <input class="form-control" type="text" [(ngModel)]="config.device_name" required/>
+        </div>
+        <div class="form-group">
           <label>{{ "Device Username" | translate }}</label>
           <input class="form-control" type="text" [(ngModel)]="config.device_user" required/>
         </div>
@@ -19,7 +23,7 @@
         </div>
       </div>
       <div class="card-footer separator">
-        <input type="submit" value="Register Flexy" class="btn btn-primary" (click)="onRegister(config)" [ngClass]="isFlexyConnected ? '' : 'btn-pending'"/>
+        <input type="submit" value="Register Flexy" class="btn btn-primary"  (click)="onRegister(config)" [ngClass]="isFlexyConnected ? '' : 'btn-pending'"/>
       </div>
     </div>
 </div>

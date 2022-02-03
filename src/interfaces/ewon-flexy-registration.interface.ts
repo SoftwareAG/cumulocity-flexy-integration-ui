@@ -7,6 +7,7 @@ export interface FlexySettings {
     token?: string,
     device_user?: string
     device_pass?: string,
+    device_name?: string,
  } 
  export interface EwonFlexyStructure {
     id: string | number;
