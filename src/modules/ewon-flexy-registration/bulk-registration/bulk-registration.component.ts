@@ -6,7 +6,7 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../int
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
-import { FLEXY_EXTERNALID_TALK2M_PREFIX } from './../../../constants/flexy-integration.constants';
+import { FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE } from './../../../constants/flexy-integration.constants';
 import { RegisterFlexyManualService } from '../../../services/register-flexy-manual.service';
 
 @Component({
@@ -93,7 +93,7 @@ export class BulkRegistrationComponent implements OnInit {
                     (response) => {    
                         for (const ewon of response.body.ewons) {
                           ewon.pool = pool.name;
-                          this.flexyRegistration.isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX).then(
+                          this.flexyRegistration.isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE).then(
                             (result) => {
                               ewon.registered = (result) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
                             }
@@ -195,7 +195,7 @@ export class BulkRegistrationComponent implements OnInit {
     });
     console.log("created inventory: ", deviceInventoryObj);
     // 3. Assign externalId to inventory 
-    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
+    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE);
     // 4. Assign group to inventory
     if (ewon.pool && this.poolGroupList.has(ewon.pool)){
       console.log("List of groups:", this.poolGroupList);

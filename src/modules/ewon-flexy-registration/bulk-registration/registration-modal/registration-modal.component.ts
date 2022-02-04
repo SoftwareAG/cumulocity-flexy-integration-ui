@@ -1,5 +1,5 @@
 import { EwonFlexyStructure, FlexyIntegrated } from './../../../../interfaces/ewon-flexy-registration.interface';
-import { FLEXY_EXTERNALID_FLEXY_PREFIX } from './../../../../constants/flexy-integration.constants';
+import { FLEXY_EXTERNALID_FLEXY_PREFIX, EXTERNALID_FLEXY_SERIALTYPE } from './../../../../constants/flexy-integration.constants';
 import { Component, Input, OnInit } from "@angular/core";
 import { HttpErrorResponse } from "@angular/common/http";
 
@@ -142,7 +142,7 @@ import { EWONFlexyDeviceRegistrationService } from "../../../../services/ewon-fl
       });
       console.log("created inventory: ", deviceInventoryObj);
       // 3. Assign externalId to inventory 
-      const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, serial, FLEXY_EXTERNALID_FLEXY_PREFIX);
+      const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, serial, FLEXY_EXTERNALID_FLEXY_PREFIX, EXTERNALID_FLEXY_SERIALTYPE);
       this.alert.success("Registered device successfully.");
       this.newFlexy = ewon;
       this.close();

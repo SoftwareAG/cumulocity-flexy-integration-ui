@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { IManagedObject, IExternalIdentity, DeviceRegistrationService, IDeviceRegistrationCreate, IDeviceRegistration, IDeviceBootstrapOptions, IDeviceCredentials, IIdentified } from "@c8y/client";
 import { InventoryService, IdentityService } from "@c8y/ngx-components/api";
 import { EwonFlexyStructure } from "../interfaces/ewon-flexy-registration.interface";
-import { FLEXY_DEVICETYPE, FLEXY_SERIALTYPE } from './../constants/flexy-integration.constants';
+import { FLEXY_DEVICETYPE } from './../constants/flexy-integration.constants';
 
 @Injectable()
 export class EWONFlexyDeviceRegistrationService {
@@ -95,9 +95,9 @@ export class EWONFlexyDeviceRegistrationService {
   //--------  
 
   // IdentityService
-  async isDeviceRegistered(externalId:string, prefix: string): Promise<boolean> {
+  async isDeviceRegistered(externalId:string, prefix: string, externalType: string): Promise<boolean> {
     const identity: IExternalIdentity = {
-            type: FLEXY_SERIALTYPE,
+            type: externalType,
             externalId: prefix + externalId
           };
     const data = await this.identityService.detail(identity).then(
@@ -107,9 +107,9 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
   
-  async getDeviceManagedObjectWithExternalId(externalId:string, prefix: string): Promise<IIdentified>{
+  async getDeviceManagedObjectWithExternalId(externalId:string, prefix: string, externalType: string): Promise<IIdentified>{
     const identity: IExternalIdentity = {
-      type: FLEXY_SERIALTYPE,
+      type: externalType,
       externalId: prefix + externalId
     };
     const data = await this.identityService.detail(identity).then(
@@ -125,9 +125,9 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
-  async createIdentidyForDevice(deviceId:string, externalId:string, prefix: string): Promise<IExternalIdentity>{
+  async createIdentidyForDevice(deviceId:string, externalId:string, prefix: string, externalType: string): Promise<IExternalIdentity>{
     const identity: IExternalIdentity = {
-            type: FLEXY_SERIALTYPE,
+            type: externalType,
             externalId: prefix + externalId,
             managedObject: {
               id: deviceId
