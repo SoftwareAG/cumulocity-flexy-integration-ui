@@ -98,6 +98,11 @@ export class EWONFlexyDeviceRegistrationService {
     )
     return data;
   }
+
+  async getExternalIdsOfManagedObject(id:string): Promise<IExternalIdentity[]>{
+    const {data, res, paging} = await this.identityService.list(id);
+    return data;
+  }
   
   async getDeviceManagedObjectWithExternalId(externalId:string, prefix: string, externalType: string): Promise<IIdentified>{
     const identity: IExternalIdentity = {

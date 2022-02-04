@@ -61,11 +61,23 @@ export class BulkRegistrationComponent implements OnInit {
   ngOnInit() {
     // Check already created devices in c8y with type c8y_EwonFlexy
     this.flexyRegistration.getDeviceEwonFlexyInventoryList().then(
-      (devices) => {
+      async (devices) => {
         console.log("List of devices:");
         for (const device of devices) {
           console.log(device);
           let ewon : EwonFlexyStructure = { } as EwonFlexyStructure;
+          const listExternalIds = await this.flexyRegistration.getExternalIdsOfManagedObject(device.id);
+          if (listExternalIds.length > 0) {
+            for (const externalId of listExternalIds) {
+              if (externalId.type == EXTERNALID_TALK2M_SERIALTYPE){
+                const flexy_id = externalId.externalId.replace(FLEXY_EXTERNALID_TALK2M_PREFIX,"");
+                ewon.id = flexy_id;
+              }
+            }
+            
+          }else{
+            continue;
+          }
           ewon.registered = FlexyIntegrated.Integrated;
           ewon.name = device.name;
           ewon.talk2m_integrated = device.talk2m.id != "" ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
@@ -109,14 +121,14 @@ export class BulkRegistrationComponent implements OnInit {
                     (response) => {    
                         for (const ewon of response.body.ewons) {
                           ewon.pool = pool.name;
+                          ewon.talk2m_integrated = FlexyIntegrated.Integrated;
+                          const index = this.rows.indexOf(this.rows.find(element => element.id == ewon.id));
+                          if(index > -1){ // remove duplicate
+                            this.rows.splice(index, 1);
+                          }
                           this.flexyRegistration.isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE).then(
                             (result) => {
                               ewon.registered = (result) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
-                              ewon.talk2m_integrated = FlexyIntegrated.Integrated;
-                              const index = this.rows.indexOf(ewon.id);
-                              if(index > -1){ // remove duplicate
-                                this.rows.splice(index, 1);
-                              }
                             }
                           );                          
                         }
@@ -273,6 +285,8 @@ export class BulkRegistrationComponent implements OnInit {
     this.registerManuallyService.openModalRegistration().subscribe(
       (newFlexy) => {
         console.log("new Flexy was created by modal." , newFlexy);
+        newFlexy.registered = FlexyIntegrated.Integrated;
+        newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
         this.rows = this.rows.concat(newFlexy);
       }
     );
