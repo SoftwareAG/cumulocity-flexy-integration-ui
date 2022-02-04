@@ -15,6 +15,7 @@ export interface FlexySettings {
     pool?: string;
     name?: string;
     registered?:string;
+    talk2m_integrated?: FlexyIntegrated;
     encodedName?: string;
     status?: string;
     description?: string;

@@ -25,6 +25,7 @@ export class EWONFlexyDeviceRegistrationService {
               id : ewon && ewon.id || "",
               encodedName : ewon && ewon.encodedName || "",
               description : ewon && ewon.description || "",
+              pool :  ewon && ewon.pool || "",
               m2webServer : ewon && ewon.m2webServer || "",
               ewonServices : [],
               customAttributes : [],

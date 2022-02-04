@@ -60,7 +60,23 @@ export class BulkRegistrationComponent implements OnInit {
 
   ngOnInit() {
     // Check already created devices in c8y with type c8y_EwonFlexy
-    // TODO
+    this.flexyRegistration.getDeviceEwonFlexyInventoryList().then(
+      (devices) => {
+        console.log("List of devices:");
+        for (const device of devices) {
+          console.log(device);
+          let ewon : EwonFlexyStructure = { } as EwonFlexyStructure;
+          ewon.registered = FlexyIntegrated.Integrated;
+          ewon.name = device.name;
+          ewon.talk2m_integrated = device.talk2m.id != "" ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+          ewon.description = device.talk2m.description ? device.talk2m.description : "";
+          ewon.pool = device.talk2m.pool ? device.talk2m.pool : "";
+          this.rows = this.rows.concat(ewon);
+        }
+      }, (error) => {
+        this.alert.danger("Platform is currently unavailable.", error)
+      }
+    );
     
     // Check credentials from tenant options
     this.flexyCredentials.getCredentials().then(
@@ -97,9 +113,14 @@ export class BulkRegistrationComponent implements OnInit {
                             (result) => {
                               ewon.registered = (result) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
                               ewon.talk2m_integrated = FlexyIntegrated.Integrated;
+                              const index = this.rows.indexOf(ewon.id);
+                              if(index > -1){ // remove duplicate
+                                this.rows.splice(index, 1);
+                              }
                             }
                           );                          
                         }
+                        
                         this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
                                         
                         console.log(this.rows);
@@ -135,8 +156,6 @@ export class BulkRegistrationComponent implements OnInit {
         this.isSessionConnected = false;
       }
     );
-
-
   }
 
   ngOnDestroy(): void {
@@ -254,8 +273,6 @@ export class BulkRegistrationComponent implements OnInit {
     this.registerManuallyService.openModalRegistration().subscribe(
       (newFlexy) => {
         console.log("new Flexy was created by modal." , newFlexy);
-        newFlexy.registered = FlexyIntegrated.Integrated;
-        newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
         this.rows = this.rows.concat(newFlexy);
       }
     );

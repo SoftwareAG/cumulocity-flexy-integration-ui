@@ -134,8 +134,15 @@ import { EWONFlexyDeviceRegistrationService } from "../../../../services/ewon-fl
       const ewon: EwonFlexyStructure = {
         id: "", // no ewon id
         name: this._config.device_name,
-        registered: FlexyIntegrated.Integrated
+        registered: FlexyIntegrated.Integrated,
+        talk2m_integrated: FlexyIntegrated.Not_integrated
       };
+      // If device with serial number exists, then return a warning and stop here.
+      const isRegistered = await this.flexyRegistration.isDeviceRegistered(serial,FLEXY_EXTERNALID_FLEXY_PREFIX, EXTERNALID_FLEXY_SERIALTYPE);
+      if (isRegistered){
+        this.alert.warning("Device is already registered.");
+        return;
+      }
       const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
         this.alert.warning("Create device invenotry failed.", error);
         throw error;
