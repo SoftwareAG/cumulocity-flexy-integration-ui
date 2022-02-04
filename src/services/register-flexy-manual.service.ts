@@ -16,7 +16,7 @@ export class RegisterFlexyManualService {
       ) {}
 
 
-      openModalRegistration() : Observable<EwonFlexyStructure> {
+      openModalRegistration() : Observable<IManagedObject> {
         const modalRef = this.modalService.show(RegistrationModalComponent, {
           initialState: { isModal: true },
           class: 'modal-sm'

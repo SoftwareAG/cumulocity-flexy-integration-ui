@@ -83,15 +83,6 @@ export class EWONFlexyDeviceRegistrationService {
     const {data, res} = await this.inventoryService.childAssetsAdd(deviceId, groupId);
     return data;
   }
-  async getEwonDevices(){
-    const filter: object = {
-           pageSize: 100,
-           withTotalPages: true,
-           type: FLEXY_DEVICETYPE
-         };
-    const {data, res } = await this.inventoryService.list(filter);
-    return data
-  }
   //--------  
 
   // IdentityService

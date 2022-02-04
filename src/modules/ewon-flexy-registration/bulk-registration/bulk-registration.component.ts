@@ -96,6 +96,7 @@ export class BulkRegistrationComponent implements OnInit {
                           this.flexyRegistration.isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE).then(
                             (result) => {
                               ewon.registered = (result) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+                              ewon.talk2m_integrated = FlexyIntegrated.Integrated;
                             }
                           );                          
                         }
@@ -253,6 +254,8 @@ export class BulkRegistrationComponent implements OnInit {
     this.registerManuallyService.openModalRegistration().subscribe(
       (newFlexy) => {
         console.log("new Flexy was created by modal." , newFlexy);
+        newFlexy.registered = FlexyIntegrated.Integrated;
+        newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
         this.rows = this.rows.concat(newFlexy);
       }
     );
@@ -278,6 +281,13 @@ export class BulkRegistrationComponent implements OnInit {
         path: 'description',
         dataType: ColumnDataType.TextLong
       },{
+        name: 'talk2m_integrated',
+        header: 'Talk2M Registered',
+        path: 'talk2m_integrated',
+        filterable: true,
+        dataType: ColumnDataType.TextShort
+      },
+      {
         name: 'registered',
         header: 'Cumulocity Registered',
         path: 'registered',
