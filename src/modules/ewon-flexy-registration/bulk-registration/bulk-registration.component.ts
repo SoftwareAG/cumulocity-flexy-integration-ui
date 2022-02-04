@@ -59,6 +59,9 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Check already created devices in c8y with type c8y_EwonFlexy
+    // TODO
+    
     // Check credentials from tenant options
     this.flexyCredentials.getCredentials().then(
       async (options) => {
@@ -250,7 +253,7 @@ export class BulkRegistrationComponent implements OnInit {
     this.registerManuallyService.openModalRegistration().subscribe(
       (newFlexy) => {
         console.log("new Flexy was created by modal." , newFlexy);
-        //TODO add Flexy to list
+        this.rows = this.rows.concat(newFlexy);
       }
     );
   }

@@ -31,11 +31,11 @@ import { EWONFlexyDeviceRegistrationService } from "../../../../services/ewon-fl
       return this._config;
     }
 
-    public onClose: Subject<IManagedObject> = new Subject();
+    public onClose: Subject<EwonFlexyStructure> = new Subject();
     public isFlexyConnected: boolean;
     public existingRequests: IDeviceRegistration[];
 
-    newFlexy: IManagedObject;
+    newFlexy: EwonFlexyStructure;
     private _config: FlexySettings = {};
     
     constructor(private alert: AlertService,
@@ -144,7 +144,7 @@ import { EWONFlexyDeviceRegistrationService } from "../../../../services/ewon-fl
       // 3. Assign externalId to inventory 
       const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, serial, FLEXY_EXTERNALID_FLEXY_PREFIX);
       this.alert.success("Registered device successfully.");
-      this.newFlexy = deviceInventoryObj;
+      this.newFlexy = ewon;
       this.close();
     }
 

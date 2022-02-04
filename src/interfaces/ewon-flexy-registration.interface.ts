@@ -10,7 +10,8 @@ export interface FlexySettings {
     device_name?: string,
  } 
  export interface EwonFlexyStructure {
-    id: string | number;
+    id: string | number; //ewon id
+    source?: string; // managed object source
     pool?: string;
     name?: string;
     registered?:string;

@@ -6,6 +6,7 @@ import { InventoryService } from "@c8y/ngx-components/api";
 import { IManagedObject, IResult } from '@c8y/client';
 import { Observable } from "rxjs";
 import { RegistrationModalComponent } from "../modules/ewon-flexy-registration/bulk-registration/registration-modal/registration-modal.component";
+import { EwonFlexyStructure } from "../interfaces/ewon-flexy-registration.interface";
 
 @Injectable()
 export class RegisterFlexyManualService {
@@ -15,7 +16,7 @@ export class RegisterFlexyManualService {
       ) {}
 
 
-      openModalRegistration() : Observable<IManagedObject> {
+      openModalRegistration() : Observable<EwonFlexyStructure> {
         const modalRef = this.modalService.show(RegistrationModalComponent, {
           initialState: { isModal: true },
           class: 'modal-sm'

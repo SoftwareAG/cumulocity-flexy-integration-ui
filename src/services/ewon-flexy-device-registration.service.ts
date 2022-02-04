@@ -21,7 +21,8 @@ export class EWONFlexyDeviceRegistrationService {
              name: ewon && ewon.name || "Unknown name",
              type:  FLEXY_DEVICETYPE,
              c8y_IsDevice: {},
-             talk2m: {
+             talk2m: { 
+              id : ewon && ewon.id || "",
               encodedName : ewon && ewon.encodedName || "",
               description : ewon && ewon.description || "",
               m2webServer : ewon && ewon.m2webServer || "",
@@ -55,6 +56,15 @@ export class EWONFlexyDeviceRegistrationService {
            withTotalPages: true,
            fragmentType: 'c8y_IsDeviceGroup'
          };
+    const {data, res, paging} = await this.inventoryService.list(filter);
+    return data;
+  }
+  async getDeviceEwonFlexyInventoryList():  Promise<IManagedObject[]>{
+    const filter: object = {
+      pageSize: 100,
+      withTotalPages: true,
+      type: FLEXY_DEVICETYPE
+    };
     const {data, res, paging} = await this.inventoryService.list(filter);
     return data;
   }
