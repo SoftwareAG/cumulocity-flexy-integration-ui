@@ -14,11 +14,13 @@ import { ButtonsModule } from 'ngx-bootstrap/buttons';
 import { FLEXY_PATH, FLEXY_SETTINGS_PATH, FLEXY_REGISTRATION_PATH, FLEXY_DATAMAILBOX_PATH } from '../../constants/flexy-integration.constants';
 import { SettingsComponent } from './settings/settings.component';
 import { BulkRegistrationComponent } from './bulk-registration/bulk-registration.component';
+import { RegistrationModalComponent } from './bulk-registration/registration-modal/registration-modal.component';
 import { DataMailboxDownloadComponent } from './datamailbox-download/datamailbox-download.component';
 import { MicroserviceIntegrationService } from '../../services/c8y-microservice-talk2m-integration.service';
 import { SynchjobCardComponent } from './datamailbox-download/synchjob-card/synchjob-card.component';
 import { SynchjobModalComponent } from './datamailbox-download/synchjob-modal/synchjob-modal.component';
 import { SyncOnloadJobService } from '../../services/synchronize-job.service';
+import { RegisterFlexyManualService } from '../../services/register-flexy-manual.service';
 import { EWONFlexyCredentialsTenantoptionsService } from '../../services/ewon-flexy-credentials-tenantoptions.service';
 import { EWONFlexyDeviceRegistrationService } from '../../services/ewon-flexy-device-registration.service';
 
@@ -60,7 +62,8 @@ const moduleNavigation: Provider[] = [
   EWONFlexyCredentialsTenantoptionsService, 
   EWONFlexyDeviceRegistrationService,
   MicroserviceIntegrationService, 
-  SyncOnloadJobService
+  SyncOnloadJobService,
+  RegisterFlexyManualService
 ];
 
 @NgModule({
@@ -79,14 +82,16 @@ const moduleNavigation: Provider[] = [
     BulkRegistrationComponent,
     DataMailboxDownloadComponent, 
     SynchjobCardComponent,
-    SynchjobModalComponent
+    SynchjobModalComponent,
+    RegistrationModalComponent
   ],
   entryComponents: [
     SettingsComponent, 
     BulkRegistrationComponent,
     DataMailboxDownloadComponent, 
     SynchjobCardComponent,
-    SynchjobModalComponent
+    SynchjobModalComponent,
+    RegistrationModalComponent
   ],
   providers: [...moduleNavigation]
 })

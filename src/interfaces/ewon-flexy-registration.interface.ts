@@ -5,17 +5,23 @@ export interface FlexySettings {
     tenant?: string,
     session?: string,
     token?: string,
+    device_user?: string
+    device_pass?: string,
+    device_name?: string,
  } 
  export interface EwonFlexyStructure {
-    id: string | number;
+    id: string | number; //ewon id
+    source?: string; // managed object source
     pool?: string;
     name?: string;
     registered?:string;
+    talk2m_integrated?: FlexyIntegrated;
     encodedName?: string;
     status?: string;
     description?: string;
     customAttributes?: Array<string>;
     m2webServer?: string;
+    serialNumber?: string;
     lanDevices?: Array<{
         name?: string;
         description?: string;

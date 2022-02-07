@@ -136,6 +136,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
         });
         console.log(this._config);
 
+        //Default tenant option
+        if( !this._config.tenant){
+          this._config.tenant = "cumulocity.com"
+        }
+
         // Is session still active
         if(this._config && this._config.session){
           this.isSessionConnected = await this.talk2m.isSessionActive(this._config.session);

@@ -1,5 +1,5 @@
 import { TALK2M_BASEURL, TALK2M_DEVELOPERID } from "./../constants/flexy-integration.constants";
-import { HttpClient, HttpResponse } from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { AlertService } from "@c8y/ngx-components";
 
@@ -69,6 +69,28 @@ export class Talk2MService {
     }
 
     const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: "response" }).toPromise();
+    return response;
+  }
+
+  async getserialnumber(device_name:string, device_user:string, device_pass:string, account:string, session:string,) : Promise<string> {
+    
+    const url_service =
+      "/get/" + device_name 
+      + "/rcgi.bin/ParamForm?AST_Param=$dtES&t2maccount=" + account 
+      + "&t2msession=" + session 
+      + "&t2mdeviceusername=" + device_user 
+      + "&t2mdevicepassword=" + device_pass 
+      +"&t2mdeveloperid=" + TALK2M_DEVELOPERID;
+
+      let HTTPOptions:Object = {
+
+        headers: new HttpHeaders({
+            'Content-Type': 'text/plain'
+        }),
+        responseType: 'text'
+     }
+
+    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, HTTPOptions ).toPromise();
     return response;
   }
 }

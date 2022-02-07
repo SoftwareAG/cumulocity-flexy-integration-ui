@@ -10,47 +10,48 @@
 <!--Settings Card-->
 <div class="card">
   <div class="card-header separator">
-    <h4 class="card-title">{{ "Integration Settings" | translate }}</h4>
+    <h4 class="card-title">{{ "Settings" | translate }}</h4>
   </div>
     <div class="card-block">
         <h4>{{ "Talk2M Login" | translate }}</h4>
         <div class="form-group">
           <label>{{ "Account" | translate }}</label>
-          <input class="form-control" type="text" [(ngModel)]="config.account"/>
+          <input class="form-control" type="text" [(ngModel)]="config.account" placeholder="Account name"/>
         </div>
         <div class="form-group">
           <label>{{ "Username" | translate }}</label>
-          <input class="form-control" type="text" [(ngModel)]="config.username"/>
+          <input class="form-control" type="text" [(ngModel)]="config.username" placeholder="User"/>
         </div>
         <div class="form-group">
           <label>{{ "Password" | translate }}</label>
-          <input class="form-control" type="password" [(ngModel)]="config.password"/>
+          <input class="form-control" type="password" [(ngModel)]="config.password" placeholder="Password"/>
           <p id="helpinput" class="help-block">{{ "Password won't be saved. If the session disconnect, you may have to re-enter your password once again." | translate }}</p>
         </div>
       </div>
      
       <div class="card-block" *ngIf="isMicroserviceEnabled">
-        <h4>{{ "Data Mailbox Setting" | translate }}</h4>
+        <h4>{{ "Data Mailbox" | translate }}</h4>
 
         <div class="form-group">
           <label>{{ "Token" | translate }}</label>
-          <input class="form-control" type="text" [(ngModel)]="config.token"/>
+          <input class="form-control" type="text" [(ngModel)]="config.token" placeholder="589645ijtebgogsaite348t34t34bt834qu343348t5b4"/>
         </div>
       </div>
       
       <div class="card-block">
-        <h4>{{ "Cumulocity Setting" | translate }}</h4>
+        <h4>{{ "Cumulocity" | translate }}</h4>
         <div class="form-group">
           <label for="exampleSelect">{{
             "Management Tenant" | translate
           }}</label>
-          <div class="c8y-select-wrapper">
-            <select id="exampleSelect" class="form-control" [(ngModel)]="config.tenant">
-              <option>cumulocity.com</option>
-              <option>eu-latest.cumulocity.com</option>
-              <option>emea.cumulocity.com</option>
-            </select>
-            <span></span>
+          <div class="form-group">
+            <div class="c8y-select-wrapper">
+              <select id="exampleSelect" class="form-control" [(ngModel)]="config.tenant">
+                <option selected="selected" value="cumulocity.com">cumulocity.com</option>
+                <option value="eu-latest.cumulocity.com">eu-latest.cumulocity.com</option>
+                <option value="emea.cumulocity.com">emea.cumulocity.com</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

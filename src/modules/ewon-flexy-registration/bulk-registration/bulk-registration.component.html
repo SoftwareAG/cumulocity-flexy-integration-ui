@@ -1,11 +1,19 @@
 <c8y-title>{{ "EWON Flexy Registration" | translate }}</c8y-title>
-<!--Action Bar-->
-<c8y-action-bar-item [placement]="'right'">
+<!--Action Bar connected-->
+<c8y-action-bar-item [placement]="'right'"  [priority]="-99999">
   <div class="c8y-realtime">
     <span [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"></span> 
     Talk2M Session
   </div>
 </c8y-action-bar-item>
+<!--Action Bar Add Sync job-->
+<c8y-action-bar-item [itemClass]="'btn-group'" [placement]="'right'" >
+  <button class="btn btn-link" (click)="openModal()" style="margin:-1rem; padding-right:2rem;" [ngStyle]="!isSessionConnected ? {'display': 'none'} : ''">
+    <i c8yIcon="plus-circle"></i>
+    {{ 'Register Flexy manually' | translate }}
+  </button>
+</c8y-action-bar-item>
+
 
 <!--Menu Bar
 <div class="d-block">
@@ -64,6 +72,13 @@
             <span class = "d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block" style="color: #58656D; padding-left:1rem;"></i></span>
           </ng-container>
         </c8y-column>
+        <c8y-column name="talk2m_integrated">
+          <ng-container *c8yCellRendererDef="let context">
+            <span class = "d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle" style="color: #008800; padding-left:1rem;"></i></span>
+            <span class = "d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block" style="color: #58656D; padding-left:1rem;"></i></span>
+          </ng-container>
+        </c8y-column>
+
     </c8y-data-grid>
     <button *ngIf="selectedItems.length > 0;" type="button" class="btn btn-primary btn btn-block" (click)="startRegistration()">
       <h4 class="m-r-16" style="margin: 1rem; text-align: left;">Register {{selectedItems.length}} selected items.</h4>

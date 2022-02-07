@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { IManagedObject, IExternalIdentity, DeviceRegistrationService, IDeviceRegistrationCreate, IDeviceRegistration, IDeviceBootstrapOptions, IDeviceCredentials, IIdentified } from "@c8y/client";
 import { InventoryService, IdentityService } from "@c8y/ngx-components/api";
 import { EwonFlexyStructure } from "../interfaces/ewon-flexy-registration.interface";
-import { FLEXY_DEVICETYPE, FLEXY_SERIALTYPE, FLEXY_EXTERNALID_PREFIX } from './../constants/flexy-integration.constants';
+import { FLEXY_DEVICETYPE } from './../constants/flexy-integration.constants';
 
 @Injectable()
 export class EWONFlexyDeviceRegistrationService {
@@ -18,27 +18,36 @@ export class EWONFlexyDeviceRegistrationService {
     let partialManagedObj: Partial<IManagedObject> = {
              pageSize: 1,
              withTotalPages: true,
-             name: ewon.name,
+             name: ewon && ewon.name || "Unknown name",
              type:  FLEXY_DEVICETYPE,
              c8y_IsDevice: {},
-             talk2m: {
-              encodedName : ewon.encodedName,
-              description : ewon.description,
-              m2webServer : ewon.m2webServer,
+             talk2m: { 
+              id : ewon && ewon.id || "",
+              encodedName : ewon && ewon.encodedName || "",
+              description : ewon && ewon.description || "",
+              pool :  ewon && ewon.pool || "",
+              m2webServer : ewon && ewon.m2webServer || "",
               ewonServices : [],
               customAttributes : [],
               lanDevices : []
              }
            };
-    for (const attribute of ewon.customAttributes) {
-      partialManagedObj.talk2m.customAttributes.push(attribute);
-    }  
-    for (const services of ewon.ewonServices) {
-      partialManagedObj.talk2m.ewonServices.push(services);
-    } 
-    for (const lanDevice of ewon.lanDevices) {
-      partialManagedObj.talk2m.lanDevices.push(lanDevice);
+    if (ewon && ewon.customAttributes){
+      for (const attribute of ewon.customAttributes) {
+        partialManagedObj.talk2m.customAttributes.push(attribute);
+      }
     }
+    if (ewon && ewon.ewonServices){
+      for (const services of ewon.ewonServices) {
+        partialManagedObj.talk2m.ewonServices.push(services);
+      } 
+    }
+    if (ewon && ewon.lanDevices){
+      for (const lanDevice of ewon.lanDevices) {
+        partialManagedObj.talk2m.lanDevices.push(lanDevice);
+      }
+    }
+    
     const { data, res } = await this.inventoryService.create(partialManagedObj);
     return data;
   }
@@ -48,6 +57,15 @@ export class EWONFlexyDeviceRegistrationService {
            withTotalPages: true,
            fragmentType: 'c8y_IsDeviceGroup'
          };
+    const {data, res, paging} = await this.inventoryService.list(filter);
+    return data;
+  }
+  async getDeviceEwonFlexyInventoryList():  Promise<IManagedObject[]>{
+    const filter: object = {
+      pageSize: 100,
+      withTotalPages: true,
+      type: FLEXY_DEVICETYPE
+    };
     const {data, res, paging} = await this.inventoryService.list(filter);
     return data;
   }
@@ -66,22 +84,13 @@ export class EWONFlexyDeviceRegistrationService {
     const {data, res} = await this.inventoryService.childAssetsAdd(deviceId, groupId);
     return data;
   }
-  async getEwonDevices(){
-    const filter: object = {
-           pageSize: 100,
-           withTotalPages: true,
-           type: FLEXY_DEVICETYPE
-         };
-    const {data, res } = await this.inventoryService.list(filter);
-    return data
-  }
   //--------  
 
   // IdentityService
-  async isDeviceRegistered(externalId:string): Promise<boolean> {
+  async isDeviceRegistered(externalId:string, prefix: string, externalType: string): Promise<boolean> {
     const identity: IExternalIdentity = {
-            type: FLEXY_SERIALTYPE,
-            externalId: FLEXY_EXTERNALID_PREFIX + externalId
+            type: externalType,
+            externalId: prefix + externalId
           };
     const data = await this.identityService.detail(identity).then(
       (result) => { return true;},
@@ -89,11 +98,16 @@ export class EWONFlexyDeviceRegistrationService {
     )
     return data;
   }
+
+  async getExternalIdsOfManagedObject(id:string): Promise<IExternalIdentity[]>{
+    const {data, res, paging} = await this.identityService.list(id);
+    return data;
+  }
   
-  async getDeviceManagedObjectWithExternalId(externalId:string): Promise<IIdentified>{
+  async getDeviceManagedObjectWithExternalId(externalId:string, prefix: string, externalType: string): Promise<IIdentified>{
     const identity: IExternalIdentity = {
-      type: FLEXY_SERIALTYPE,
-      externalId: FLEXY_EXTERNALID_PREFIX + externalId
+      type: externalType,
+      externalId: prefix + externalId
     };
     const data = await this.identityService.detail(identity).then(
       (identity) => {
@@ -101,17 +115,17 @@ export class EWONFlexyDeviceRegistrationService {
         //inventoryService
         return identity.data.managedObject;
       }, (error) => {
-        console.debug("Managed object with external id " + FLEXY_EXTERNALID_PREFIX + externalId + " does not exists.");
+        console.debug("Managed object with external id " + prefix + externalId + " does not exists.");
         throw error;
       }
     );
     return data;
   }
 
-  async createIdentidyForDevice(deviceId:string, externalId:string): Promise<IExternalIdentity>{
+  async createIdentidyForDevice(deviceId:string, externalId:string, prefix: string, externalType: string): Promise<IExternalIdentity>{
     const identity: IExternalIdentity = {
-            type: FLEXY_SERIALTYPE,
-            externalId: FLEXY_EXTERNALID_PREFIX + externalId,
+            type: externalType,
+            externalId: prefix + externalId,
             managedObject: {
               id: deviceId
             }
@@ -131,9 +145,9 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
-  async createDeviceRequestRegistration(id:string): Promise<IDeviceRegistration>{
+  async createDeviceRequestRegistration(id:string, prefix: string): Promise<IDeviceRegistration>{
     const registrationObject: IDeviceRegistrationCreate = {
-            id: FLEXY_EXTERNALID_PREFIX + id,
+            id: prefix + id,
           };
     const {data, res} = await this.deviceRegistration.create(registrationObject);
     return data;
@@ -144,7 +158,7 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
-  async requestDeviceCredentials(id:string): Promise<IDeviceCredentials>{
+  async requestDeviceCredentials(id:string, prefix: string): Promise<IDeviceCredentials>{
 
     const options: IDeviceBootstrapOptions = {
       //basicAuthToken: 'Basic dGVuYW50L3VzZXJuYW1lOnBhc3N3b3Jk',
@@ -153,12 +167,12 @@ export class EWONFlexyDeviceRegistrationService {
         pass: 'Fhdt1bb1f'
       }
     };
-    const {data, res} = await this.deviceRegistration.bootstrap(FLEXY_EXTERNALID_PREFIX + id, options);
+    const {data, res} = await this.deviceRegistration.bootstrap(prefix + id, options);
     return data;
   }
 
-  async acceptDeviceRequest(id:string){
-    const {data, res} = await this.deviceRegistration.accept(FLEXY_EXTERNALID_PREFIX + id);
+  async acceptDeviceRequest(id:string, prefix: string){
+    const {data, res} = await this.deviceRegistration.accept(prefix + id);
     return data;
   }
   //--------

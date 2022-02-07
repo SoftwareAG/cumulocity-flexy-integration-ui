@@ -1,3 +1,4 @@
+import { EXTERNALID_TALK2M_SERIALTYPE, EXTERNALID_FLEXY_SERIALTYPE } from './../../../../constants/flexy-integration.constants';
 import { IManagedObject } from '@c8y/client';
 import { IOnloadingJobObject } from './../../../../interfaces/c8y-custom-objects.interface';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
@@ -10,6 +11,7 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../../
 import { MicroserviceIntegrationService } from '../../../../services/c8y-microservice-talk2m-integration.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../../services/ewon-flexy-device-registration.service';
 import { SyncOnloadJobService } from '../../../../services/synchronize-job.service';
+import { FLEXY_EXTERNALID_TALK2M_PREFIX, FLEXY_EXTERNALID_FLEXY_PREFIX } from "../../../../constants/flexy-integration.constants";
 
 
 enum step {
@@ -85,7 +87,10 @@ enum step {
               
               for (const ewon of ewons) {
                 try {
-                  const isRegistered = await this.flexyRegistrationService.isDeviceRegistered(ewon.id+"");
+                  let isRegistered = await this.flexyRegistrationService.isDeviceRegistered(ewon.id+"", FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE);
+                  if (!isRegistered){
+                    isRegistered = await this.flexyRegistrationService.isDeviceRegistered(ewon.id+"", FLEXY_EXTERNALID_FLEXY_PREFIX, EXTERNALID_FLEXY_SERIALTYPE);
+                  }
                   ewon.registered = (isRegistered) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
                   this.rows = this.rows.concat(ewon);
                 }catch (error) {

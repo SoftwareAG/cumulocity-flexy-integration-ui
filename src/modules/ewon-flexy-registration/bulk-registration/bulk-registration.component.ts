@@ -6,7 +6,8 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '../../../int
 import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '../../../services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '../../../services/ewon-flexy-device-registration.service';
-import { FLEXY_EXTERNALID_PREFIX } from './../../../constants/flexy-integration.constants';
+import { FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE } from './../../../constants/flexy-integration.constants';
+import { RegisterFlexyManualService } from '../../../services/register-flexy-manual.service';
 
 @Component({
   selector: 'app-bulk-registration',
@@ -43,7 +44,8 @@ export class BulkRegistrationComponent implements OnInit {
   constructor( private alert: AlertService,
     private talk2m: Talk2MService,
     private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
-    private flexyRegistration: EWONFlexyDeviceRegistrationService
+    private flexyRegistration: EWONFlexyDeviceRegistrationService,
+    public registerManuallyService: RegisterFlexyManualService
     ) { 
     this.isSessionConnected = false;
     this.isLoading = true;
@@ -57,6 +59,37 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Check already created devices in c8y with type c8y_EwonFlexy
+    this.flexyRegistration.getDeviceEwonFlexyInventoryList().then(
+      async (devices) => {
+        console.log("List of devices:");
+        for (const device of devices) {
+          console.log(device);
+          let ewon : EwonFlexyStructure = { } as EwonFlexyStructure;
+          const listExternalIds = await this.flexyRegistration.getExternalIdsOfManagedObject(device.id);
+          if (listExternalIds.length > 0) {
+            for (const externalId of listExternalIds) {
+              if (externalId.type == EXTERNALID_TALK2M_SERIALTYPE){
+                const flexy_id = externalId.externalId.replace(FLEXY_EXTERNALID_TALK2M_PREFIX,"");
+                ewon.id = flexy_id;
+              }
+            }
+            
+          }else{
+            continue;
+          }
+          ewon.registered = FlexyIntegrated.Integrated;
+          ewon.name = device.name;
+          ewon.talk2m_integrated = device.talk2m.id != "" ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+          ewon.description = device.talk2m.description ? device.talk2m.description : "";
+          ewon.pool = device.talk2m.pool ? device.talk2m.pool : "";
+          this.rows = this.rows.concat(ewon);
+        }
+      }, (error) => {
+        this.alert.danger("Platform is currently unavailable.", error)
+      }
+    );
+    
     // Check credentials from tenant options
     this.flexyCredentials.getCredentials().then(
       async (options) => {
@@ -88,12 +121,18 @@ export class BulkRegistrationComponent implements OnInit {
                     (response) => {    
                         for (const ewon of response.body.ewons) {
                           ewon.pool = pool.name;
-                          this.flexyRegistration.isDeviceRegistered(ewon.id).then(
+                          ewon.talk2m_integrated = FlexyIntegrated.Integrated;
+                          const index = this.rows.indexOf(this.rows.find(element => element.id == ewon.id));
+                          if(index > -1){ // remove duplicate
+                            this.rows.splice(index, 1);
+                          }
+                          this.flexyRegistration.isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE).then(
                             (result) => {
                               ewon.registered = (result) ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
                             }
                           );                          
                         }
+                        
                         this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
                                         
                         console.log(this.rows);
@@ -129,8 +168,6 @@ export class BulkRegistrationComponent implements OnInit {
         this.isSessionConnected = false;
       }
     );
-
-
   }
 
   ngOnDestroy(): void {
@@ -159,14 +196,14 @@ export class BulkRegistrationComponent implements OnInit {
     console.log("Start registering device ewonId = " + ewonId);
     // 1. Create device request if not exists
     console.log("existing requests = ", this.existingRequests);
-    const existingRequest = this.existingRequests.find(element => element.id == FLEXY_EXTERNALID_PREFIX+ewonId);
+    const existingRequest = this.existingRequests.find(element => element.id == FLEXY_EXTERNALID_TALK2M_PREFIX+ewonId);
     if (!existingRequest){
       console.log("create device request with external id = ", ewonId)
-      const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewonId);
+      const registration = await this.flexyRegistration.createDeviceRequestRegistration(ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
       console.log(ewonId + ' createDeviceRequestRegistration: ', registration);
      // 1.1 Bootstraps the device credentials
       try {
-        await this.flexyRegistration.requestDeviceCredentials(ewonId);
+        await this.flexyRegistration.requestDeviceCredentials(ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
         // return in case we are actually able to retrieve the credentials
         return;
       } catch (error) {
@@ -179,7 +216,7 @@ export class BulkRegistrationComponent implements OnInit {
       }
       console.log("Credentials for device are not available. Device is in state PENDING_ACCEPTANCE, (not ACCEPTED)).");
       // 1.2 Change status to acceptance 
-      await this.flexyRegistration.acceptDeviceRequest(ewonId);
+      await this.flexyRegistration.acceptDeviceRequest(ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX);
     }else{
       console.log("Request for device already exists. ewonId = ", ewonId);
     }
@@ -190,7 +227,7 @@ export class BulkRegistrationComponent implements OnInit {
     });
     console.log("created inventory: ", deviceInventoryObj);
     // 3. Assign externalId to inventory 
-    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewonId);
+    const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE);
     // 4. Assign group to inventory
     if (ewon.pool && this.poolGroupList.has(ewon.pool)){
       console.log("List of groups:", this.poolGroupList);
@@ -244,6 +281,17 @@ export class BulkRegistrationComponent implements OnInit {
     console.log(event);
   }
 
+  openModal() {
+    this.registerManuallyService.openModalRegistration().subscribe(
+      (newFlexy) => {
+        console.log("new Flexy was created by modal." , newFlexy);
+        newFlexy.registered = FlexyIntegrated.Integrated;
+        newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
+        this.rows = this.rows.concat(newFlexy);
+      }
+    );
+  }
+
   getDefaultColumns(): Column[] {
     return [
       {
@@ -264,6 +312,13 @@ export class BulkRegistrationComponent implements OnInit {
         path: 'description',
         dataType: ColumnDataType.TextLong
       },{
+        name: 'talk2m_integrated',
+        header: 'Talk2M Registered',
+        path: 'talk2m_integrated',
+        filterable: true,
+        dataType: ColumnDataType.TextShort
+      },
+      {
         name: 'registered',
         header: 'Cumulocity Registered',
         path: 'registered',
