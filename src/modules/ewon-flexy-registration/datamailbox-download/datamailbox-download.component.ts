@@ -45,7 +45,7 @@ import { SyncOnloadJobService } from '../../../services/synchronize-job.service'
                 this.alert.warning("Microservice is not available.");
               }
             }else{
-              this.alert.warning("Missing credentials to connect.", JSON.stringify({"t2mtoken": this._config.token ? this._config.token : ""}));
+              this.alert.warning("Missing credentials to connect.", JSON.stringify({"t2mtoke": this._config.token ? this._config.token : ""}));
             }
           });
           
