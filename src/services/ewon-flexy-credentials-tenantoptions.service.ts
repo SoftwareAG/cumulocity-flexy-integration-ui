@@ -1,15 +1,23 @@
 import { Injectable } from "@angular/core";
 import { AlertService } from "@c8y/ngx-components";
-import { TenantOptionsService, ITenantOption, UserService, IUser } from "@c8y/client";
+import { TenantOptionsService, ITenantOption, UserService, IUser, TenantService } from "@c8y/client";
 import { FLEXY_TENANTOPTIONS_CATEGORY } from "../constants/flexy-integration.constants";
 
 @Injectable()
 export class EWONFlexyCredentialsTenantoptionsService {
   constructor(
     private tenantOptionsService: TenantOptionsService,
+    private tenantService: TenantService,
     private userService: UserService,
     private alert: AlertService
   ) {}
+
+
+  async getCurrentTenantId() : Promise<string>{
+
+    const tenant = await this.tenantService.current()
+    return tenant.data.name;
+  }
 
   protected async getBase64Userid(): Promise<string>{
     const user = await this.userService.current();

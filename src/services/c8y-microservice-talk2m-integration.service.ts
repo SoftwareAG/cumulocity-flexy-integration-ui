@@ -1,5 +1,5 @@
-import { C8Y_MICROSERVICE_ENDPOINT, GET_OPTIONS, TALK2M_DEVELOPERID } from './../constants/flexy-integration.constants';
-import { FetchClient, TenantService } from '@c8y/client';
+import { C8Y_MICROSERVICE_ENDPOINT, GET_OPTIONS, ONLOAD_OPTIONS, TALK2M_DEVELOPERID } from './../constants/flexy-integration.constants';
+import { FetchClient, IFetchOptions, IFetchResponse, TenantService } from '@c8y/client';
 import { Injectable } from "@angular/core";
 import { AlertService } from '@c8y/ngx-components';
 
@@ -56,10 +56,40 @@ export class MicroserviceIntegrationService {
         return result.ewons;
     }
 
-    async syncData(token:string): Promise<any>{
+    async syncData(token:string, jobId: string, tenantId: string): Promise<any>{
         const data = {TOKEN: token, DEVID: TALK2M_DEVELOPERID, TENANTID: 't769416337'};
         let endpoint = this.buildEndpoint( C8Y_MICROSERVICE_ENDPOINT.URL.SYNC_DATA, data);
         console.log("request endpoint: ", endpoint);
+    }
+
+    async onloadNow(token:string, jobId: string, tenantId: string): Promise<IFetchResponse>{
+        const data = {TOKEN: token, DEVID: TALK2M_DEVELOPERID, TENANTID: tenantId, JOBID: jobId};
+        const result = await this.fetch.fetch(C8Y_MICROSERVICE_ENDPOINT.URL.ONLOAD_NOW, this.buildHeader(ONLOAD_OPTIONS.headers, token,jobId,tenantId) );
+
+        return result;
+    }
+
+    protected buildHeader(headers: any, token: string, jobId: string, tenantId: string): any{
+        const hd = JSON.stringify(headers);
+        for (const key in C8Y_MICROSERVICE_ENDPOINT.VARIABLE) {
+            const variable: string = C8Y_MICROSERVICE_ENDPOINT.VARIABLE[key];
+            const index = hd.indexOf(variable);
+
+            const key_header = variable.replace("{","").replace("}","");
+            if (index >= 0 && hd.indexOf(key_header) >= 0 ) {
+                if(variable.indexOf("token") >= 0){
+                    headers[key_header] = headers[key_header].replace(variable,token);
+                }else if(variable.indexOf("job") >= 0) {
+                    headers[key_header] = headers[key_header].replace(variable,jobId);
+                }else if(variable.indexOf("tenant") >= 0) {
+                    headers[key_header] = headers[key_header].replace(variable,tenantId);
+                }
+              }
+        }
+        let options: IFetchOptions = ONLOAD_OPTIONS;
+        options.headers = headers;
+        console.log("header = ", options);
+        return options;
     }
 
     protected buildEndpoint(endpoint:string, data:any): string{
