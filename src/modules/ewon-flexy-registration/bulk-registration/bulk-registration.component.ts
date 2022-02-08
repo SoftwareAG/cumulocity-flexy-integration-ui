@@ -221,10 +221,12 @@ export class BulkRegistrationComponent implements OnInit {
       console.log("Request for device already exists. ewonId = ", ewonId);
     }
     // 2. Create inventoty managed object
-    const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
+    const mo = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
       this.alert.warning("Create device invenotry failed.", error);
       throw error;
     });
+    // 2.1 Change owner
+    const deviceInventoryObj = await this.flexyRegistration.setDevivceOwnerExternalId(FLEXY_EXTERNALID_TALK2M_PREFIX+ewonId, mo.id);
     console.log("created inventory: ", deviceInventoryObj);
     // 3. Assign externalId to inventory 
     const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, ewonId, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE);

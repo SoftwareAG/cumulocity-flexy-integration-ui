@@ -84,6 +84,16 @@ export class EWONFlexyDeviceRegistrationService {
     const {data, res} = await this.inventoryService.childAssetsAdd(deviceId, groupId);
     return data;
   }
+  async setDevivceOwnerExternalId(externalId: string, mo_id: string): Promise<IManagedObject>{
+    
+    const partialUpdateObject: Partial<IManagedObject> = {
+          id: mo_id,
+          owner: 'device_' + externalId
+        };
+      
+    const {data, res} = await this.inventoryService.update(partialUpdateObject);
+    return data;
+  }
   //--------  
 
   // IdentityService

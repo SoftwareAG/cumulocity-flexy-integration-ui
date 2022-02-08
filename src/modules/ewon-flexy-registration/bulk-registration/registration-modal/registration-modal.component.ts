@@ -143,10 +143,12 @@ import { EWONFlexyDeviceRegistrationService } from "../../../../services/ewon-fl
         this.alert.warning("Device is already registered.");
         return;
       }
-      const deviceInventoryObj = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
+      const mo = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
         this.alert.warning("Create device invenotry failed.", error);
         throw error;
       });
+      // 2.1 Change owner
+      const deviceInventoryObj = await this.flexyRegistration.setDevivceOwnerExternalId(FLEXY_EXTERNALID_FLEXY_PREFIX+serial, mo.id);
       console.log("created inventory: ", deviceInventoryObj);
       // 3. Assign externalId to inventory 
       const identityObj = await this.flexyRegistration.createIdentidyForDevice(deviceInventoryObj.id, serial, FLEXY_EXTERNALID_FLEXY_PREFIX, EXTERNALID_FLEXY_SERIALTYPE);
