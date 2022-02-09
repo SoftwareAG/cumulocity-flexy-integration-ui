@@ -1,4 +1,4 @@
-<c8y-title>{{ "EWON Flexy Registration" | translate }}</c8y-title>
+<c8y-title>{{ "Ewon Flexy Registration" | translate }}</c8y-title>
 <!--Action Bar connected-->
 <c8y-action-bar-item [placement]="'right'"  [priority]="-99999">
   <div class="c8y-realtime">
@@ -51,7 +51,7 @@
 </div>
 </div>
 </ng-container>
-<!--Table of EWON Flexy gateways-->
+<!--Table of Ewon Flexy gateways-->
 <div class="d-block">
   <!-- List of ewon items -->
   <ng-container *ngIf="!isLoading && rows.length > 0;">
@@ -95,7 +95,7 @@
         <div class="rect4"></div>
         <div class="rect5"></div>
       </div>
-      <h3 translate="">Request for EWON devices.</h3>
+      <h3 translate="">Request for Ewon devices.</h3>
       <p translate="">This process may take some few seconds.</p>
     </div>
   </ng-container>
@@ -104,7 +104,7 @@
   <ng-container *ngIf="!isLoading && rows.length == 0;">
     <div class="c8y-empty-state text-center">
       <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device"></h1>
-      <h3>{{ 'There are no EWON Flexy gateways.' | translate }}</h3>
+      <h3>{{ 'There are no Ewon Flexy gateways.' | translate }}</h3>
       <h4 *ngIf="!isSessionConnected">{{ 'Session is disconnected.' | translate }}</h4>
       <h4 *ngIf="isSessionConnected">{{ 'Provided session does not contain any devices.' | translate }}</h4>
     </div>
