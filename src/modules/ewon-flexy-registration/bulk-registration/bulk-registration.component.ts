@@ -303,14 +303,20 @@ export class BulkRegistrationComponent implements OnInit {
         filterable: true,
         dataType: ColumnDataType.TextShort
       },{
+        name: 'group',
+        header: 'Group',
+        path: 'group',
+        filterable: true,
+        dataType: ColumnDataType.TextShort
+      },{
         name: 'pool',
-        header: 'Pool',
+        header: 'Talk2M Pool',
         path: 'pool',
         filterable: true,
         dataType: ColumnDataType.TextShort
       },{
         name: 'description',
-        header: 'Description',
+        header: 'Talk2M Description',
         path: 'description',
         dataType: ColumnDataType.TextLong
       },{
