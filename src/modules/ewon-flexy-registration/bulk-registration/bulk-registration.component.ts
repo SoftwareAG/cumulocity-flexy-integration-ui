@@ -1,4 +1,4 @@
-import { IDeviceRegistration, IManagedObject } from "@c8y/client";
+import { IDeviceRegistration, IIdentified, IManagedObject } from "@c8y/client";
 import { Component, OnInit } from "@angular/core";
 import {
   ActionControl,
@@ -89,8 +89,6 @@ export class BulkRegistrationComponent implements OnInit {
             await this.flexyRegistration.getGroupInventoryListOfDevice(
               device.id
             );
-          // let listGroups = [];
-          // let groupIds = [];
           ewon.groups = [];
           for (const group of groups) {
             const myGroups = {
@@ -98,17 +96,7 @@ export class BulkRegistrationComponent implements OnInit {
               id: group.id
             };
             ewon.groups = ewon.groups.concat(myGroups);
-            // listGroups = listGroups.concat(group.name);
-            // groupIds = groupIds.concat(group.id);
           }
-          // const myGroups = {
-          //   name: listGroups.toString().replace("[", "").replace("]", ""),
-          //   id: groupIds.toString().replace("[", "").replace("]", ""),
-          // };
-          // ewon.groups = [];
-          // ewon.groups = ewon.groups.concat(myGroups);
-          console.log("ewon groups = ", ewon.groups);
-          console.log(this.rows);
 
           const listExternalIds = await this.flexyRegistration.getExternalIdsOfManagedObject(device.id);
           if (listExternalIds.length > 0) {
@@ -328,13 +316,13 @@ export class BulkRegistrationComponent implements OnInit {
           " parent device = " +
           identityObj.managedObject.id.toString()
       );
-      await this.flexyRegistration.addGroupChildAssetToDevice(
+      const assignedGroup: IIdentified = await this.flexyRegistration.addGroupChildAssetToDevice(
         this.poolGroupList.get(ewon.pool),
         identityObj.managedObject.id.toString()
       );
+      this.rows[this.rows.findIndex((element) => element.id == item)].groups = [{ name : ewon.pool, id: this.poolGroupList.get(ewon.pool)}];
     }
-    this.rows[this.rows.findIndex((element) => element.id == item)].registered =
-      FlexyIntegrated.Integrated;
+    this.rows[this.rows.findIndex((element) => element.id == item)].registered = FlexyIntegrated.Integrated;
   }
 
   async startRegistration() {

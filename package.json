@@ -52,7 +52,7 @@
     "application": {
       "name": "Ewon Flexy Integration",
       "contextPath": "ewon-flexy-integration-app",
-      "key": "ewon-flexy-integration-application-key",
+      "key": "ewon-flexy-integration-app-application-key",
       "upgrade": true,
       "rightDrawer": true,
       "breadcrumbs": false,
