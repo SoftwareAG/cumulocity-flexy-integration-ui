@@ -60,6 +60,18 @@ export class EWONFlexyDeviceRegistrationService {
     const {data, res, paging} = await this.inventoryService.list(filter);
     return data;
   }
+  async getGroupInventoryListOfDevice(deviceId: string):Promise<IManagedObject[]>{
+      const filter: object = {
+      pageSize: 100,
+      childAssetId: deviceId,
+      withTotalPages: false,
+      withChildren: false,
+      withParents: true
+      };
+      
+    const {data, res} = await this.inventoryService.list(filter);
+    return data;
+  }
   async getDeviceEwonFlexyInventoryList():  Promise<IManagedObject[]>{
     const filter: object = {
       pageSize: 100,

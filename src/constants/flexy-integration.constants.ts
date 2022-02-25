@@ -30,7 +30,7 @@ export const C8Y_MICROSERVICE_ENDPOINT = {
         TENANTID: '{tenantId}',
         JOBID: '{jobId}'
       } ,
-    APPKEY: 'ewon-flexy-integration'
+    APPKEY: 'ewon-flexy-integration-microservice-key'
 }
 
 export const GET_OPTIONS: IFetchOptions = {

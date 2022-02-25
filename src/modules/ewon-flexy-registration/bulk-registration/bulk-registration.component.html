@@ -66,6 +66,14 @@
     (onFilter)="poolFilter($event)"
     (refresh)="onRefresh($event)"
     >
+    <c8y-column name="groups">
+      <ng-container *c8yCellRendererDef="let groups">
+        <span *ngFor="let group of groups.value">
+          <p><a href="#/group/{{ group.id }}">{{ group.name }}</a></p>
+        </span>
+        
+      </ng-container>
+    </c8y-column>
         <c8y-column name="registered">
           <ng-container *c8yCellRendererDef="let context">
             <span class = "d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle" style="color: #008800; padding-left:1rem;"></i></span>
