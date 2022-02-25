@@ -1,5 +1,5 @@
 {
-  "name": "ewon-flexy-integration-app",
+  "name": "ewon-flexy-integration",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -51,8 +51,8 @@
   "c8y": {
     "application": {
       "name": "Ewon Flexy Integration",
-      "contextPath": "ewon-flexy-integration-app",
-      "key": "ewon-flexy-integration-app-application-key",
+      "contextPath": "ewon-flexy-integration",
+      "key": "ewon-flexy-integration-application-key",
       "upgrade": true,
       "rightDrawer": true,
       "breadcrumbs": false,
