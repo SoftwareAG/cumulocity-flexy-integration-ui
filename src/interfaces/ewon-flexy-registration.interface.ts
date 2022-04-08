@@ -8,6 +8,8 @@ export interface FlexySettings {
     device_user?: string
     device_pass?: string,
     device_name?: string,
+    url?: string,
+    filesExist?: boolean
  } 
  export interface EwonFlexyStructure {
     id?: string | number; //ewon id

@@ -1,4 +1,4 @@
-import { C8Y_MICROSERVICE_ENDPOINT, GET_OPTIONS, ONLOAD_OPTIONS, TALK2M_DEVELOPERID } from './../constants/flexy-integration.constants';
+import { C8Y_MICROSERVICE_ENDPOINT, CHECKFILES_OPTIONS, GET_OPTIONS, ONLOAD_OPTIONS, TALK2M_DEVELOPERID } from './../constants/flexy-integration.constants';
 import { FetchClient, IFetchOptions, IFetchResponse, TenantService } from '@c8y/client';
 import { Injectable } from "@angular/core";
 import { AlertService } from '@c8y/ngx-components';
@@ -68,6 +68,37 @@ export class MicroserviceIntegrationService {
 
         return result;
     }
+
+    async checkFiles(filesUrl: string): Promise<boolean>{
+        const result = await this.fetch.fetch(C8Y_MICROSERVICE_ENDPOINT.URL.CHECK_FILES, this.buildHeadersForCheckFile(CHECKFILES_OPTIONS.headers, filesUrl));
+
+        return result.json().then((body) => {
+            if (result.status === 200) {
+                return body as boolean;
+            } else {
+                return Promise.reject('Microservice not available')
+            }
+           })
+    }
+
+    protected buildHeadersForCheckFile(headers: any, filesUrl: string): any {
+        const hd = JSON.stringify(headers);
+        const variable: string = C8Y_MICROSERVICE_ENDPOINT.VARIABLE['FILESURL'];
+            const index = hd.indexOf(variable);
+
+            const key_header = variable.replace("{","").replace("}","");
+            if (index >= 0 && hd.indexOf(key_header) >= 0 ) {
+                if(variable.indexOf("filesUrl") >= 0){
+                    headers[key_header] = headers[key_header].replace(variable,filesUrl);
+                }
+              }
+
+        let options: IFetchOptions = CHECKFILES_OPTIONS;
+        
+        options.headers = headers;
+        console.log("header = ", options);
+        return options;
+    } 
 
     protected buildHeader(headers: any, token: string, jobId: string, tenantId: string): any{
         const hd = JSON.stringify(headers);

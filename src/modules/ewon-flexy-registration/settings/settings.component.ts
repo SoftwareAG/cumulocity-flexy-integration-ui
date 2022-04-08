@@ -160,4 +160,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
     };
     this.alert.add(alert);
   }
+  
+  onSetUrl(config?: FlexySettings) {
+    this.c8yMicroservice.checkFiles(config.url).then((response) => {
+      config.filesExist = response;
+      if (response === true) {
+        this.alert.success("Files Exist on " + config.url);
+      } else {
+        this.alert.danger("Files Don't Exist on " + config.url);
+      }
+    }, (error) => {
+      this.alert.danger(error);
+    })
+  }
 }

@@ -58,7 +58,27 @@
     <div class="card-footer separator">
       <input type="submit" value="Save & Connect" class="btn btn-primary" (click)="onConnect(config)"/>
       <input type="submit" value="Logout" class="btn btn-warning" (click)="onLogout(config)"/>
+
+      <input type="submit" value="Set Agent Url" class="btn btn-primary" (click)="onSetUrl(config)"/>
     </div>
+
+
+
+    <div class="card-block">
+      <h4>{{ "Agent Path" | translate }}</h4>
+    
+      <div class="form-group">
+        <label>{{ "url" | translate }}</label>
+        <input class="form-control" type="text" [(ngModel)]="config.url"
+          placeholder="https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.0.3/" />
+      </div>
+    </div>
+    <div class="card-footer separator">
+      <input type="submit" value="Set Agent Url" class="btn btn-primary" (click)="onSetUrl(config)" />
+    </div>
+    
+
+
 </div>
 
 
