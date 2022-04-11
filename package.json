@@ -15,8 +15,9 @@
   },
   "homepage": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui#readme",
   "scripts": {
-    "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "ng": "ng",
+    "c8ycli": "c8ycli",
+    "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "build": "rimraf dist && c8ycli build",
     "deploy": "c8ycli deploy",
     "lint": "tsc --noEmit && eslint . --ext js,ts,json --quiet --fix",

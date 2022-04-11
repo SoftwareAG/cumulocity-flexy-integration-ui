@@ -1,11 +1,6 @@
 import { Injectable } from '@angular/core';
-import {
-  TenantOptionsService,
-  ITenantOption,
-  UserService,
-  TenantService,
-} from '@c8y/client';
-import { FLEXY_TENANTOPTIONS_CATEGORY } from '../constants/flexy-integration.constants';
+import { TenantOptionsService, ITenantOption, UserService, TenantService } from '@c8y/client';
+import { FLEXY_TENANTOPTIONS_CATEGORY } from '@constants/flexy-integration.constants';
 
 @Injectable()
 export class EWONFlexyCredentialsTenantoptionsService {
@@ -22,10 +17,7 @@ export class EWONFlexyCredentialsTenantoptionsService {
 
   protected async getBase64Userid(): Promise<string> {
     const user = await this.userService.current();
-    const base64 = btoa(user.data.id)
-      .replace('=', '')
-      .replace('+', '-')
-      .replace('/', '_');
+    const base64 = btoa(user.data.id).replace('=', '').replace('+', '-').replace('/', '_');
     return base64;
   }
 
@@ -40,7 +32,7 @@ export class EWONFlexyCredentialsTenantoptionsService {
       const option: ITenantOption = {
         category: FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64,
         key: iterate,
-        value: config[iterate],
+        value: config[iterate]
       };
       this.tenantOptionsService.update(option);
     }
@@ -51,13 +43,11 @@ export class EWONFlexyCredentialsTenantoptionsService {
     const filter = {
       category: FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64,
       pageSize: 100,
-      withTotalPages: true,
+      withTotalPages: true
     };
-    const { data, res, paging } = await this.tenantOptionsService.list(filter);
+    const { data } = await this.tenantOptionsService.list(filter);
     const filteredData = data
-      .filter(
-        (tmp) => tmp.category === FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64
-      )
+      .filter((tmp) => tmp.category === FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64)
       .map((tmp) => tmp as ITenantOption)
       .filter((tmp) => tmp.key != 'credentials.password');
 

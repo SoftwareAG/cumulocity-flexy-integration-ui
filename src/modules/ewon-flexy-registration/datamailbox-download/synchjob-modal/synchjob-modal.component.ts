@@ -1,70 +1,49 @@
+import { IManagedObject } from '@c8y/client';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActionControl, AlertService, C8yStepper, Column, ColumnDataType, Pagination } from '@c8y/ngx-components';
+import { BsModalRef } from 'ngx-bootstrap/modal';
+import { Subject } from 'rxjs';
 import {
   EXTERNALID_TALK2M_SERIALTYPE,
   EXTERNALID_FLEXY_SERIALTYPE,
-} from './../../../../constants/flexy-integration.constants';
-import { IManagedObject } from '@c8y/client';
-import { IOnloadingJobObject } from './../../../../interfaces/c8y-custom-objects.interface';
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {
-  ActionControl,
-  AlertService,
-  C8yStepper,
-  Column,
-  ColumnDataType,
-  Pagination,
-} from '@c8y/ngx-components';
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { Subject } from 'rxjs';
-import { EWONFlexyCredentialsTenantoptionsService } from '../../../../services/ewon-flexy-credentials-tenantoptions.service';
-import {
-  EwonFlexyStructure,
-  FlexyIntegrated,
-  FlexySettings,
-} from '../../../../interfaces/ewon-flexy-registration.interface';
-import { MicroserviceIntegrationService } from '../../../../services/c8y-microservice-talk2m-integration.service';
-import { EWONFlexyDeviceRegistrationService } from '../../../../services/ewon-flexy-device-registration.service';
-import { SyncOnloadJobService } from '../../../../services/synchronize-job.service';
-import {
   FLEXY_EXTERNALID_TALK2M_PREFIX,
-  FLEXY_EXTERNALID_FLEXY_PREFIX,
-} from '../../../../constants/flexy-integration.constants';
+  FLEXY_EXTERNALID_FLEXY_PREFIX
+} from '@constants/flexy-integration.constants';
+import { IOnloadingJobObject } from '@interfaces/c8y-custom-objects.interface';
+import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
+import { MicroserviceIntegrationService } from '@services/c8y-microservice-talk2m-integration.service';
+import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
+import { SyncOnloadJobService } from '@services/synchronize-job.service';
 
 enum step {
   FIRST = 0,
   SECOND = 1,
-  THIRD = 2,
+  THIRD = 2
 }
 
 @Component({
   selector: 'app-synchjob-modal',
-  templateUrl: './synchjob-modal.component.html',
+  templateUrl: './synchjob-modal.component.html'
 })
 export class SynchjobModalComponent implements OnInit {
   private _config: FlexySettings = {};
-
-  public isLoading: boolean;
-
+  isLoading: boolean;
   formGroupStepOne: FormGroup;
   formGroupStepTwo: FormGroup;
-
   pendingStatus: boolean = false;
-
-  @ViewChild(C8yStepper, { static: true })
   stepper: C8yStepper;
-
   columns: Column[] = [];
   rows: EwonFlexyStructure[] = [];
-
   actionControls: ActionControl[] = [];
   pagination: Pagination = {
     pageSize: 1000,
-    currentPage: 1,
+    currentPage: 1
   };
-
   newJob: IManagedObject;
-
-  public onClose: Subject<IManagedObject> = new Subject();
+  onClose: Subject<IManagedObject> = new Subject();
+  @ViewChild(C8yStepper, { static: true })
 
   constructor(
     private alert: AlertService,
@@ -82,10 +61,10 @@ export class SynchjobModalComponent implements OnInit {
   ngOnInit(): void {
     this.formGroupStepOne = this.fb.group({
       name: ['', Validators.required],
-      description: [''],
+      description: ['']
     });
     this.formGroupStepTwo = this.fb.group({
-      ewonIds: [''],
+      ewonIds: ['']
     });
 
     // Get list of ewons to sync from microservice
@@ -94,29 +73,23 @@ export class SynchjobModalComponent implements OnInit {
         this._config[option.key] = option.value;
       });
       if (this._config.token) {
-        const ewons: EwonFlexyStructure[] = await this.c8yMSService.getEwons(
-          this._config.token
-        );
+        const ewons: EwonFlexyStructure[] = await this.c8yMSService.getEwons(this._config.token);
 
         for (const ewon of ewons) {
           try {
-            let isRegistered =
-              await this.flexyRegistrationService.isDeviceRegistered(
-                ewon.id + '',
-                FLEXY_EXTERNALID_TALK2M_PREFIX,
-                EXTERNALID_TALK2M_SERIALTYPE
-              );
+            let isRegistered = await this.flexyRegistrationService.isDeviceRegistered(
+              ewon.id + '',
+              FLEXY_EXTERNALID_TALK2M_PREFIX,
+              EXTERNALID_TALK2M_SERIALTYPE
+            );
             if (!isRegistered) {
-              isRegistered =
-                await this.flexyRegistrationService.isDeviceRegistered(
-                  ewon.id + '',
-                  FLEXY_EXTERNALID_FLEXY_PREFIX,
-                  EXTERNALID_FLEXY_SERIALTYPE
-                );
+              isRegistered = await this.flexyRegistrationService.isDeviceRegistered(
+                ewon.id + '',
+                FLEXY_EXTERNALID_FLEXY_PREFIX,
+                EXTERNALID_FLEXY_SERIALTYPE
+              );
             }
-            ewon.registered = isRegistered
-              ? FlexyIntegrated.Integrated
-              : FlexyIntegrated.Not_integrated;
+            ewon.registered = isRegistered ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
             this.rows = this.rows.concat(ewon);
           } catch (error) {
             this.isLoading = false;
@@ -124,10 +97,7 @@ export class SynchjobModalComponent implements OnInit {
           }
         }
       } else {
-        this.alert.warning(
-          'Missing credentials to conntect.',
-          JSON.stringify({ t2mtoke: this._config.token })
-        );
+        this.alert.warning('Missing credentials to conntect.', JSON.stringify({ t2mtoke: this._config.token }));
       }
       this.isLoading = false;
     });
@@ -162,7 +132,7 @@ export class SynchjobModalComponent implements OnInit {
         ewonIds: this.formGroupStepTwo.value.ewonIds,
         name: this.formGroupStepOne.value.name,
         description: this.formGroupStepOne.value.description,
-        isActive: false,
+        isActive: false
       } as IOnloadingJobObject);
 
       this.pendingStatus = false;
@@ -188,22 +158,22 @@ export class SynchjobModalComponent implements OnInit {
         header: 'Name',
         path: 'name',
         filterable: true,
-        dataType: ColumnDataType.TextShort,
+        dataType: ColumnDataType.TextShort
       },
       {
         name: 'registered',
         header: 'Cumulocity Registered',
         path: 'registered',
         filterable: true,
-        dataType: ColumnDataType.TextShort,
+        dataType: ColumnDataType.TextShort
       },
       {
         name: 'dmLastSyncDate',
         header: 'DataMailbox last sync date',
         path: 'lastSynchroDate',
         filterable: false,
-        dataType: ColumnDataType.TextShort,
-      },
+        dataType: ColumnDataType.TextShort
+      }
     ];
   }
 }

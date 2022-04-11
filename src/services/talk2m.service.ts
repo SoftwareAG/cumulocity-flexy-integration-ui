@@ -1,20 +1,12 @@
-import {
-  TALK2M_BASEURL,
-  TALK2M_DEVELOPERID,
-} from './../constants/flexy-integration.constants';
-import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AlertService } from '@c8y/ngx-components';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { TALK2M_BASEURL, TALK2M_DEVELOPERID } from '@constants/flexy-integration.constants';
 
 @Injectable()
 export class Talk2MService {
-  constructor(private http: HttpClient, private alert: AlertService) {}
+  constructor(private http: HttpClient) {}
 
-  async login(
-    account: string,
-    username: string,
-    password: string
-  ): Promise<HttpResponse<any>> {
+  async login(account: string, username: string, password: string): Promise<HttpResponse<any>> {
     const url_service =
       '/login?t2maccount=' +
       account +
@@ -24,10 +16,7 @@ export class Talk2MService {
       password +
       '&t2mdeveloperid=' +
       TALK2M_DEVELOPERID;
-
-    const response = await this.http
-      .get<any>(TALK2M_BASEURL + url_service, { observe: 'response' })
-      .toPromise();
+    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: 'response' }).toPromise();
     return response;
   }
 
@@ -43,49 +32,26 @@ export class Talk2MService {
   }
 
   async logout(session: string): Promise<HttpResponse<any>> {
-    const url_service =
-      '/logout?t2msession=' + session + '&t2mdeveloperid=' + TALK2M_DEVELOPERID;
-
-    const response = await this.http
-      .get<any>(TALK2M_BASEURL + url_service, { observe: 'response' })
-      .toPromise();
+    const url_service = '/logout?t2msession=' + session + '&t2mdeveloperid=' + TALK2M_DEVELOPERID;
+    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: 'response' }).toPromise();
     return response;
   }
 
   async getaccountinfo(session: string): Promise<HttpResponse<any>> {
-    const url_service =
-      '/getaccountinfo?t2msession=' +
-      session +
-      '&t2mdeveloperid=' +
-      TALK2M_DEVELOPERID;
-
-    const response = await this.http
-      .get<any>(TALK2M_BASEURL + url_service, { observe: 'response' })
-      .toPromise();
+    const url_service = '/getaccountinfo?t2msession=' + session + '&t2mdeveloperid=' + TALK2M_DEVELOPERID;
+    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: 'response' }).toPromise();
     return response;
   }
 
   async getewons(session: string, pool?: string): Promise<HttpResponse<any>> {
     let url_service = '';
     if (pool) {
-      url_service =
-        '/getewons?t2msession=' +
-        session +
-        '&t2mdeveloperid=' +
-        TALK2M_DEVELOPERID +
-        '&pool=' +
-        pool;
+      url_service = '/getewons?t2msession=' + session + '&t2mdeveloperid=' + TALK2M_DEVELOPERID + '&pool=' + pool;
     } else {
-      url_service =
-        '/getewons?t2msession=' +
-        session +
-        '&t2mdeveloperid=' +
-        TALK2M_DEVELOPERID;
+      url_service = '/getewons?t2msession=' + session + '&t2mdeveloperid=' + TALK2M_DEVELOPERID;
     }
 
-    const response = await this.http
-      .get<any>(TALK2M_BASEURL + url_service, { observe: 'response' })
-      .toPromise();
+    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: 'response' }).toPromise();
     return response;
   }
 
@@ -112,14 +78,12 @@ export class Talk2MService {
 
     let HTTPOptions: Object = {
       headers: new HttpHeaders({
-        'Content-Type': 'text/plain',
+        'Content-Type': 'text/plain'
       }),
-      responseType: 'text',
+      responseType: 'text'
     };
 
-    const response = await this.http
-      .get<any>(TALK2M_BASEURL + url_service, HTTPOptions)
-      .toPromise();
+    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, HTTPOptions).toPromise();
     return response;
   }
 }

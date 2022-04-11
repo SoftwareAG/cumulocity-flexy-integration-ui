@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule as NgRouterModule } from '@angular/router';
 import { UpgradeModule as NgUpgradeModule } from '@angular/upgrade/static';
-import { CoreModule, NavigatorService, RouterModule } from '@c8y/ngx-components';
+import { CoreModule, RouterModule } from '@c8y/ngx-components';
 import { AssetsNavigatorModule } from '@c8y/ngx-components/assets-navigator';
 import { SubAssetsModule } from '@c8y/ngx-components/sub-assets';
 import { DeviceGridExampleModule } from '@c8y/ngx-components/device-grid-example';

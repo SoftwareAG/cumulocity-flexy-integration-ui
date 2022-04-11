@@ -3,25 +3,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { IDeviceRegistration, IManagedObject } from '@c8y/client';
 import { AlertService } from '@c8y/ngx-components';
 import { BsModalRef } from 'ngx-bootstrap/modal';
-import {
-  EwonFlexyStructure,
-  FlexyIntegrated,
-} from './../../../../interfaces/ewon-flexy-registration.interface';
-import {
-  FLEXY_EXTERNALID_FLEXY_PREFIX,
-  EXTERNALID_FLEXY_SERIALTYPE,
-} from './../../../../constants/flexy-integration.constants';
-import { EWONFlexyCredentialsTenantoptionsService } from '../../../../services/ewon-flexy-credentials-tenantoptions.service';
-import { FlexySettings } from '../../../../interfaces/ewon-flexy-registration.interface';
-import { Talk2MService } from '../../../../services/talk2m.service';
-import { EWONFlexyDeviceRegistrationService } from '../../../../services/ewon-flexy-device-registration.service';
+import { FLEXY_EXTERNALID_FLEXY_PREFIX, EXTERNALID_FLEXY_SERIALTYPE } from '@constants/flexy-integration.constants';
+import { EwonFlexyStructure, FlexyIntegrated } from '@interfaces/ewon-flexy-registration.interface';
+import { FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
+import { Talk2MService } from '@services/talk2m.service';
+import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
 import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-registration-modal',
   templateUrl: './registration-modal.component.html',
   styleUrls: ['registration-modal.component.less'],
-  providers: [Talk2MService],
+  providers: [Talk2MService]
 })
 export class RegistrationModalComponent implements OnInit {
   @Input() set config(value: any) {
@@ -56,34 +50,20 @@ export class RegistrationModalComponent implements OnInit {
     });
 
     // 0.1 Get existing device requests
-    this.existingRequests =
-      await this.flexyRegistration.getDeviceRequestRegistration();
+    this.existingRequests = await this.flexyRegistration.getDeviceRequestRegistration();
   }
 
   onRegister(config?: FlexySettings) {
     if (config && config.device_user && config.device_pass) {
       this.isFlexyConnected = false;
       this.talk2m
-        .getserialnumber(
-          config.device_name,
-          config.device_user,
-          config.device_pass,
-          config.account,
-          config.session
-        )
+        .getserialnumber(config.device_name, config.device_user, config.device_pass, config.account, config.session)
         .then(
           (response) => {
             if (response.indexOf('SerNum:') >= 0) {
               let serial: string = '';
-              for (
-                var i = response.indexOf('SerNum:') + 7;
-                i < response.length;
-                i++
-              ) {
-                if (
-                  (response[i] >= '0' && response[i] <= '9') ||
-                  response[i] == '-'
-                ) {
+              for (var i = response.indexOf('SerNum:') + 7; i < response.length; i++) {
+                if ((response[i] >= '0' && response[i] <= '9') || response[i] == '-') {
                   serial = serial.concat(response[i]);
                 } else {
                   break;
@@ -101,7 +81,7 @@ export class RegistrationModalComponent implements OnInit {
               JSON.stringify({
                 status: error.status,
                 text: error.statusText,
-                message: error.message,
+                message: error.message
               })
             );
             this.isFlexyConnected = true; // naming is confusing
@@ -116,17 +96,13 @@ export class RegistrationModalComponent implements OnInit {
       (element) => element.id == FLEXY_EXTERNALID_FLEXY_PREFIX + serial
     );
     if (!existingRequest) {
-      const registration =
-        await this.flexyRegistration.createDeviceRequestRegistration(
-          serial,
-          FLEXY_EXTERNALID_FLEXY_PREFIX
-        );
+      const registration = await this.flexyRegistration.createDeviceRequestRegistration(
+        serial,
+        FLEXY_EXTERNALID_FLEXY_PREFIX
+      );
       // 1.1 Bootstraps the device credentials
       try {
-        await this.flexyRegistration.requestDeviceCredentials(
-          serial,
-          FLEXY_EXTERNALID_FLEXY_PREFIX
-        );
+        await this.flexyRegistration.requestDeviceCredentials(serial, FLEXY_EXTERNALID_FLEXY_PREFIX);
         // return in case we are actually able to retrieve the credentials
         return;
       } catch (error) {
@@ -138,17 +114,14 @@ export class RegistrationModalComponent implements OnInit {
         }
       }
       // 1.2 Change status to acceptance
-      await this.flexyRegistration.acceptDeviceRequest(
-        serial,
-        FLEXY_EXTERNALID_FLEXY_PREFIX
-      );
+      await this.flexyRegistration.acceptDeviceRequest(serial, FLEXY_EXTERNALID_FLEXY_PREFIX);
     }
     // 2. Create inventoty managed object
     const ewon: EwonFlexyStructure = {
       id: '', // no ewon id
       name: this._config.device_name,
       registered: FlexyIntegrated.Integrated,
-      talk2m_integrated: FlexyIntegrated.Not_integrated,
+      talk2m_integrated: FlexyIntegrated.Not_integrated
     };
     // If device with serial number exists, then return a warning and stop here.
     const isRegistered = await this.flexyRegistration.isDeviceRegistered(
@@ -160,18 +133,15 @@ export class RegistrationModalComponent implements OnInit {
       this.alert.warning('Device is already registered.');
       return;
     }
-    const mo = await this.flexyRegistration
-      .createDeviceInventory(ewon)
-      .catch((error) => {
-        this.alert.warning('Create device invenotry failed.', error);
-        throw error;
-      });
+    const mo = await this.flexyRegistration.createDeviceInventory(ewon).catch((error) => {
+      this.alert.warning('Create device invenotry failed.', error);
+      throw error;
+    });
     // 2.1 Change owner
-    const deviceInventoryObj =
-      await this.flexyRegistration.setDevivceOwnerExternalId(
-        FLEXY_EXTERNALID_FLEXY_PREFIX + serial,
-        mo.id
-      );
+    const deviceInventoryObj = await this.flexyRegistration.setDevivceOwnerExternalId(
+      FLEXY_EXTERNALID_FLEXY_PREFIX + serial,
+      mo.id
+    );
     // 3. Assign externalId to inventory
     const identityObj = await this.flexyRegistration.createIdentidyForDevice(
       deviceInventoryObj.id,

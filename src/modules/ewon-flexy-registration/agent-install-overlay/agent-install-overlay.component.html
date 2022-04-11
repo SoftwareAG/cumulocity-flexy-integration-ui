@@ -1,0 +1,26 @@
+<c8y-modal
+  #modal
+  [title]="'Agent Path' | translate"
+  [labels]="labels"
+  [disabled]="!url"
+  (onDismiss)="dismiss($event)"
+  (onClose)="submit($event)"
+>
+  <div class="card-block">
+    <div class="form-group">
+      <label>{{ '1. URL' | translate }}</label>
+      <div class="input-group">
+        <input
+          class="form-control"
+          type="text"
+          placeholder="https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.0.3/"
+          [(ngModel)]="url"
+          (change)="validateUrl()"
+        />
+        <div class="input-group-btn">
+          <button type="button" class="btn btn-primary" [disabled]="" (click)="validateUrl()">Validate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</c8y-modal>

@@ -1,31 +1,22 @@
-import {
-  FetchClient,
-  IFetchOptions,
-  IFetchResponse,
-  TenantService,
-} from '@c8y/client';
+import { Injectable } from '@angular/core';
+import { FetchClient, IFetchOptions, IFetchResponse, TenantService } from '@c8y/client';
 import {
   C8Y_MICROSERVICE_ENDPOINT,
   CHECKFILES_OPTIONS,
   GET_OPTIONS,
   ONLOAD_OPTIONS,
-  TALK2M_DEVELOPERID,
-} from './../constants/flexy-integration.constants';
-import { Injectable } from '@angular/core';
+  TALK2M_DEVELOPERID
+} from '@constants/flexy-integration.constants';
 
 @Injectable()
 export class MicroserviceIntegrationService {
-  constructor(
-    private tenantService: TenantService,
-    private fetch: FetchClient
-  ) {}
+  constructor(private tenantService: TenantService, private fetch: FetchClient) {}
 
   async isMicroserviceEnabled(): Promise<boolean> {
     const result = await this.tenantService.current().then((result) => {
       if (result.data['applications']) {
         const app = result.data['applications']['references'].find(
-          (element) =>
-            element.application.key == C8Y_MICROSERVICE_ENDPOINT.APPKEY
+          (element) => element.application.key == C8Y_MICROSERVICE_ENDPOINT.APPKEY
         );
         return app ? true : false;
       }
@@ -37,8 +28,7 @@ export class MicroserviceIntegrationService {
     const result = await this.tenantService.current().then((result) => {
       if (result.data['applications']) {
         const app = result.data['applications']['references'].find(
-          (element) =>
-            element.application.key == C8Y_MICROSERVICE_ENDPOINT.APPKEY
+          (element) => element.application.key == C8Y_MICROSERVICE_ENDPOINT.APPKEY
         );
         return app ? app.application.contextPath : null;
       }
@@ -49,45 +39,18 @@ export class MicroserviceIntegrationService {
   async getEwons(token: string): Promise<any> {
     const data = { TOKEN: token, DEVID: TALK2M_DEVELOPERID };
     //let endpoint = C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS;
-    let endpoint = this.buildEndpoint(
-      C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS,
-      data
-    );
+    let endpoint = this.buildEndpoint(C8Y_MICROSERVICE_ENDPOINT.URL.GET_EWONS, data);
 
-    const result = await this.fetch
-      .fetch(endpoint, GET_OPTIONS)
-      .then(async (response) => {
-        return await response.json().then((details) => {
-          return response && details.hasOwnProperty('ewons') ? details : null;
-        });
+    const result = await this.fetch.fetch(endpoint, GET_OPTIONS).then(async (response) => {
+      return await response.json().then((details) => {
+        return response && details.hasOwnProperty('ewons') ? details : null;
       });
+    });
 
     return result.ewons;
   }
 
-  async syncData(token: string, jobId: string, tenantId: string): Promise<any> {
-    const data = {
-      TOKEN: token,
-      DEVID: TALK2M_DEVELOPERID,
-      TENANTID: 't769416337',
-    };
-    let endpoint = this.buildEndpoint(
-      C8Y_MICROSERVICE_ENDPOINT.URL.SYNC_DATA,
-      data
-    );
-  }
-
-  async onloadNow(
-    token: string,
-    jobId: string,
-    tenantId: string
-  ): Promise<IFetchResponse> {
-    const data = {
-      TOKEN: token,
-      DEVID: TALK2M_DEVELOPERID,
-      TENANTID: tenantId,
-      JOBID: jobId,
-    };
+  async onloadNow(token: string, jobId: string, tenantId: string): Promise<IFetchResponse> {
     const result = await this.fetch.fetch(
       C8Y_MICROSERVICE_ENDPOINT.URL.ONLOAD_NOW,
       this.buildHeader(ONLOAD_OPTIONS.headers, token, jobId, tenantId)
@@ -129,12 +92,7 @@ export class MicroserviceIntegrationService {
     return options;
   }
 
-  protected buildHeader(
-    headers: any,
-    token: string,
-    jobId: string,
-    tenantId: string
-  ): any {
+  protected buildHeader(headers: any, token: string, jobId: string, tenantId: string): any {
     const hd = JSON.stringify(headers);
     for (const key in C8Y_MICROSERVICE_ENDPOINT.VARIABLE) {
       const variable: string = C8Y_MICROSERVICE_ENDPOINT.VARIABLE[key];

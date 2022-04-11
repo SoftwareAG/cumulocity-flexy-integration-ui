@@ -1,5 +1,5 @@
 import { MicroserviceIntegrationService } from './../../../services/c8y-microservice-talk2m-integration.service';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Alert, AlertService } from '@c8y/ngx-components';
 import { Observable } from 'rxjs';
 import { FlexySettings } from '../../../interfaces/ewon-flexy-registration.interface';
@@ -20,12 +20,6 @@ export class SettingsComponent implements OnInit {
   private _config: FlexySettings = {};
   isSessionConnected: boolean;
   isMicroserviceEnabled: boolean;
-  @Input() set config(value: FlexySettings) {
-    this._config = value;
-  }
-  get config(): FlexySettings {
-    return this._config;
-  }
 
   constructor(
     private alert: AlertService,
@@ -180,21 +174,5 @@ export class SettingsComponent implements OnInit {
       timeout: 5000,
     };
     this.alert.add(alert);
-  }
-
-  onSetUrl(config?: FlexySettings): void {
-    this.c8yMicroservice.checkFiles(config.url).then(
-      (response) => {
-        config.filesExist = response;
-        if (response === true) {
-          this.alert.success('Files Exist on ' + config.url);
-        } else {
-          this.alert.danger("Files Don't Exist on " + config.url);
-        }
-      },
-      (error) => {
-        this.alert.danger(error);
-      }
-    );
   }
 }

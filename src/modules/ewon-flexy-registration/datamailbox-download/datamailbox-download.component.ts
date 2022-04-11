@@ -1,22 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertService } from '@c8y/ngx-components';
 import { IManagedObject } from '@c8y/client';
-
-import { EWONFlexyCredentialsTenantoptionsService } from '../../../services/ewon-flexy-credentials-tenantoptions.service';
-import { FlexySettings } from '../../../interfaces/ewon-flexy-registration.interface';
-import { MicroserviceIntegrationService } from './../../../services/c8y-microservice-talk2m-integration.service';
-import { SyncOnloadJobService } from '../../../services/synchronize-job.service';
+import { FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
+import { MicroserviceIntegrationService } from '@services/c8y-microservice-talk2m-integration.service';
+import { SyncOnloadJobService } from '@services/synchronize-job.service';
 
 @Component({
   selector: 'app-datamailbox-download',
-  templateUrl: './datamailbox-download.component.html',
+  templateUrl: './datamailbox-download.component.html'
 })
 export class DataMailboxDownloadComponent implements OnInit {
-  public isSessionConnected: boolean;
-  public isLoading: boolean;
-
   private _config: FlexySettings = {};
-
+  isSessionConnected: boolean;
+  isLoading: boolean;
   listJobs: IManagedObject[] = [];
 
   constructor(
@@ -36,8 +33,7 @@ export class DataMailboxDownloadComponent implements OnInit {
         this._config[option.key] = option.value;
       });
       if (this._config.token) {
-        this.isSessionConnected =
-          await this.c8yMSService.isMicroserviceEnabled();
+        this.isSessionConnected = await this.c8yMSService.isMicroserviceEnabled();
         if (!this.isSessionConnected) {
           this.alert.warning('Microservice is not available.');
         }
@@ -45,7 +41,7 @@ export class DataMailboxDownloadComponent implements OnInit {
         this.alert.warning(
           'Missing credentials to connect.',
           JSON.stringify({
-            t2mtoke: this._config.token ? this._config.token : '',
+            t2mtoke: this._config.token ? this._config.token : ''
           })
         );
       }
