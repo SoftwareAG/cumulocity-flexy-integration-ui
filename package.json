@@ -3,6 +3,25 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SoftwareAG/cumulocity-flexy-integration-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui/issues"
+  },
+  "homepage": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui#readme",
+  "scripts": {
+    "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
+    "ng": "ng",
+    "build": "rimraf dist && c8ycli build",
+    "deploy": "c8ycli deploy",
+    "lint": "tsc --noEmit && eslint . --ext js,ts,json --quiet --fix",
+    "lint:ci": "tsc --noEmit && eslint . --ext js,ts,json --quiet"
+  },
   "dependencies": {
     "@angular/animations": "8.2.13",
     "@angular/cdk": "8.2.3",
@@ -29,25 +48,6 @@
     "@c8y/cli": "1010.0.23",
     "typescript": "3.5.3"
   },
-  "scripts": {
-    "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
-    "ng": "ng",
-    "build": "rimraf dist && c8ycli build",
-    "deploy": "c8ycli deploy",
-    "lint": "tsc --noEmit && eslint . --ext js,ts,json --quiet --fix",
-    "lint:ci": "tsc --noEmit && eslint . --ext js,ts,json --quiet"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SoftwareAG/cumulocity-flexy-integration-ui.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui/issues"
-  },
-  "homepage": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui#readme",
   "c8y": {
     "application": {
       "name": "Ewon Flexy Integration",
