@@ -15,14 +15,14 @@ export class EWONFlexyCredentialsTenantoptionsService {
     return tenant.data.name;
   }
 
-  protected async getBase64Userid(): Promise<string> {
+  protected async getCategory(): Promise<string> {
     const user = await this.userService.current();
-    const base64 = btoa(user.data.id).replace('=', '').replace('+', '-').replace('/', '_');
-    return base64;
+    const base64 = btoa(user.data.id).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    return FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64;
   }
 
   async updateCredentials(config: any) {
-    const base64 = await this.getBase64Userid();
+    const category = await this.getCategory();
 
     const listKeys = Object.keys(config);
     for (const iterate of listKeys) {
@@ -30,7 +30,7 @@ export class EWONFlexyCredentialsTenantoptionsService {
         continue;
       }
       const option: ITenantOption = {
-        category: FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64,
+        category,
         key: iterate,
         value: config[iterate]
       };
@@ -39,15 +39,15 @@ export class EWONFlexyCredentialsTenantoptionsService {
   }
 
   async getCredentials(): Promise<ITenantOption[]> {
-    const base64 = await this.getBase64Userid();
+    const category = await this.getCategory();
     const filter = {
-      category: FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64,
+      category,
       pageSize: 100,
       withTotalPages: true
     };
     const { data } = await this.tenantOptionsService.list(filter);
     const filteredData = data
-      .filter((tmp) => tmp.category === FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64)
+      .filter((tmp) => tmp.category === category)
       .map((tmp) => tmp as ITenantOption)
       .filter((tmp) => tmp.key != 'credentials.password');
 
