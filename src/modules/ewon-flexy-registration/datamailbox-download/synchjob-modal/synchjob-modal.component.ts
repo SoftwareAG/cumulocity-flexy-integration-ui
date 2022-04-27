@@ -28,6 +28,7 @@ enum step {
   templateUrl: './synchjob-modal.component.html'
 })
 export class SynchjobModalComponent implements OnInit {
+  @ViewChild(C8yStepper, { static: true })
   private _config: FlexySettings = {};
   isLoading: boolean;
   formGroupStepOne: FormGroup;
@@ -43,7 +44,6 @@ export class SynchjobModalComponent implements OnInit {
   };
   newJob: IManagedObject;
   onClose: Subject<IManagedObject> = new Subject();
-  @ViewChild(C8yStepper, { static: true })
 
   constructor(
     private alert: AlertService,

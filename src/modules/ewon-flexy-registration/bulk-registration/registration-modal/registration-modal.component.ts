@@ -54,10 +54,10 @@ export class RegistrationModalComponent implements OnInit {
   }
 
   onRegister(config?: FlexySettings) {
-    if (config && config.device_user && config.device_pass) {
+    if (config && config.deviceUsername && config.devicePassword) {
       this.isFlexyConnected = false;
       this.talk2m
-        .getserialnumber(config.device_name, config.device_user, config.device_pass, config.account, config.session)
+        .getserialnumber(config.deviceName, config.deviceUsername, config.devicePassword, config.account, config.session)
         .then(
           (response) => {
             if (response.indexOf('SerNum:') >= 0) {
@@ -119,7 +119,7 @@ export class RegistrationModalComponent implements OnInit {
     // 2. Create inventoty managed object
     const ewon: EwonFlexyStructure = {
       id: '', // no ewon id
-      name: this._config.device_name,
+      name: this._config.deviceName,
       registered: FlexyIntegrated.Integrated,
       talk2m_integrated: FlexyIntegrated.Not_integrated
     };

@@ -3,21 +3,24 @@ import { Component, OnInit } from '@angular/core';
 import { ActionControl, AlertService, Column, ColumnDataType, Pagination } from '@c8y/ngx-components';
 import { BsModalService } from 'ngx-bootstrap/modal';
 //custom
+import { FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE } from '@constants/flexy-integration.constants';
 import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { InstallAgentForm, ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
 import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
 import { Talk2MService } from '@services/talk2m.service';
 import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
-import { FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE } from '@constants/flexy-integration.constants';
 import { RegisterFlexyManualService } from '@services/register-flexy-manual.service';
+import { InstallAgentService } from '@services/install-agent.service';
 import { AgentInstallOverlayComponent } from '../agent-install-overlay/agent-install-overlay.component';
 
 @Component({
   selector: 'app-bulk-registration',
   templateUrl: './bulk-registration.component.html',
+  styleUrls: ['./bulk-registration.component.less'],
   providers: [Talk2MService, EWONFlexyCredentialsTenantoptionsService, EWONFlexyDeviceRegistrationService]
 })
 export class BulkRegistrationComponent implements OnInit {
-  private _config: FlexySettings = {};
+  private config: FlexySettings = {};
   isSessionConnected = false;
   isLoading = true;
   isRegistratingFlexy = false;
@@ -36,6 +39,9 @@ export class BulkRegistrationComponent implements OnInit {
     pageSize: 1000,
     currentPage: 1
   };
+  installInProgress = false;
+  installProgressText: ProgressMessage[] = [];
+  installError = false;
 
   constructor(
     private alert: AlertService,
@@ -43,6 +49,7 @@ export class BulkRegistrationComponent implements OnInit {
     private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
     private flexyRegistration: EWONFlexyDeviceRegistrationService,
     private modalService: BsModalService,
+    private installAgentService: InstallAgentService,
     public registerManuallyService: RegisterFlexyManualService
   ) {
     this.columns = this.getDefaultColumns();
@@ -88,11 +95,11 @@ export class BulkRegistrationComponent implements OnInit {
         this.flexyCredentials.getCredentials().then(
           async (options) => {
             options.forEach((option) => {
-              this._config[option.key] = option.value;
+              this.config[option.key] = option.value;
             });
 
             // No credentials available, then stop here.
-            if (Object.keys(this._config).length === 0) {
+            if (Object.keys(this.config).length === 0) {
               this.alert.warning('No credentials are defined. Could not establish a connection.');
               this.isLoading = false;
               this.isSessionConnected = false;
@@ -100,37 +107,38 @@ export class BulkRegistrationComponent implements OnInit {
             }
 
             // Is session still active
-            if (this._config.session) {
-              await this.talk2m.getaccountinfo(this._config.session).then(
+            if (this.config.session) {
+              await this.talk2m.getaccountinfo(this.config.session).then(
                 (result) => {
                   this.isSessionConnected = true;
                   // Are pools defined?
                   if (result.body.pools && result.body.pools.length > 0) {
                     for (const pool of result.body.pools) {
-                      this.talk2m.getewons(this._config.session, pool.id).then((response) => {
-                        for (const ewon of response.body.ewons) {
-                          ewon.pool = pool.name;
-                          ewon.talk2m_integrated = FlexyIntegrated.Integrated;
-                          const index = this.rows.indexOf(this.rows.find((element) => element.id == ewon.id));
-                          if (index > -1) {
-                            // remove duplicate
-                            const sliced_ewon = this.rows.splice(index, 1);
-                            ewon.groups = sliced_ewon[0].groups;
+                      this.talk2m.getewons(this.config.session, pool.id).then((response) => {
+                        if (response.body.hasOwnProperty('ewons')) {
+                          for (const ewon of response.body.ewons) {
+                            ewon.pool = pool.name;
+                            ewon.talk2m_integrated = FlexyIntegrated.Integrated;
+                            const index = this.rows.indexOf(this.rows.find((element) => element.id == ewon.id));
+                            if (index > -1) {
+                              // remove duplicate
+                              const sliced_ewon = this.rows.splice(index, 1);
+                              ewon.groups = sliced_ewon[0].groups;
+                            }
+                            this.flexyRegistration
+                              .isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE)
+                              .then((result) => {
+                                ewon.registered = result ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+                              });
                           }
-                          this.flexyRegistration
-                            .isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE)
-                            .then((result) => {
-                              ewon.registered = result ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
-                            });
+                          this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
                         }
-
-                        this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
 
                         this.isLoading = false;
                       });
                     }
                   } else {
-                    this.talk2m.getewons(this._config.session).then((response) => {
+                    this.talk2m.getewons(this.config.session).then((response) => {
                       this.rows = response.body.ewons as EwonFlexyStructure[];
                       this.isLoading = false;
                     });
@@ -243,6 +251,24 @@ export class BulkRegistrationComponent implements OnInit {
     this.rows[this.rows.findIndex((element) => element.id == item)].registered = FlexyIntegrated.Integrated;
   }
 
+  private handleInstallAgentDialog(form: InstallAgentForm): void {
+    console.log('handleInstallAgentDialog', { form });
+    this.installInProgress = true;
+    this.installError = false;
+    this.config = { ...this.config, ...form.config };
+    this.installAgentService.install(form.devices, this.config).subscribe(
+      (message) => this.installProgressText.push(message),
+      (error) => {
+        this.installProgressText.push(error);
+        this.installError = true;
+      },
+      () => {
+        this.installInProgress = false;
+        this.installProgressText = [];
+      }
+    );
+  }
+
   async startRegistration() {
     this.isRegistratingFlexy = true;
 
@@ -270,16 +296,8 @@ export class BulkRegistrationComponent implements OnInit {
     this.isRegistratingFlexy = false;
   }
 
-  onRefresh(event: Event) {
-    console.log('Fetch gateways from talk2m again...', event); // FIXME function as no functionality?
-  }
-
   selectItems(event: number[]) {
     this.selectedItems = event;
-  }
-
-  poolFilter(event: Event): void {
-    console.log(event); // FIXME function as no functionality?
   }
 
   openModal(): void {
@@ -337,6 +355,10 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   openAgentInstallOverlay(): void {
-    this.modalService.show(AgentInstallOverlayComponent);
+    const dialog = this.modalService.show(AgentInstallOverlayComponent);
+    dialog.content.devices = this.rows;
+    dialog.content.closeSubject.subscribe((response: InstallAgentForm) => {
+      if (response) this.handleInstallAgentDialog(response);
+    });
   }
 }

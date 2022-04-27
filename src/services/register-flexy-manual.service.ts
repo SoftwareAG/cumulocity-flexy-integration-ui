@@ -4,7 +4,7 @@ import { IManagedObject } from '@c8y/client';
 import { Observable } from 'rxjs';
 import { RegistrationModalComponent } from '@modules/ewon-flexy-registration/bulk-registration/registration-modal/registration-modal.component';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class RegisterFlexyManualService {
   constructor(private modalService: BsModalService) {}
 

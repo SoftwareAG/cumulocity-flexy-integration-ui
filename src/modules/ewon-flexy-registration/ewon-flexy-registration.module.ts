@@ -17,12 +17,6 @@ import {
   FLEXY_REGISTRATION_PATH,
   FLEXY_DATAMAILBOX_PATH
 } from '@constants/flexy-integration.constants';
-// singleton services
-import { MicroserviceIntegrationService } from '@services/c8y-microservice-talk2m-integration.service';
-import { SyncOnloadJobService } from '@services/synchronize-job.service';
-import { RegisterFlexyManualService } from '@services/register-flexy-manual.service';
-import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
-import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
 // custom components
 import { SettingsComponent } from './settings/settings.component';
 import { BulkRegistrationComponent } from './bulk-registration/bulk-registration.component';
@@ -98,13 +92,6 @@ const moduleNavigation: Provider[] = [
     RegistrationModalComponent,
     AgentInstallOverlayComponent
   ],
-  providers: [
-    ...moduleNavigation,
-    MicroserviceIntegrationService,
-    SyncOnloadJobService,
-    RegisterFlexyManualService,
-    EWONFlexyCredentialsTenantoptionsService,
-    EWONFlexyDeviceRegistrationService
-  ]
+  providers: [...moduleNavigation]
 })
 export class FlexyRegistrationModule {}

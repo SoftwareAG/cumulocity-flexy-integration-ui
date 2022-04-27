@@ -1,28 +1,21 @@
 <c8y-title>{{ 'Ewon Flexy Registration' | translate }}</c8y-title>
-<!--Action Bar connected-->
+
 <c8y-action-bar-item [placement]="'right'" [priority]="-99999">
   <div class="c8y-realtime">
-    <span
-      [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"
-    ></span>
+    <span [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"></span>
     Talk2M Session
   </div>
 </c8y-action-bar-item>
+
 <c8y-action-bar-item [placement]="'right'">
-  <button class="btn btn-link" (click)="openAgentInstallOverlay()">
+  <button class="btn btn-clean" [disabled]="!isSessionConnected" (click)="openAgentInstallOverlay()">
     <i c8yIcon="software"></i>
     {{ 'Install Agent' | translate }}
   </button>
 </c8y-action-bar-item>
 
-<!--Action Bar Add Sync job-->
 <c8y-action-bar-item [itemClass]="'btn-group'" [placement]="'right'">
-  <button
-    class="btn btn-link"
-    (click)="openModal()"
-    style="margin: -1rem; padding-right: 2rem"
-    [ngStyle]="!isSessionConnected ? { display: 'none' } : ''"
-  >
+  <button class="btn btn-clean" [disabled]="!isSessionConnected" (click)="openModal()">
     <i c8yIcon="plus-circle"></i>
     {{ 'Register Flexy manually' | translate }}
   </button>
@@ -44,6 +37,35 @@
   </div>
 </ng-container>
 
+<!-- TODO use progressbar -->
+<ng-container *ngIf="installInProgress || installError">
+  <div
+    class="alert alert-info"
+    role="alert"
+    style="max-width: initial"
+    [ngClass]="{ 'alert-info': !installError, 'alert-danger': installError }"
+  >
+    <ng-container *ngIf="!installError; else progressError">
+      <strong>Agent install in progress</strong>
+    </ng-container>
+    <ng-template #progressError>
+      <strong>Agent install failed</strong>
+    </ng-template>
+  </div>
+
+  <c8y-list-group>
+    <c8y-li-timeline *ngFor="let log of installProgressText">
+      {{ log.date | date: 'HH:mm:ss' }}<br>
+      {{ log.date | date: '.SSS' }}
+      <c8y-li>
+        <c8y-li-icon *ngIf="log.icon" [icon]="log.icon"></c8y-li-icon>
+        <div [innerHTML]="log.message"></div>
+        <c8y-li-footer *ngIf="log.details">{{ log.details }}</c8y-li-footer>
+      </c8y-li>
+    </c8y-li-timeline>
+  </c8y-list-group>
+</ng-container>
+
 <!--Table of Ewon Flexy gateways-->
 <div class="d-block">
   <!-- List of ewon items -->
@@ -56,8 +78,6 @@
       [rows]="rows"
       [selectable]="true"
       (itemsSelect)="selectItems($event)"
-      (onFilter)="poolFilter($event)"
-      (refresh)="onRefresh($event)"
     >
       <c8y-column name="groups">
         <ng-container *c8yCellRendererDef="let groups">
@@ -71,36 +91,20 @@
       <c8y-column name="registered">
         <ng-container *c8yCellRendererDef="let context">
           <span class="d-flex j-c-center" *ngIf="context.value == 'yes'"
-            >YES
-            <i
-              class="dlt-c8y-icon-check-circle"
-              style="color: #008800; padding-left: 1rem"
-            ></i
+            >YES <i class="dlt-c8y-icon-check-circle" style="color: #008800; padding-left: 1rem"></i
           ></span>
           <span class="d-flex j-c-center" *ngIf="context.value == 'no'"
-            >NO
-            <i
-              class="dlt-c8y-icon-block"
-              style="color: #58656d; padding-left: 1rem"
-            ></i
+            >NO <i class="dlt-c8y-icon-block" style="color: #58656d; padding-left: 1rem"></i
           ></span>
         </ng-container>
       </c8y-column>
       <c8y-column name="talk2m_integrated">
         <ng-container *c8yCellRendererDef="let context">
           <span class="d-flex j-c-center" *ngIf="context.value == 'yes'"
-            >YES
-            <i
-              class="dlt-c8y-icon-check-circle"
-              style="color: #008800; padding-left: 1rem"
-            ></i
+            >YES <i class="dlt-c8y-icon-check-circle" style="color: #008800; padding-left: 1rem"></i
           ></span>
           <span class="d-flex j-c-center" *ngIf="context.value == 'no'"
-            >NO
-            <i
-              class="dlt-c8y-icon-block"
-              style="color: #58656d; padding-left: 1rem"
-            ></i
+            >NO <i class="dlt-c8y-icon-block" style="color: #58656d; padding-left: 1rem"></i
           ></span>
         </ng-container>
       </c8y-column>
@@ -111,9 +115,7 @@
       class="btn btn-primary btn btn-block"
       (click)="startRegistration()"
     >
-      <h4 class="m-r-16" style="margin: 1rem; text-align: left">
-        Register {{ selectedItems.length }} selected items.
-      </h4>
+      <h4 class="m-r-16" style="margin: 1rem; text-align: left">Register {{ selectedItems.length }} selected items.</h4>
     </button>
   </ng-container>
 

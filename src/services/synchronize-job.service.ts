@@ -7,7 +7,7 @@ import { SynchjobModalComponent } from '@modules/ewon-flexy-registration/datamai
 import { IOnloadingJobObject } from '@interfaces/c8y-custom-objects.interface';
 import { DM_FRAGMENTTYPE_MO } from '@constants/flexy-integration.constants';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class SyncOnloadJobService {
   public onDelete: Subject<string> = new Subject();
 

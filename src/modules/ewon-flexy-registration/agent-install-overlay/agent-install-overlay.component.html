@@ -1,26 +1,112 @@
 <c8y-modal
   #modal
-  [title]="'Agent Path' | translate"
+  [title]="'Install Agent' | translate"
   [labels]="labels"
-  [disabled]="!url"
+  [disabled]="!devices || !config.deviceUsername || !config.devicePassword"
   (onDismiss)="dismiss($event)"
   (onClose)="submit($event)"
 >
   <div class="card-block">
-    <div class="form-group">
-      <label>{{ '1. URL' | translate }}</label>
-      <div class="input-group">
-        <input
-          class="form-control"
-          type="text"
-          placeholder="https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.0.3/"
-          [(ngModel)]="url"
-          (change)="validateUrl()"
-        />
-        <div class="input-group-btn">
-          <button type="button" class="btn btn-primary" [disabled]="" (click)="validateUrl()">Validate</button>
+    <fieldset>
+      <div class="legend form-block">Files</div>
+      <div class="form-group">
+        <label for="agent_url_connector">{{ 'Connector Jar' | translate }}</label>
+        <div class="input-group">
+          <input
+            id="agent_url_connector"
+            name="url"
+            type="text"
+            class="form-control"
+            placeholder="https://my.server/path-to-file/flexy-cumulocity-connector.jar"
+            [(ngModel)]="config.url.connector"
+          />
         </div>
       </div>
-    </div>
+
+      <div class="form-group">
+        <label for="agent_url_jvmrun">{{ 'JVM Run' | translate }}</label>
+        <div class="input-group">
+          <input
+            id="agent_url_jvmrun"
+            name="url"
+            type="text"
+            class="form-control"
+            placeholder="https://my.server/path-to-file/jvmrun"
+            [(ngModel)]="config.url.connector"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="agent_url_cumulocity">{{ 'Cumulocity Connector Config' | translate }}</label>
+        <div class="input-group">
+          <input
+            id="agent_url_cumulocity"
+            name="url"
+            type="text"
+            class="form-control"
+            placeholder="https://my.server/path-to-file/CumulocityConnectorConfig.json"
+            [(ngModel)]="config.url.cumulocity"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <div class="legend form-block">{{ 'Eligible Devices' | translate }} ({{ devices?.length }})</div>
+      <div class="form-group">
+        <ng-container *ngIf="devices && devices.length; else noDevices">
+          <ul style="max-height: 200px; overflow-y: auto">
+            <li *ngFor="let device of devices">
+              {{ device.name }}
+              <span class="text-muted">#{{ device.id }}</span>
+            </li>
+          </ul>
+        </ng-container>
+
+        <ng-template #noDevices>
+          <div class="c8y-empty-state text-left">
+            <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device-protocols"></h1>
+            <p>
+              <strong>No devices elegible to install agent.</strong><br />
+              Lorem Ipsum small copy Dolor.
+            </p>
+          </div>
+        </ng-template>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <div class="legend form-block">Device Credentials</div>
+
+      <div class="form-group">
+        <label for="agent_deviceuser">{{ 'Device Username' | translate }}</label>
+        <div class="input-group">
+          <input
+            id="agent_deviceuser"
+            type="text"
+            name="deviceusername"
+            class="form-control"
+            [(ngModel)]="config.deviceUsername"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="agent_devicepass">{{ 'Device Password' | translate }}</label>
+        <div class="input-group">
+          <input
+            id="agent_devicepass"
+            name="devicepassword"
+            class="form-control"
+            [type]="showPassword ? 'text' : 'password'"
+            [(ngModel)]="config.devicePassword"
+          />
+          <button type="button" class="btn btn-clear btn-icon" (click)="showPassword = !showPassword">
+            <i [c8yIcon]="showPassword ? 'eye-slash' : 'eye'"></i>
+          </button>
+        </div>
+      </div>
+    </fieldset>
   </div>
 </c8y-modal>

@@ -13,7 +13,7 @@ import { InventoryService, IdentityService } from '@c8y/ngx-components/api';
 import { EwonFlexyStructure } from '@interfaces/ewon-flexy-registration.interface';
 import { FLEXY_DEVICETYPE } from '@constants/flexy-integration.constants';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class EWONFlexyDeviceRegistrationService {
   constructor(
     private inventoryService: InventoryService,
@@ -59,6 +59,7 @@ export class EWONFlexyDeviceRegistrationService {
     const { data } = await this.inventoryService.create(partialManagedObj);
     return data;
   }
+
   async getDeviceGroupInventoryList(): Promise<IManagedObject[]> {
     const filter: object = {
       pageSize: 100,
@@ -68,6 +69,7 @@ export class EWONFlexyDeviceRegistrationService {
     const { data } = await this.inventoryService.list(filter);
     return data;
   }
+
   async getGroupInventoryListOfDevice(deviceId: string): Promise<IManagedObject[]> {
     const filter: object = {
       pageSize: 100,
@@ -80,6 +82,7 @@ export class EWONFlexyDeviceRegistrationService {
     const { data } = await this.inventoryService.list(filter);
     return data;
   }
+
   async getDeviceEwonFlexyInventoryList(): Promise<IManagedObject[]> {
     const filter: object = {
       pageSize: 100,
@@ -89,6 +92,7 @@ export class EWONFlexyDeviceRegistrationService {
     const { data } = await this.inventoryService.list(filter);
     return data;
   }
+
   async createDeviceGroupInventory(pool: string): Promise<IManagedObject> {
     const partialManagedObj: Partial<IManagedObject> = {
       pageSize: 1,
@@ -100,10 +104,12 @@ export class EWONFlexyDeviceRegistrationService {
     const { data } = await this.inventoryService.create(partialManagedObj);
     return data;
   }
+
   async addGroupChildAssetToDevice(groupId: string, deviceId: string): Promise<IIdentified> {
     const { data } = await this.inventoryService.childAssetsAdd(deviceId, groupId);
     return data;
   }
+
   async setDevivceOwnerExternalId(externalId: string, mo_id: string): Promise<IManagedObject> {
     const partialUpdateObject: Partial<IManagedObject> = {
       id: mo_id,

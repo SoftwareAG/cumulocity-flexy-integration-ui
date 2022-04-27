@@ -8,7 +8,7 @@ import {
   TALK2M_DEVELOPERID
 } from '@constants/flexy-integration.constants';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class MicroserviceIntegrationService {
   constructor(private tenantService: TenantService, private fetch: FetchClient) {}
 
@@ -65,13 +65,9 @@ export class MicroserviceIntegrationService {
       this.buildHeadersForCheckFile(CHECKFILES_OPTIONS.headers, filesUrl)
     );
 
-    return result.json().then((body) => {
-      if (result.status === 200) {
-        return body as boolean;
-      } else {
-        return Promise.reject('Microservice not available');
-      }
-    });
+    return result
+      .json()
+      .then((body) => (result.status === 200 ? (body as boolean) : Promise.reject('Microservice not available')));
   }
 
   protected buildHeadersForCheckFile(headers: any, filesUrl: string): any {

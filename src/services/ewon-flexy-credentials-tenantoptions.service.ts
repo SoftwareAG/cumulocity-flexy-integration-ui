@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { TenantOptionsService, ITenantOption, UserService, TenantService } from '@c8y/client';
 import { FLEXY_TENANTOPTIONS_CATEGORY } from '@constants/flexy-integration.constants';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class EWONFlexyCredentialsTenantoptionsService {
   constructor(
     private tenantOptionsService: TenantOptionsService,
