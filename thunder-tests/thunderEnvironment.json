@@ -1,0 +1,44 @@
+[
+  {
+    "_id": "0952ef34-4a53-4028-a3f5-e5f499c03ffb",
+    "name": "m2web.talk2m.com",
+    "default": true,
+    "sortNum": 10000,
+    "created": "2022-04-27T11:46:57.165Z",
+    "modified": "2022-04-27T12:44:53.047Z",
+    "data": [
+      {
+        "name": "url",
+        "value": "https://m2web.talk2m.com/t2mapi"
+      },
+      {
+        "name": "auth_user",
+        "value": "admin"
+      },
+      {
+        "name": "auth_pass",
+        "value": "s%3GXLnX6L"
+      },
+      {
+        "name": "developer_id",
+        "value": "c86cfaf7-f353-40c5-9263-8cacbfd411a2"
+      },
+      {
+        "name": "auth_account",
+        "value": "SAG-IoT"
+      },
+      {
+        "name": "device_name",
+        "value": "Ewon+IoT"
+      },
+      {
+        "name": "device_username",
+        "value": "adm"
+      },
+      {
+        "name": "device_password",
+        "value": "adm"
+      }
+    ]
+  }
+]

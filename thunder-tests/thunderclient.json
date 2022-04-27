@@ -1,0 +1,87 @@
+[
+  {
+    "_id": "2e629b8e-52c2-40df-8a82-bd39db512662",
+    "colId": "841ec09d-9cc3-4c8a-971a-b0b32e4126ae",
+    "containerId": "",
+    "name": "Login",
+    "url": "{{url}}/login?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}",
+    "method": "GET",
+    "sortNum": 10000,
+    "created": "2022-04-27T12:20:31.094Z",
+    "modified": "2022-04-27T12:20:31.094Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "t2mdeveloperid",
+        "value": "{{developer_id}}",
+        "isPath": false
+      },
+      {
+        "name": "t2maccount",
+        "value": "{{auth_account}}",
+        "isPath": false
+      },
+      {
+        "name": "t2musername",
+        "value": "{{auth_user}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mpassword",
+        "value": "{{auth_pass}}",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  },
+  {
+    "_id": "46670057-0e27-494b-8a1f-225b63114352",
+    "colId": "841ec09d-9cc3-4c8a-971a-b0b32e4126ae",
+    "containerId": "",
+    "name": "Get Device Serial",
+    "url": "{{url}}/get/{{device_name}}/rcgi.bin/ParamForm/?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}&AST_Param=$dtES&t2mdeviceusername={{device_username}}&t2mdevicepassword={{device_password}}",
+    "method": "GET",
+    "sortNum": 20000,
+    "created": "2022-04-27T12:48:55.655Z",
+    "modified": "2022-04-27T12:49:30.465Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "t2mdeveloperid",
+        "value": "{{developer_id}}",
+        "isPath": false
+      },
+      {
+        "name": "t2maccount",
+        "value": "{{auth_account}}",
+        "isPath": false
+      },
+      {
+        "name": "t2musername",
+        "value": "{{auth_user}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mpassword",
+        "value": "{{auth_pass}}",
+        "isPath": false
+      },
+      {
+        "name": "AST_Param",
+        "value": "$dtES",
+        "isPath": false
+      },
+      {
+        "name": "t2mdeviceusername",
+        "value": "{{device_username}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mdevicepassword",
+        "value": "{{device_password}}",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  }
+]
