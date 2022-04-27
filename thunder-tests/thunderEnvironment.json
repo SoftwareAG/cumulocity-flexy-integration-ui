@@ -5,7 +5,7 @@
     "default": true,
     "sortNum": 10000,
     "created": "2022-04-27T11:46:57.165Z",
-    "modified": "2022-04-27T12:44:53.047Z",
+    "modified": "2022-04-27T12:54:15.641Z",
     "data": [
       {
         "name": "url",
@@ -38,6 +38,18 @@
       {
         "name": "device_password",
         "value": "adm"
+      },
+      {
+        "name": "file_connector",
+        "value": "https://github.com/, hms-networks/flexy-cumulocity-connector/releases/download/v1.1.0/flexy-cumulocity-connector-1.1.0-full.jar"
+      },
+      {
+        "name": "file_jvmrun",
+        "value": ""
+      },
+      {
+        "name": "file_cumulocity_config",
+        "value": ""
       }
     ]
   }
