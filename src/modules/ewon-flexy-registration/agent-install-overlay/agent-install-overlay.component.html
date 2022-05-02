@@ -53,7 +53,7 @@
     </fieldset>
 
     <fieldset>
-      <div class="legend form-block">{{ 'Eligible Devices' | translate }} ({{ devices?.length }})</div>
+      <div class="legend form-block">{{ 'Selected Devices' | translate }} ({{ devices?.length }})</div>
       <div class="form-group">
         <ng-container *ngIf="devices && devices.length; else noDevices">
           <ul style="max-height: 200px; overflow-y: auto">
@@ -68,8 +68,8 @@
           <div class="c8y-empty-state text-left">
             <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device-protocols"></h1>
             <p>
-              <strong>No devices elegible to install agent.</strong><br />
-              Lorem Ipsum small copy Dolor.
+              <strong>No devices selected.</strong><br />
+              Please select devices using the table.
             </p>
           </div>
         </ng-template>

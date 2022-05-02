@@ -14,8 +14,11 @@ export interface InstallAgentForm {
   devices: EwonFlexyStructure[];
 }
 
+export type ProgressMessageType = 'error' | 'warning' | 'info';
+
 export interface ProgressMessage {
   date: Date;
+  type: ProgressMessageType;
   message: string;
   details?: string;
   icon?: string;

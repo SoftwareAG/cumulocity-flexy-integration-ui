@@ -7,15 +7,8 @@
   </div>
 </c8y-action-bar-item>
 
-<c8y-action-bar-item [placement]="'right'">
-  <button class="btn btn-clean" [disabled]="!isSessionConnected" (click)="openAgentInstallOverlay()">
-    <i c8yIcon="software"></i>
-    {{ 'Install Agent' | translate }}
-  </button>
-</c8y-action-bar-item>
-
 <c8y-action-bar-item [itemClass]="'btn-group'" [placement]="'right'">
-  <button class="btn btn-clean" [disabled]="!isSessionConnected" (click)="openModal()">
+  <button class="btn btn-clean" [disabled]="!isSessionConnected" (click)="openRegisterModal()">
     <i c8yIcon="plus-circle"></i>
     {{ 'Register Flexy manually' | translate }}
   </button>
@@ -55,7 +48,7 @@
 
   <c8y-list-group>
     <c8y-li-timeline *ngFor="let log of installProgressText">
-      {{ log.date | date: 'HH:mm:ss' }}<br>
+      {{ log.date | date: 'HH:mm:ss' }}<br />
       {{ log.date | date: '.SSS' }}
       <c8y-li>
         <c8y-li-icon *ngIf="log.icon" [icon]="log.icon"></c8y-li-icon>
@@ -74,10 +67,10 @@
       [title]="'Talk2M Flexy Devices' | translate"
       [columns]="columns"
       [pagination]="pagination"
-      [actionControls]="actionControls"
+      [actionControls]="[]"
+      [bulkActionControls]="bulkActionControls"
       [rows]="rows"
       [selectable]="true"
-      (itemsSelect)="selectItems($event)"
     >
       <c8y-column name="groups">
         <ng-container *c8yCellRendererDef="let groups">
@@ -88,6 +81,7 @@
           </span>
         </ng-container>
       </c8y-column>
+
       <c8y-column name="registered">
         <ng-container *c8yCellRendererDef="let context">
           <span class="d-flex j-c-center" *ngIf="context.value == 'yes'"
@@ -98,6 +92,7 @@
           ></span>
         </ng-container>
       </c8y-column>
+
       <c8y-column name="talk2m_integrated">
         <ng-container *c8yCellRendererDef="let context">
           <span class="d-flex j-c-center" *ngIf="context.value == 'yes'"
@@ -109,14 +104,6 @@
         </ng-container>
       </c8y-column>
     </c8y-data-grid>
-    <button
-      *ngIf="selectedItems.length > 0"
-      type="button"
-      class="btn btn-primary btn btn-block"
-      (click)="startRegistration()"
-    >
-      <h4 class="m-r-16" style="margin: 1rem; text-align: left">Register {{ selectedItems.length }} selected items.</h4>
-    </button>
   </ng-container>
 
   <!--Loading spinner-->

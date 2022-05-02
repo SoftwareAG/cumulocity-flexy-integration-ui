@@ -17,7 +17,7 @@ export interface FlexySettings {
 }
 
 export interface EwonFlexyStructure {
-  id?: string | number; //ewon id
+  id?: string; //ewon id
   source?: string; // managed object source
   pool?: string;
   groups?: any[];

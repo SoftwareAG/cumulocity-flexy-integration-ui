@@ -20,8 +20,8 @@ export class AgentInstallOverlayComponent {
   showPassword = false;
 
   set devices(devices: EwonFlexyStructure[]) {
-    // TODO check filter
-    this._devices = devices.filter((d) => d.talk2m_integrated === FlexyIntegrated.Integrated && d.status === 'online');
+    // TODO set/check filter
+    this._devices = devices;
   }
   get devices(): EwonFlexyStructure[] {
     return this._devices;
