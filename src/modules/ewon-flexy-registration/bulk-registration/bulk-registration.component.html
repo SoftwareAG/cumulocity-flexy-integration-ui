@@ -30,23 +30,40 @@
   </div>
 </ng-container>
 
-<!-- TODO use progressbar -->
-<ng-container *ngIf="installInProgress || installError">
+<ng-container *ngIf="installInProgress">
+  <div class="alert alert-warning" role="alert" style="max-width: initial">
+    <strong>Please keep this page open until the install for all devices is handled.</strong>
+  </div>
+</ng-container>
+
+<!-- TODO use progressbar? -->
+<ng-container *ngIf="installProgressText.length">
+  <button
+    class="clear-log-button btn-icon btn-clean"
+    title="Clear Log"
+    (click)="installProgressText = []; installError = false; installInProgress = false"
+  >
+    <i c8yIcon="times"></i>
+  </button>
+
   <div
-    class="alert alert-info"
+    class="alert"
     role="alert"
     style="max-width: initial"
-    [ngClass]="{ 'alert-info': !installError, 'alert-danger': installError }"
+    [ngClass]="{
+      'alert-info': installInProgress,
+      'alert-danger': installError,
+      'alert-success': !installInProgress && !installError
+    }"
   >
-    <ng-container *ngIf="!installError; else progressError">
-      <strong>Agent install in progress</strong>
-    </ng-container>
-    <ng-template #progressError>
-      <strong>Agent install failed</strong>
-    </ng-template>
+    <strong>
+      <ng-container *ngIf="installInProgress">Agent install in progress</ng-container>
+      <ng-container *ngIf="installError">Agent install failed</ng-container>
+      <ng-container *ngIf="!installInProgress && !installError">Install Process finished</ng-container>
+    </strong>
   </div>
 
-  <c8y-list-group>
+  <c8y-list-group class="m-b-16">
     <c8y-li-timeline *ngFor="let log of installProgressText">
       {{ log.date | date: 'HH:mm:ss' }}<br />
       {{ log.date | date: '.SSS' }}
@@ -64,6 +81,7 @@
   <!-- List of ewon items -->
   <ng-container *ngIf="!isLoading && rows.length > 0">
     <c8y-data-grid
+      #grid
       [title]="'Talk2M Flexy Devices' | translate"
       [columns]="columns"
       [pagination]="pagination"

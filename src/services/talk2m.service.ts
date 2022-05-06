@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { TALK2M_BASEURL, TALK2M_DEVELOPERID } from '@constants/flexy-integration.constants';
 import { FlexyCommandFile, FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { DevlogService } from './devlog.service';
 
 interface t2mUrlOptions {
   account?: string;
@@ -14,10 +15,17 @@ interface t2mUrlOptions {
 }
 
 @Injectable({ providedIn: 'root' })
-export class Talk2MService {
-  constructor(private http: HttpClient) {}
+export class Talk2MService extends DevlogService {
+  config: FlexySettings = {};
+
+  constructor(private http: HttpClient) {
+    super();
+    this.devLogEnabled = true;
+    this.devLogPrefix = 'T2M.S';
+  }
 
   private buildUrl(path: string, config: t2mUrlOptions, developerId = TALK2M_DEVELOPERID): string {
+    this.devLog('buildUrl', { path, config, developerId });
     let url = `/${path}`;
     const params = [];
     const keyList = {
@@ -29,6 +37,7 @@ export class Talk2MService {
       deviceUsername: 't2mdeviceusername',
       devicePassword: 't2mdevicepassword'
     };
+
     config = { ...{ developerId }, ...config };
 
     Object.keys(config).forEach((key) => {
@@ -44,6 +53,7 @@ export class Talk2MService {
   }
 
   private generateHeaderOptions(request = 'text/plain', response = 'text'): Object {
+    this.devLog('generateHeaderOptions', { request, response });
     return {
       headers: new HttpHeaders({ 'Content-Type': request }),
       responseType: response
@@ -51,9 +61,10 @@ export class Talk2MService {
   }
 
   private async execScript(command: string, deviceName: string, config: FlexySettings): Promise<string> {
+    this.devLog('execScript', { command, deviceName, config });
     const url = this.buildUrl(`get/${deviceName}/rcgi.bin/ExeScriptForm`, {
-      account: config.account,
       session: config.session,
+      account: config.account,
       deviceUsername: config.deviceUsername,
       devicePassword: config.devicePassword,
       Command1: command
@@ -61,50 +72,53 @@ export class Talk2MService {
     return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
   }
 
-  async login(account: string, username: string, password: string): Promise<HttpResponse<any>> {
+  async login(account: string, username: string, password: string): Promise<string> {
+    this.devLog('login', { account, username, password });
+
     const url = this.buildUrl('login', { account, username, password });
     const response = await this.http.get<any>(url, { observe: 'response' }).toPromise();
-    return response;
+    const session =
+      !!response && response.hasOwnProperty('body') && response.body.hasOwnProperty('t2msession')
+        ? response.body.t2msession
+        : null;
+
+    this.config.session = session;
+
+    return session;
   }
 
-  async logout(session: string): Promise<HttpResponse<any>> {
+  async logout(session = this.config.session): Promise<HttpResponse<any>> {
+    this.devLog('logout', { session });
     return await this.http.get<any>(this.buildUrl('logout', { session }), { observe: 'response' }).toPromise();
   }
 
-  async isSessionActive(session: string): Promise<boolean> {
-    return this.getaccountinfo(session).then(
+  async isSessionActive(session = this.config.session): Promise<boolean> {
+    this.devLog('isSessionActive');
+    return this.getAccountInfo(session).then(
       () => true,
       () => false
     );
   }
 
-  async getaccountinfo(session: string): Promise<HttpResponse<any>> {
+  async getAccountInfo(session = this.config.session): Promise<HttpResponse<any>> {
+    this.devLog('getAccountInfo');
     return await this.http.get<any>(this.buildUrl('getaccountinfo', { session }), { observe: 'response' }).toPromise();
   }
 
-  async getewons(session: string, pool?: string): Promise<HttpResponse<any>> {
-    const config: t2mUrlOptions = { session };
-    if (pool) config.pool = pool;
-    const response = await this.http.get<any>(this.buildUrl('getewons', config), { observe: 'response' }).toPromise();
-    return response;
-  }
+  async getEwons(session: string, pool?: string): Promise<HttpResponse<any>> {
+    this.devLog('getEwons', { pool });
 
-  /** @deprecated use getSerial() instead */
-  async getserialnumber(
-    deviceName: string,
-    deviceUsername: string,
-    devicePassword: string,
-    account: string,
-    session: string
-  ): Promise<string> {
-    return this.getSerial(deviceName, { deviceUsername, devicePassword, account, session });
+    const config: t2mUrlOptions = { session: session };
+    if (pool) config.pool = pool;
+
+    return await this.http.get<any>(this.buildUrl('getewons', config), { observe: 'response' }).toPromise();
   }
 
   async getSerial(deviceName: string, config: FlexySettings): Promise<string> {
     const url = this.buildUrl(`get/${deviceName}/rcgi.bin/ParamForm`, {
+      session: config.session,
       deviceName,
       account: config.account,
-      session: config.session,
       deviceUsername: config.deviceUsername,
       devicePassword: config.devicePassword,
       AST_Param: '$dtES'

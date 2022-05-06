@@ -28,7 +28,7 @@
         value="Register Flexy"
         class="btn btn-primary"
         (click)="onRegister(config)"
-        [ngClass]="isFlexyConnected ? '' : 'btn-pending'"
+        [ngClass]="deviceRegistered ? '' : 'btn-pending'"
       />
     </div>
   </div>

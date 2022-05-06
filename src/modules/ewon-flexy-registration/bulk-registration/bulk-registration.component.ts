@@ -1,6 +1,13 @@
 import { IDeviceRegistration, IIdentified, IManagedObject } from '@c8y/client';
-import { Component, OnInit } from '@angular/core';
-import { AlertService, BulkActionControl, Column, ColumnDataType, Pagination } from '@c8y/ngx-components';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  AlertService,
+  BulkActionControl,
+  Column,
+  ColumnDataType,
+  DataGridComponent,
+  Pagination
+} from '@c8y/ngx-components';
 import { BsModalService } from 'ngx-bootstrap/modal';
 //custom
 import { FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE } from '@constants/flexy-integration.constants';
@@ -42,9 +49,15 @@ export class BulkRegistrationComponent implements OnInit {
     },
     {
       type: '',
-      text: 'Register selected items',
+      text: 'Register',
       icon: 'plus-circle',
       callback: (selected) => this.startRegistration(selected)
+    },
+    {
+      type: '',
+      text: 'Reboot',
+      icon: 'refresh',
+      callback: (selected) => this.rebootDevices(selected)
     }
   ];
   pagination: Pagination = {
@@ -54,6 +67,8 @@ export class BulkRegistrationComponent implements OnInit {
   installInProgress = false;
   installProgressText: ProgressMessage[] = [];
   installError = false;
+
+  @ViewChild('grid', { static: false }) dataGrid: DataGridComponent;
 
   constructor(
     private alert: AlertService,
@@ -120,13 +135,13 @@ export class BulkRegistrationComponent implements OnInit {
 
             // Is session still active
             if (this.config.session) {
-              await this.talk2m.getaccountinfo(this.config.session).then(
+              await this.talk2m.getAccountInfo(this.config.session).then(
                 (result) => {
                   this.isSessionConnected = true;
                   // Are pools defined?
                   if (result.body.pools && result.body.pools.length > 0) {
                     for (const pool of result.body.pools) {
-                      this.talk2m.getewons(this.config.session, pool.id).then((response) => {
+                      this.talk2m.getEwons(this.config.session, pool.id).then((response) => {
                         if (response.body.hasOwnProperty('ewons')) {
                           for (const ewon of response.body.ewons) {
                             ewon.pool = pool.name;
@@ -150,13 +165,13 @@ export class BulkRegistrationComponent implements OnInit {
                       });
                     }
                   } else {
-                    this.talk2m.getewons(this.config.session).then((response) => {
+                    this.talk2m.getEwons(this.config.session).then((response) => {
                       this.rows = response.body.ewons as EwonFlexyStructure[];
                       this.isLoading = false;
                     });
                   }
                 },
-                (error) => {
+                () => {
                   this.alert.warning('Session is disconnected. Please reconnect.');
                   this.isLoading = false;
                   this.isSessionConnected = false;
@@ -313,25 +328,31 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   private handleInstallAgentDialog(form: InstallAgentForm): void {
-    console.log('handleInstallAgentDialog', { form });
+    // reset
     this.installInProgress = true;
     this.installError = false;
+    this.installProgressText = [];
+
     this.config = { ...this.config, ...form.config };
     this.installAgentService.install(form.devices, this.config).subscribe(
-      (message) => this.installProgressText.push(message),
+      (message) => {
+        this.installProgressText.push(message);
+        if (message.type === 'error') this.installError = true;
+      },
       (error) => {
         this.installProgressText.push(error);
         this.installError = true;
-      },
-      () => {
         this.installInProgress = false;
-        this.installProgressText = [];
-      }
+      },
+      () => (this.installInProgress = false)
     );
   }
 
+  private getSelectedDevices(selectedItems: string[]): EwonFlexyStructure[] {
+    return this.rows.filter((d) => selectedItems.indexOf(d.id as string) > -1);
+  }
+
   async startRegistration(selectedItems: string[]) {
-    console.log('startRegistration', { selectedItems });
     this.isRegistratingFlexy = true;
 
     // 0.1 Get existing device requests
@@ -359,7 +380,6 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   openRegisterModal(): void {
-    console.log('openRegisterModal');
     this.registerManuallyService.openModalRegistration().subscribe((newFlexy) => {
       newFlexy.registered = FlexyIntegrated.Integrated;
       newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
@@ -368,11 +388,25 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   openAgentInstallOverlay(selectedItems?: string[]): void {
-    console.log('openAgentInstallOverlay', { selectedItems });
     const dialog = this.modalService.show(AgentInstallOverlayComponent);
-    dialog.content.devices = this.rows.filter((d) => selectedItems.indexOf(d.id as string) > -1);
+    dialog.content.devices = this.getSelectedDevices(selectedItems);
     dialog.content.closeSubject.subscribe((response: InstallAgentForm) => {
       if (response) this.handleInstallAgentDialog(response);
     });
+  }
+
+  // TODO remove after dev
+  rebootDevices(selectedItems: string[]): void {
+    const devices = this.getSelectedDevices(selectedItems);
+    const reboots: Promise<string>[] = [];
+    const config = { ...this.config, ...{ deviceUsername: 'adm', devicePassword: 'adm' } };
+
+    devices.forEach((device) => reboots.push(this.talk2m.reboot(device.encodedName, config)));
+
+    Promise.all(reboots)
+      .then(() =>
+        this.alert.add({ text: `${selectedItems.length} device(s) rebooting`, type: 'success', timeout: 3000 })
+      )
+      .catch((reason) => this.alert.danger('Reboot failed', reason));
   }
 }

@@ -143,6 +143,7 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
+  // TODO obsolete? (not called)
   async getDeviceManagedObjectWithExternalId(
     externalId: string,
     prefix: string,
@@ -202,6 +203,7 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
+  // TODO obsolete?
   async deleteDeviceRequestRegistration(id: string) {
     const { data } = await this.deviceRegistration.delete(id);
     return data;

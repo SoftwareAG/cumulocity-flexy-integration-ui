@@ -25,7 +25,7 @@ export class RegistrationModalComponent implements OnInit {
     return this._config;
   }
   public onClose: Subject<IManagedObject> = new Subject();
-  public isFlexyConnected: boolean;
+  public deviceRegistered: boolean;
   public existingRequests: IDeviceRegistration[];
   newFlexy: IManagedObject;
   private _config: FlexySettings = {};
@@ -37,7 +37,7 @@ export class RegistrationModalComponent implements OnInit {
     private talk2m: Talk2MService,
     private flexyRegistration: EWONFlexyDeviceRegistrationService
   ) {
-    this.isFlexyConnected = true;
+    this.deviceRegistered = true;
     this.existingRequests = [];
   }
 
@@ -55,9 +55,9 @@ export class RegistrationModalComponent implements OnInit {
 
   onRegister(config?: FlexySettings) {
     if (config && config.deviceUsername && config.devicePassword) {
-      this.isFlexyConnected = false;
+      this.deviceRegistered = false;
       this.talk2m
-        .getserialnumber(config.deviceName, config.deviceUsername, config.devicePassword, config.account, config.session)
+        .getSerial(config.deviceName, config)
         .then(
           (response) => {
             if (response.indexOf('SerNum:') >= 0) {
@@ -73,7 +73,7 @@ export class RegistrationModalComponent implements OnInit {
             } else {
               this.alert.warning('Unknown serial number. No data available.');
             }
-            this.isFlexyConnected = true;
+            this.deviceRegistered = true;
           },
           (error: HttpErrorResponse) => {
             this.alert.warning(
@@ -84,7 +84,7 @@ export class RegistrationModalComponent implements OnInit {
                 message: error.message
               })
             );
-            this.isFlexyConnected = true; // naming is confusing
+            this.deviceRegistered = true;
           }
         );
     }
