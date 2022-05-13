@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertService } from '@c8y/ngx-components';
 import { IManagedObject } from '@c8y/client';
-import { FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
-import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
+import { FlexySettings } from '@interfaces/flexy.interface';
+import { CerdentialsService } from '@services/credentials.service';
 import { MicroserviceIntegrationService } from '@services/c8y-microservice-talk2m-integration.service';
 import { SyncOnloadJobService } from '@services/synchronize-job.service';
 
@@ -18,7 +18,7 @@ export class DataMailboxDownloadComponent implements OnInit {
 
   constructor(
     private alert: AlertService,
-    private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+    private flexyCredentials: CerdentialsService,
     private c8yMSService: MicroserviceIntegrationService,
     public syncJobService: SyncOnloadJobService
   ) {

@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { ModalLabels } from '@c8y/ngx-components';
-import { Subject } from 'rxjs';
-import * as _ from 'lodash';
 import { InstallAgentForm } from '@interfaces/c8y-custom-objects.interface';
-import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { EwonFlexyStructure, FlexySettings } from '@interfaces/flexy.interface';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'agent-install-overlay',
@@ -48,8 +47,8 @@ export class AgentInstallOverlayComponent {
     // TODO remove after dev
     this._config.url = {
       connector:
-        'https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.1.0/flexy-cumulocity-connector-1.1.0-full.jar',
-      jvmrun: 'https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.1.0/jvmrun',
+        'https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.1.1/flexy-cumulocity-connector-1.1.1-full.jar',
+      jvmrun: 'https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.1.1/jvmrun',
       cumulocity: 'https://my.server/path/CumulocityConnectorConfig.json'
     };
     this._config.deviceUsername = 'adm'; // TODO remove after dev

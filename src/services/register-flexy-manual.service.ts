@@ -8,6 +8,7 @@ import { RegistrationModalComponent } from '@modules/ewon-flexy-registration/bul
 export class RegisterFlexyManualService {
   constructor(private modalService: BsModalService) {}
 
+  // TODO move to component
   openModalRegistration(): Observable<IManagedObject> {
     const modalRef = this.modalService.show(RegistrationModalComponent, {
       initialState: { isModal: true },

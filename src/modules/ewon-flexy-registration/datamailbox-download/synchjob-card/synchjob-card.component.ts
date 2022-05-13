@@ -1,11 +1,11 @@
-import { InventoryService } from '@c8y/ngx-components/api';
 import { Component, Input, OnInit } from '@angular/core';
 import { IManagedObject } from '@c8y/client';
 import { AlertService } from '@c8y/ngx-components';
-import { Subject } from 'rxjs';
-import { SyncOnloadJobService } from '@services/synchronize-job.service';
+import { InventoryService, TenantService } from '@c8y/ngx-components/api';
 import { MicroserviceIntegrationService } from '@services/c8y-microservice-talk2m-integration.service';
-import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
+import { CerdentialsService } from '@services/credentials.service';
+import { SyncOnloadJobService } from '@services/synchronize-job.service';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-synchjob-card',
@@ -22,9 +22,10 @@ export class SynchjobCardComponent implements OnInit {
   constructor(
     private inventoryService: InventoryService,
     private c8yMSService: MicroserviceIntegrationService,
-    private tenantOptionsService: EWONFlexyCredentialsTenantoptionsService,
+    private tenantOptionsService: CerdentialsService,
     private alert: AlertService,
-    private syncJob: SyncOnloadJobService
+    private syncJob: SyncOnloadJobService,
+    private tenantService: TenantService
   ) {}
 
   ngOnInit(): void {
@@ -48,7 +49,8 @@ export class SynchjobCardComponent implements OnInit {
     this.tenantOptionsService.getCredentials().then(
       async (tenantoptions) => {
         const token = tenantoptions.filter((tmp) => tmp.key == 'token');
-        const tenantId = await this.tenantOptionsService.getCurrentTenantId();
+        const tenant = await this.tenantService.current();
+        const tenantId = tenant.data.name;
 
         if (token.length == 1) {
           const result = await this.c8yMSService.onloadNow(token[0].value, this.id, tenantId);

@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import {
-  IManagedObject,
-  IExternalIdentity,
   DeviceRegistrationService,
-  IDeviceRegistrationCreate,
-  IDeviceRegistration,
   IDeviceBootstrapOptions,
   IDeviceCredentials,
-  IIdentified
+  IDeviceRegistration,
+  IDeviceRegistrationCreate,
+  IExternalIdentity,
+  IIdentified,
+  IManagedObject
 } from '@c8y/client';
-import { InventoryService, IdentityService } from '@c8y/ngx-components/api';
-import { EwonFlexyStructure } from '@interfaces/ewon-flexy-registration.interface';
+import { IdentityService, InventoryService } from '@c8y/ngx-components/api';
 import { FLEXY_DEVICETYPE } from '@constants/flexy-integration.constants';
+import { EwonFlexyStructure } from '@interfaces/flexy.interface';
 
 @Injectable({ providedIn: 'root' })
 export class EWONFlexyDeviceRegistrationService {
@@ -143,30 +143,6 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
-  // TODO obsolete? (not called)
-  async getDeviceManagedObjectWithExternalId(
-    externalId: string,
-    prefix: string,
-    externalType: string
-  ): Promise<IIdentified> {
-    const identity: IExternalIdentity = {
-      type: externalType,
-      externalId: prefix + externalId
-    };
-    const data = await this.identityService.detail(identity).then(
-      (identity) => {
-        //const managedObjId: number =identity.data.managedObject.id;
-        //inventoryService
-        return identity.data.managedObject;
-      },
-      (error) => {
-        console.debug('Managed object with external id ' + prefix + externalId + ' does not exists.');
-        throw error;
-      }
-    );
-    return data;
-  }
-
   async createIdentidyForDevice(
     deviceId: string,
     externalId: string,
@@ -200,12 +176,6 @@ export class EWONFlexyDeviceRegistrationService {
       id: prefix + id
     };
     const { data } = await this.deviceRegistration.create(registrationObject);
-    return data;
-  }
-
-  // TODO obsolete?
-  async deleteDeviceRequestRegistration(id: string) {
-    const { data } = await this.deviceRegistration.delete(id);
     return data;
   }
 

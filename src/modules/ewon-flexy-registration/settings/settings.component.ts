@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertService } from '@c8y/ngx-components';
-import { Observable } from 'rxjs';
-import { FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { FlexySettings } from '@interfaces/flexy.interface';
 import { MicroserviceIntegrationService } from '@services/c8y-microservice-talk2m-integration.service';
+import { CerdentialsService } from '@services/credentials.service';
 import { Talk2MService } from '@services/talk2m.service';
-import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-settings',
@@ -26,7 +26,7 @@ export class SettingsComponent implements OnInit {
   constructor(
     private alert: AlertService,
     private talk2m: Talk2MService,
-    private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+    private credentialsService: CerdentialsService,
     private c8yMicroservice: MicroserviceIntegrationService
   ) {
     // TODO remove after dev
@@ -46,7 +46,7 @@ export class SettingsComponent implements OnInit {
 
   // Check credentials from tenant options
   private checkCredentials(): void {
-    this.flexyCredentials.getCredentials().then(
+    this.credentialsService.getCredentials().then(
       async (options) => {
         options.forEach((option) => (this.config[option.key] = option.value));
 
@@ -78,13 +78,12 @@ export class SettingsComponent implements OnInit {
   }
 
   connect(config: FlexySettings): boolean | Promise<boolean> | Observable<boolean> {
-    console.log('connect', { config });
     if (!config || !config.account || !config.password || !config.tenant || !config.username) {
       this.alert.warning('Login Talk2M failed. Missing parameter.');
     }
 
     // Connect to Talk2M
-    this.flexyCredentials.updateCredentials(config).then(
+    this.credentialsService.updateCredentials(config).then(
       () => {
         // Logout before establish new session
         if (config.session && this.isSessionConnected) {
@@ -94,20 +93,19 @@ export class SettingsComponent implements OnInit {
             this.talk2m.login(config.account, config.username, config.password).then(
               async (session) => {
                 this.isSessionConnected = true;
-                this.alert.success('Successfully established connection to Talk2M.');
 
                 this.config.session = session;
-                const accountInfo = await this.talk2m.getAccountInfo(this.config.session);
+                const account = await this.talk2m.getAccount(this.config.session);
 
                 let toUpdate = { session };
                 // remove all "" after stringify
                 var re = new RegExp('"', 'g');
-                for (const key in accountInfo.body) {
-                  toUpdate['talk2m.' + key] = JSON.stringify(accountInfo.body[key]).replace(re, '');
+                for (const key in account) {
+                  toUpdate['talk2m.' + key] = JSON.stringify(account[key]).replace(re, '');
                 }
                 //update session and account info
-                this.flexyCredentials.updateCredentials(toUpdate);
-                this.alert.success('Update credentials successfully.');
+                this.credentialsService.updateCredentials(toUpdate);
+                this.alert.success('Successfully established connection to Talk2M.');
               },
               (error) => {
                 this.alert.warning('[1] Login Talk2M failed.', error.statusText);
@@ -120,7 +118,7 @@ export class SettingsComponent implements OnInit {
             (session) => {
               this.isSessionConnected = true;
               this.config.session = session;
-              this.flexyCredentials.updateCredentials({ session });
+              this.credentialsService.updateCredentials({ session });
               this.alert.clearAll();
               this.alert.success('Successfully established connection to Talk2M.');
             },

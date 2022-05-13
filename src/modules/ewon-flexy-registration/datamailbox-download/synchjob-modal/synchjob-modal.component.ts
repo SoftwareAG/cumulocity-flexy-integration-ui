@@ -1,21 +1,18 @@
-import { IManagedObject } from '@c8y/client';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { IManagedObject } from '@c8y/client';
 import { ActionControl, AlertService, C8yStepper, Column, ColumnDataType, Pagination } from '@c8y/ngx-components';
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { Subject } from 'rxjs';
 import {
-  EXTERNALID_TALK2M_SERIALTYPE,
-  EXTERNALID_FLEXY_SERIALTYPE,
-  FLEXY_EXTERNALID_TALK2M_PREFIX,
-  FLEXY_EXTERNALID_FLEXY_PREFIX
+  EXTERNALID_FLEXY_SERIALTYPE, EXTERNALID_TALK2M_SERIALTYPE, FLEXY_EXTERNALID_FLEXY_PREFIX, FLEXY_EXTERNALID_TALK2M_PREFIX
 } from '@constants/flexy-integration.constants';
 import { IOnloadingJobObject } from '@interfaces/c8y-custom-objects.interface';
-import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
-import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
+import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/flexy.interface';
 import { MicroserviceIntegrationService } from '@services/c8y-microservice-talk2m-integration.service';
+import { CerdentialsService } from '@services/credentials.service';
 import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
 import { SyncOnloadJobService } from '@services/synchronize-job.service';
+import { BsModalRef } from 'ngx-bootstrap/modal';
+import { Subject } from 'rxjs';
 
 enum step {
   FIRST = 0,
@@ -49,7 +46,7 @@ export class SynchjobModalComponent implements OnInit {
     private alert: AlertService,
     private fb: FormBuilder,
     private syncJobService: SyncOnloadJobService,
-    private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+    private flexyCredentials: CerdentialsService,
     private bsModalRef: BsModalRef,
     private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
     private c8yMSService: MicroserviceIntegrationService

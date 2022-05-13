@@ -56,3 +56,28 @@ export declare const enum FlexyIntegrated {
   Integrated = 'yes',
   Not_integrated = 'no'
 }
+
+export interface t2mUrlOptions {
+  account?: string;
+  password?: string;
+  session?: string;
+  username?: string;
+  deviceUsername?: string;
+  devicePassword?: string;
+  [key: string]: string;
+}
+
+export interface T2MPool {
+  id: string; // FIXME fix in FlexyService.getEwons()
+  name: string;
+}
+
+export interface T2MAccount {
+  accountName: string;
+  accountReference: string;
+  accountType: string;
+  company: string;
+  customAttributes: string[];
+  pools: T2MPool[];
+  success: boolean;
+}

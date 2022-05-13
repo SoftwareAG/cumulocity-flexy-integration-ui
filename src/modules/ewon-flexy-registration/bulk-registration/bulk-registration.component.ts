@@ -1,5 +1,5 @@
-import { IDeviceRegistration, IIdentified, IManagedObject } from '@c8y/client';
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { IDeviceRegistration, IIdentified, IManagedObject } from '@c8y/client';
 import {
   AlertService,
   BulkActionControl,
@@ -8,25 +8,27 @@ import {
   DataGridComponent,
   Pagination
 } from '@c8y/ngx-components';
-import { BsModalService } from 'ngx-bootstrap/modal';
-//custom
-import { FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE } from '@constants/flexy-integration.constants';
-import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
+import { EXTERNALID_TALK2M_SERIALTYPE, FLEXY_EXTERNALID_TALK2M_PREFIX } from '@constants/flexy-integration.constants';
 import { InstallAgentForm, ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
-import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
-import { Talk2MService } from '@services/talk2m.service';
+import { EwonFlexyStructure, FlexyIntegrated, FlexySettings, T2MAccount } from '@interfaces/flexy.interface';
+import { CerdentialsService } from '@services/credentials.service';
 import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
-import { RegisterFlexyManualService } from '@services/register-flexy-manual.service';
+import { FlexyService } from '@services/flexy.service';
 import { InstallAgentService } from '@services/install-agent.service';
+import { RegisterFlexyManualService } from '@services/register-flexy-manual.service';
+import { Talk2MService } from '@services/talk2m.service';
+import { BsModalService } from 'ngx-bootstrap/modal';
 import { AgentInstallOverlayComponent } from '../agent-install-overlay/agent-install-overlay.component';
 
 @Component({
   selector: 'app-bulk-registration',
   templateUrl: './bulk-registration.component.html',
   styleUrls: ['./bulk-registration.component.less'],
-  providers: [Talk2MService, EWONFlexyCredentialsTenantoptionsService, EWONFlexyDeviceRegistrationService]
+  providers: [Talk2MService, CerdentialsService, EWONFlexyDeviceRegistrationService]
 })
 export class BulkRegistrationComponent implements OnInit {
+  protected devLogEnabled = true;
+  protected devLogPrefix = 'BR.C';
   private config: FlexySettings = {};
   isSessionConnected = false;
   isLoading = true;
@@ -45,7 +47,7 @@ export class BulkRegistrationComponent implements OnInit {
       type: '',
       text: 'Install Agent',
       icon: 'download-archive',
-      callback: (selected) => this.openAgentInstallOverlay(selected)
+      callback: (selected) => this.openAgentInstallModal(selected)
     },
     {
       type: '',
@@ -73,130 +75,29 @@ export class BulkRegistrationComponent implements OnInit {
   constructor(
     private alert: AlertService,
     private talk2m: Talk2MService,
-    private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+    private credentialsService: CerdentialsService,
     private flexyRegistration: EWONFlexyDeviceRegistrationService,
     private modalService: BsModalService,
     private installAgentService: InstallAgentService,
-    private registerManuallyService: RegisterFlexyManualService
+    private registerManuallyService: RegisterFlexyManualService,
+    private flexyService: FlexyService
   ) {
     this.columns = this.getDefaultColumns();
   }
 
-  async ngOnInit() {
-    // Check already created devices in c8y with type c8y_EwonFlexy
-    this.flexyRegistration.getDeviceEwonFlexyInventoryList().then(
-      async (devices) => {
-        for (const device of devices) {
-          let ewon: EwonFlexyStructure = {} as EwonFlexyStructure;
+  ngOnInit() {
+    this.devLog('OnInit');
+    this.fetchContent();
+  }
 
-          //request for group asset
-          const groups: IManagedObject[] = await this.flexyRegistration.getGroupInventoryListOfDevice(device.id);
-          ewon.groups = [];
-          for (const group of groups) {
-            const myGroups = {
-              name: group.name,
-              id: group.id
-            };
-            ewon.groups = ewon.groups.concat(myGroups);
-          }
-
-          const listExternalIds = await this.flexyRegistration.getExternalIdsOfManagedObject(device.id);
-          if (listExternalIds.length > 0) {
-            for (const externalId of listExternalIds) {
-              if (externalId.type == EXTERNALID_TALK2M_SERIALTYPE) {
-                const flexy_id = externalId.externalId.replace(FLEXY_EXTERNALID_TALK2M_PREFIX, '');
-                ewon.id = flexy_id;
-              }
-            }
-          } else {
-            continue;
-          }
-          ewon.registered = FlexyIntegrated.Integrated;
-          ewon.name = device.name;
-          ewon.talk2m_integrated = device.talk2m.id != '' ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
-          ewon.description = device.talk2m.description ? device.talk2m.description : '';
-          ewon.pool = device.talk2m.pool ? device.talk2m.pool : '';
-          this.rows = this.rows.concat(ewon);
-        }
-        // Check credentials from tenant options
-        this.flexyCredentials.getCredentials().then(
-          async (options) => {
-            options.forEach((option) => {
-              this.config[option.key] = option.value;
-            });
-
-            // No credentials available, then stop here.
-            if (Object.keys(this.config).length === 0) {
-              this.alert.warning('No credentials are defined. Could not establish a connection.');
-              this.isLoading = false;
-              this.isSessionConnected = false;
-              return;
-            }
-
-            // Is session still active
-            if (this.config.session) {
-              await this.talk2m.getAccountInfo(this.config.session).then(
-                (result) => {
-                  this.isSessionConnected = true;
-                  // Are pools defined?
-                  if (result.body.pools && result.body.pools.length > 0) {
-                    for (const pool of result.body.pools) {
-                      this.talk2m.getEwons(this.config.session, pool.id).then((response) => {
-                        if (response.body.hasOwnProperty('ewons')) {
-                          for (const ewon of response.body.ewons) {
-                            ewon.pool = pool.name;
-                            ewon.talk2m_integrated = FlexyIntegrated.Integrated;
-                            const index = this.rows.indexOf(this.rows.find((element) => element.id == ewon.id));
-                            if (index > -1) {
-                              // remove duplicate
-                              const sliced_ewon = this.rows.splice(index, 1);
-                              ewon.groups = sliced_ewon[0].groups;
-                            }
-                            this.flexyRegistration
-                              .isDeviceRegistered(ewon.id, FLEXY_EXTERNALID_TALK2M_PREFIX, EXTERNALID_TALK2M_SERIALTYPE)
-                              .then((result) => {
-                                ewon.registered = result ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
-                              });
-                          }
-                          this.rows = this.rows.concat(response.body.ewons as EwonFlexyStructure[]);
-                        }
-
-                        this.isLoading = false;
-                      });
-                    }
-                  } else {
-                    this.talk2m.getEwons(this.config.session).then((response) => {
-                      this.rows = response.body.ewons as EwonFlexyStructure[];
-                      this.isLoading = false;
-                    });
-                  }
-                },
-                () => {
-                  this.alert.warning('Session is disconnected. Please reconnect.');
-                  this.isLoading = false;
-                  this.isSessionConnected = false;
-                }
-              );
-            } else {
-              this.alert.info('Session is no longer active. Please re-connect.');
-              this.isLoading = false;
-              this.isSessionConnected = false;
-            }
-          },
-          (error) => {
-            this.alert.warning('Get credentials failed. ', error);
-            this.isLoading = false;
-            this.isSessionConnected = false;
-          }
-        );
-      },
-      (error) => {
-        this.alert.danger('Platform is currently unavailable.', error);
-      }
-    );
+  // TODO move to service
+  private devLog(functionName: string, ...args: any): void {
+    if (this.devLogEnabled !== true) return;
+    console.log(`${this.devLogPrefix}|${functionName}`, args);
   }
 
   private getDefaultColumns(): Column[] {
+    this.devLog('getDefaultColumns');
     return [
       {
         name: 'name',
@@ -240,6 +141,115 @@ export class BulkRegistrationComponent implements OnInit {
         dataType: ColumnDataType.TextShort
       }
     ];
+  }
+
+  private async fetchContent(): Promise<void> {
+    this.devLog('fetchContent');
+    this.rows = [];
+    this.isLoading = true;
+
+    const response = await Promise.all([this.fetchDevices(), this.fetchCredentials()]);
+    this.devLog('fetchContent|all', response);
+
+    const rows = await this.digestDevices(response[0], response[1]);
+    this.devLog('fetchContent|digest', rows);
+    this.rows = rows;
+    this.isLoading = false;
+  }
+
+  // TODO refactor
+  private async fetchDeviceData(device: IManagedObject): Promise<EwonFlexyStructure> {
+    this.devLog('fetchDeviceData', { device });
+    const ewon: EwonFlexyStructure = {};
+
+    //request for group asset
+    const groups: IManagedObject[] = await this.flexyRegistration.getGroupInventoryListOfDevice(device.id);
+    ewon.groups = [];
+    for (const group of groups) {
+      const myGroups = {
+        name: group.name,
+        id: group.id
+      };
+      ewon.groups = ewon.groups.concat(myGroups);
+    }
+
+    const listExternalIds = await this.flexyRegistration.getExternalIdsOfManagedObject(device.id);
+    if (listExternalIds.length > 0) {
+      for (const externalId of listExternalIds) {
+        if (externalId.type == EXTERNALID_TALK2M_SERIALTYPE) {
+          const flexy_id = externalId.externalId.replace(FLEXY_EXTERNALID_TALK2M_PREFIX, '');
+          ewon.id = flexy_id;
+        }
+      }
+    }
+
+    ewon.source = device.id;
+    ewon.registered = FlexyIntegrated.Integrated;
+    ewon.name = device.name;
+    ewon.talk2m_integrated = device.talk2m.id != '' ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
+    ewon.description = device.talk2m.description ? device.talk2m.description : '';
+    ewon.pool = device.talk2m.pool ? device.talk2m.pool : '';
+
+    return ewon;
+  }
+
+  private async digestDevices(devices: EwonFlexyStructure[], account: T2MAccount): Promise<EwonFlexyStructure[]> {
+    this.devLog('digestDevices', { devices, account });
+    let t2mDevices: EwonFlexyStructure[];
+
+    // fetch device t2m devices
+    if (account.pools && account.pools.length) {
+      t2mDevices = await this.flexyService.getEwonsOfPools(this.config.session, account.pools);
+    } else {
+      const response = await this.flexyService.getEwons(this.config.session);
+      t2mDevices = response.body.ewons as EwonFlexyStructure[];
+    }
+
+    return this.flexyService.removeDuplicates(devices, t2mDevices);
+  }
+
+  // TODO refactor
+  private async fetchCredentials(): Promise<T2MAccount> {
+    this.devLog('fetchCredentials');
+
+    try {
+      // Check credentials from tenant options
+      const config = await this.credentialsService.getConfig();
+      if (!config) throw new Error('No Credentials defined.');
+      this.config = { ...this.config, ...config };
+
+      // session
+      if (!this.config.session) throw new Error('Session is no longer active. Please re-connect.');
+
+      // account
+      const account = await this.talk2m.getAccount(this.config.session);
+      this.devLog('fetchCredentials|account', account);
+      if (!account) throw new Error('Could not retrieve Talk2M Account details. Please reconnect.');
+      this.isSessionConnected = true; // TODO move to app service
+
+      return account;
+    } catch (error) {
+      this.alert.warning('Failed to get credentials. ', error);
+      this.isLoading = false;
+      this.isSessionConnected = false;
+    }
+  }
+
+  private async fetchDevices(): Promise<EwonFlexyStructure[]> {
+    this.devLog('fetchDevices');
+    const ewonPromises: Promise<EwonFlexyStructure>[] = [];
+    try {
+      // Check already created devices in c8y with type c8y_EwonFlexy
+      const devices = await this.flexyRegistration.getDeviceEwonFlexyInventoryList();
+      if (!devices) throw new Error('No devices found');
+
+      devices.forEach((device) => ewonPromises.push(this.fetchDeviceData(device)));
+      const ewons = await Promise.all(ewonPromises);
+      if (!ewons || ewons.length < 1) throw new Error('could not fetch ewon data'); // TODO check feedback plausibility
+      return ewons;
+    } catch (error) {
+      this.alert.danger('Platform is currently unavailable.', error); // TODO check feedback plausibility
+    }
   }
 
   private async registerAllDevices(selectedItems: string[]) {
@@ -387,7 +397,7 @@ export class BulkRegistrationComponent implements OnInit {
     });
   }
 
-  openAgentInstallOverlay(selectedItems?: string[]): void {
+  openAgentInstallModal(selectedItems?: string[]): void {
     const dialog = this.modalService.show(AgentInstallOverlayComponent);
     dialog.content.devices = this.getSelectedDevices(selectedItems);
     dialog.content.closeSubject.subscribe((response: InstallAgentForm) => {
@@ -401,7 +411,7 @@ export class BulkRegistrationComponent implements OnInit {
     const reboots: Promise<string>[] = [];
     const config = { ...this.config, ...{ deviceUsername: 'adm', devicePassword: 'adm' } };
 
-    devices.forEach((device) => reboots.push(this.talk2m.reboot(device.encodedName, config)));
+    devices.forEach((device) => reboots.push(this.flexyService.reboot(device.encodedName, config)));
 
     Promise.all(reboots)
       .then(() =>

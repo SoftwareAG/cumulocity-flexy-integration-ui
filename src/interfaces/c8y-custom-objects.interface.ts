@@ -1,5 +1,5 @@
 import { IManagedObject } from '@c8y/client';
-import { EwonFlexyStructure, FlexySettings } from './ewon-flexy-registration.interface';
+import { EwonFlexyStructure, FlexySettings } from './flexy.interface';
 
 export interface IOnloadingJobObject extends IManagedObject {
   c8y_HMSOnloadingJob: {};

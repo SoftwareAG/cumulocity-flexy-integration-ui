@@ -1,14 +1,14 @@
-import { Component, Input, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Component, Input, OnInit } from '@angular/core';
 import { IDeviceRegistration, IManagedObject } from '@c8y/client';
 import { AlertService } from '@c8y/ngx-components';
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { FLEXY_EXTERNALID_FLEXY_PREFIX, EXTERNALID_FLEXY_SERIALTYPE } from '@constants/flexy-integration.constants';
-import { EwonFlexyStructure, FlexyIntegrated } from '@interfaces/ewon-flexy-registration.interface';
-import { FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
-import { EWONFlexyCredentialsTenantoptionsService } from '@services/ewon-flexy-credentials-tenantoptions.service';
-import { Talk2MService } from '@services/talk2m.service';
+import { EXTERNALID_FLEXY_SERIALTYPE, FLEXY_EXTERNALID_FLEXY_PREFIX } from '@constants/flexy-integration.constants';
+import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/flexy.interface';
+import { CerdentialsService } from '@services/credentials.service';
 import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
+import { FlexyService } from '@services/flexy.service';
+import { Talk2MService } from '@services/talk2m.service';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -24,18 +24,19 @@ export class RegistrationModalComponent implements OnInit {
   get config(): any {
     return this._config;
   }
-  public onClose: Subject<IManagedObject> = new Subject();
-  public deviceRegistered: boolean;
-  public existingRequests: IDeviceRegistration[];
-  newFlexy: IManagedObject;
   private _config: FlexySettings = {};
+  onClose: Subject<IManagedObject> = new Subject();
+  deviceRegistered: boolean;
+  existingRequests: IDeviceRegistration[];
+  newFlexy: IManagedObject;
 
   constructor(
     private alert: AlertService,
     private bsModalRef: BsModalRef,
-    private flexyCredentials: EWONFlexyCredentialsTenantoptionsService,
+    private flexyCredentials: CerdentialsService,
     private talk2m: Talk2MService,
-    private flexyRegistration: EWONFlexyDeviceRegistrationService
+    private flexyRegistration: EWONFlexyDeviceRegistrationService,
+    private flexyService: FlexyService
   ) {
     this.deviceRegistered = true;
     this.existingRequests = [];
@@ -56,37 +57,35 @@ export class RegistrationModalComponent implements OnInit {
   onRegister(config?: FlexySettings) {
     if (config && config.deviceUsername && config.devicePassword) {
       this.deviceRegistered = false;
-      this.talk2m
-        .getSerial(config.deviceName, config)
-        .then(
-          (response) => {
-            if (response.indexOf('SerNum:') >= 0) {
-              let serial: string = '';
-              for (var i = response.indexOf('SerNum:') + 7; i < response.length; i++) {
-                if ((response[i] >= '0' && response[i] <= '9') || response[i] == '-') {
-                  serial = serial.concat(response[i]);
-                } else {
-                  break;
-                }
+      this.flexyService.getSerial(config.deviceName, config).then(
+        (response) => {
+          if (response.indexOf('SerNum:') >= 0) {
+            let serial: string = '';
+            for (var i = response.indexOf('SerNum:') + 7; i < response.length; i++) {
+              if ((response[i] >= '0' && response[i] <= '9') || response[i] == '-') {
+                serial = serial.concat(response[i]);
+              } else {
+                break;
               }
-              this.registerFlexyWithSerialNumber(serial);
-            } else {
-              this.alert.warning('Unknown serial number. No data available.');
             }
-            this.deviceRegistered = true;
-          },
-          (error: HttpErrorResponse) => {
-            this.alert.warning(
-              'Connection to device failed.',
-              JSON.stringify({
-                status: error.status,
-                text: error.statusText,
-                message: error.message
-              })
-            );
-            this.deviceRegistered = true;
+            this.registerFlexyWithSerialNumber(serial);
+          } else {
+            this.alert.warning('Unknown serial number. No data available.');
           }
-        );
+          this.deviceRegistered = true;
+        },
+        (error: HttpErrorResponse) => {
+          this.alert.warning(
+            'Connection to device failed.',
+            JSON.stringify({
+              status: error.status,
+              text: error.statusText,
+              message: error.message
+            })
+          );
+          this.deviceRegistered = true;
+        }
+      );
     }
   }
 

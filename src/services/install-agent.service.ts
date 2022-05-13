@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subscriber } from 'rxjs';
-import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@interfaces/ewon-flexy-registration.interface';
 import { ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
+import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@interfaces/flexy.interface';
+import { Observable, Subscriber } from 'rxjs';
+import { DevlogService } from './devlog.service';
 import { Talk2MService } from './talk2m.service';
-import * as _ from 'lodash';
 
 @Injectable({ providedIn: 'root' })
-export class InstallAgentService {
+export class InstallAgentService extends DevlogService {
   count = 0;
   total = 0;
   url: string;
@@ -15,13 +15,19 @@ export class InstallAgentService {
   config: FlexySettings;
   observer$: Subscriber<ProgressMessage>;
 
-  constructor(private talk2mService: Talk2MService) { }
+  constructor(private talk2mService: Talk2MService) {
+    super();
+    this.devLogEnabled = true;
+    this.devLogPrefix = 'IA.S';
+  }
 
   private generateDeviceLogMessage(deviceName: string, deviceIndex: number, message: string): string {
+    this.devLog('generateDeviceLogMessage', { deviceName, deviceIndex, message });
     return deviceIndex < 0 ? message : `[${deviceIndex + 1}/${this.total}] ${deviceName}: ${message}`;
   }
 
   private setLogMessage(message: Partial<ProgressMessage>): void {
+    this.devLog('setLogMessage', { message });
     const defaultConfig: ProgressMessage = {
       date: new Date(),
       message: '',
@@ -31,14 +37,17 @@ export class InstallAgentService {
   }
 
   private sendErrorMessage(message: string, details?: string): void {
+    this.devLog('sendErrorMessage', { message, details });
     this.setLogMessage({ message, details, icon: 'high-priority', type: 'error' });
   }
 
   private sendSimpleMessage(message: string, icon?: string): void {
+    this.devLog('sendSimpleMessage', { message, icon });
     this.setLogMessage({ message, icon, type: 'info' });
   }
 
   private sendDeviceErrorMessage(deviceName: string, deviceIndex: number, message: string, details?: string): void {
+    this.devLog('sendDeviceErrorMessage', { deviceName, deviceIndex, message, details });
     this.setLogMessage({
       message: this.generateDeviceLogMessage(deviceName, deviceIndex, message),
       details,
@@ -48,6 +57,7 @@ export class InstallAgentService {
   }
 
   private sendDeviceSimpleMessage(deviceName: string, deviceIndex: number, message: string, icon?: string): void {
+    this.devLog('sendDeviceSimpleMessage', { deviceName, deviceIndex, message, icon });
     this.setLogMessage({
       message: this.generateDeviceLogMessage(deviceName, deviceIndex, message),
       icon
@@ -55,6 +65,7 @@ export class InstallAgentService {
   }
 
   private generateFlexCommandFileConfig(file: string): FlexyCommandFile {
+    this.devLog('generateFlexCommandFileConfig', { file });
     const url = new URL(file);
     return {
       server: url.origin,
@@ -63,6 +74,7 @@ export class InstallAgentService {
   }
 
   private async getSerial(devceName: string, index: number, deviceName: string, config = this.config): Promise<string> {
+    this.devLog('getSerial', { devceName, index, deviceName, config });
     this.sendDeviceSimpleMessage(devceName, index, 'Step 1 - Requesting Serial', 'certificate');
     try {
       return await this.talk2mService.getSerial(deviceName, config);
@@ -81,6 +93,7 @@ export class InstallAgentService {
     filename: string,
     config = this.config
   ): Promise<string> {
+    this.devLog('loadFile', { deviceName, index, step, deviceEncodedName, filename, config });
     this.sendDeviceSimpleMessage(
       deviceName,
       index,
@@ -101,32 +114,39 @@ export class InstallAgentService {
     // TODO check upload success
   }
 
-  private async installDevice(device: EwonFlexyStructure, index: number, config = this.config): Promise<string> {
+  private async installAgent(device: EwonFlexyStructure, index: number, config = this.config): Promise<string> {
+    this.devLog('installAgent', { device, index, config });
+
     try {
       // 1. request SN
       const serial = await this.getSerial(device.name, index, device.encodedName);
-      // TODO check if SN exist
       if (!serial) return;
 
+      // TODO check for duplicate
+
       // 2. files
-      // TODO in sync
-      const [connector, jvmrun, c8yconfig] = await Promise.all([
-        this.loadFile(device.name, index, '2.1', device.encodedName, config.url.connector),
-        this.loadFile(device.name, index, '2.2', device.encodedName, config.url.jvmrun),
-        this.loadFile(device.name, index, '2.3', device.encodedName, config.url.cumulocity)
-      ]);
+      const connector = await this.loadFile(device.name, index, '2.1', device.encodedName, config.url.connector);
+      if (!connector) return;
 
-      if (!connector || !jvmrun || !c8yconfig) return;
+      const jvmrun = await this.loadFile(device.name, index, '2.2', device.encodedName, config.url.jvmrun);
+      if (!jvmrun) return;
 
-      // 3. reboot
+      const c8yconfig = await this.loadFile(device.name, index, '2.3', device.encodedName, config.url.cumulocity);
+      if (!c8yconfig) return;
+
+      // // 3. reboot
       this.sendDeviceSimpleMessage(device.name, index, 'Step 3 - Reboot', 'refresh');
       return await this.talk2mService.reboot(device.encodedName, config);
+
+      return Promise.resolve('done');
     } catch (error) {
       this.sendDeviceErrorMessage(device.name, index, 'Could not reboot device', error.message);
     }
   }
 
   install(devices: EwonFlexyStructure[], config: FlexySettings): Observable<ProgressMessage> {
+    this.devLog('install', { devices, config });
+
     const devicePromises = [];
     return new Observable<ProgressMessage>((observer) => {
       this.observer$ = observer;
@@ -148,7 +168,7 @@ export class InstallAgentService {
       this.total = devices.length;
       this.config = config;
 
-      devices.forEach((device, index) => devicePromises.push(this.installDevice(device, index)));
+      devices.forEach((device, index) => devicePromises.push(this.installAgent(device, index)));
       Promise.all(devicePromises).then(() => this.observer$.complete());
     });
   }
