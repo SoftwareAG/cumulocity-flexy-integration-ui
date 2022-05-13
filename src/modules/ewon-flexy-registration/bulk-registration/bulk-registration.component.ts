@@ -27,8 +27,8 @@ import { AgentInstallOverlayComponent } from '../agent-install-overlay/agent-ins
   providers: [Talk2MService, CerdentialsService, EWONFlexyDeviceRegistrationService]
 })
 export class BulkRegistrationComponent implements OnInit {
-  protected devLogEnabled = true;
-  protected devLogPrefix = 'BR.C';
+  private devLogEnabled = false;
+  private devLogPrefix = 'BR.C';
   private config: FlexySettings = {};
   isSessionConnected = false;
   isLoading = true;

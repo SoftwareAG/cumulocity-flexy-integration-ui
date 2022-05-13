@@ -3,7 +3,7 @@ import { ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
 import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@interfaces/flexy.interface';
 import { Observable, Subscriber } from 'rxjs';
 import { DevlogService } from './devlog.service';
-import { Talk2MService } from './talk2m.service';
+import { FlexyService } from './flexy.service';
 
 @Injectable({ providedIn: 'root' })
 export class InstallAgentService extends DevlogService {
@@ -15,9 +15,9 @@ export class InstallAgentService extends DevlogService {
   config: FlexySettings;
   observer$: Subscriber<ProgressMessage>;
 
-  constructor(private talk2mService: Talk2MService) {
+  constructor(private flexyService: FlexyService) {
     super();
-    this.devLogEnabled = true;
+    this.devLogEnabled = false;
     this.devLogPrefix = 'IA.S';
   }
 
@@ -77,7 +77,7 @@ export class InstallAgentService extends DevlogService {
     this.devLog('getSerial', { devceName, index, deviceName, config });
     this.sendDeviceSimpleMessage(devceName, index, 'Step 1 - Requesting Serial', 'certificate');
     try {
-      return await this.talk2mService.getSerial(deviceName, config);
+      return await this.flexyService.getSerial(deviceName, config);
     } catch (error) {
       console.error('Could not obtain serialnumber', error);
       this.sendDeviceErrorMessage(devceName, index, 'Could not obtain serialnumber.', error.message);
@@ -101,7 +101,7 @@ export class InstallAgentService extends DevlogService {
       'download-archive'
     );
     try {
-      return await this.talk2mService.installSoftware(
+      return await this.flexyService.installSoftware(
         this.generateFlexCommandFileConfig(filename),
         deviceEncodedName,
         config
@@ -136,7 +136,7 @@ export class InstallAgentService extends DevlogService {
 
       // // 3. reboot
       this.sendDeviceSimpleMessage(device.name, index, 'Step 3 - Reboot', 'refresh');
-      return await this.talk2mService.reboot(device.encodedName, config);
+      return await this.flexyService.reboot(device.encodedName, config);
 
       return Promise.resolve('done');
     } catch (error) {
