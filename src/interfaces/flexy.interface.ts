@@ -11,7 +11,7 @@ export interface FlexySettings {
   url?: {
     connector: string;
     jvmrun: string;
-    cumulocity: string;
+    cumulocity?: string;
   };
   filesExist?: boolean;
 }
@@ -30,6 +30,11 @@ export interface EwonFlexyStructure {
   customAttributes?: Array<string>;
   m2webServer?: string;
   serialNumber?: string;
+  agent?: {
+    name: string;
+    version: string;
+    url: string;
+  };
   lanDevices?: Array<{
     name?: string;
     description?: string;

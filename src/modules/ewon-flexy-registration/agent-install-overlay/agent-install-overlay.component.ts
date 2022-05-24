@@ -19,7 +19,6 @@ export class AgentInstallOverlayComponent {
   showPassword = false;
 
   set devices(devices: EwonFlexyStructure[]) {
-    // TODO set/check filter
     this._devices = devices;
   }
   get devices(): EwonFlexyStructure[] {

@@ -27,8 +27,8 @@ import { AgentInstallOverlayComponent } from '../agent-install-overlay/agent-ins
   providers: [Talk2MService, CerdentialsService, EWONFlexyDeviceRegistrationService]
 })
 export class BulkRegistrationComponent implements OnInit {
-  private devLogEnabled = false;
-  private devLogPrefix = 'BR.C';
+  private devLogEnabled: boolean;
+  private devLogPrefix: string;
   private config: FlexySettings = {};
   isSessionConnected = false;
   isLoading = true;
@@ -58,7 +58,7 @@ export class BulkRegistrationComponent implements OnInit {
     {
       type: '',
       text: 'Reboot',
-      icon: 'refresh',
+      icon: 'refresh-exception',
       callback: (selected) => this.rebootDevices(selected)
     }
   ];
@@ -82,6 +82,10 @@ export class BulkRegistrationComponent implements OnInit {
     private registerManuallyService: RegisterFlexyManualService,
     private flexyService: FlexyService
   ) {
+    // logging
+    this.devLogEnabled = false;
+    this.devLogPrefix = 'BR.C';
+    // data grid config
     this.columns = this.getDefaultColumns();
   }
 
@@ -91,7 +95,7 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   // TODO move to service
-  private devLog(functionName: string, ...args: any): void {
+  private devLog(functionName: string, args?: any): void {
     if (this.devLogEnabled !== true) return;
     console.log(`${this.devLogPrefix}|${functionName}`, args);
   }
@@ -104,6 +108,13 @@ export class BulkRegistrationComponent implements OnInit {
         header: 'Name',
         path: 'name',
         filterable: true,
+        dataType: ColumnDataType.TextShort
+      },
+      {
+        name: 'online',
+        header: 'ON',
+        path: 'status',
+        filterable: false,
         dataType: ColumnDataType.TextShort
       },
       {
@@ -159,7 +170,7 @@ export class BulkRegistrationComponent implements OnInit {
 
   // TODO refactor
   private async fetchDeviceData(device: IManagedObject): Promise<EwonFlexyStructure> {
-    this.devLog('fetchDeviceData', { device });
+    this.devLog('fetchDeviceData', device);
     const ewon: EwonFlexyStructure = {};
 
     //request for group asset
@@ -187,9 +198,11 @@ export class BulkRegistrationComponent implements OnInit {
     ewon.registered = FlexyIntegrated.Integrated;
     ewon.name = device.name;
     ewon.talk2m_integrated = device.talk2m.id != '' ? FlexyIntegrated.Integrated : FlexyIntegrated.Not_integrated;
-    ewon.description = device.talk2m.description ? device.talk2m.description : '';
     ewon.pool = device.talk2m.pool ? device.talk2m.pool : '';
+    if (!!device.talk2m.description) ewon.description = device.talk2m.description;
+    if (!!device.c8y_Agent) ewon.agent = device.c8y_Agent;
 
+    this.devLog('fetchDeviceData|ewon', ewon);
     return ewon;
   }
 
@@ -198,7 +211,7 @@ export class BulkRegistrationComponent implements OnInit {
     let t2mDevices: EwonFlexyStructure[];
 
     // fetch device t2m devices
-    if (account.pools && account.pools.length) {
+    if (account && account.hasOwnProperty('pools') && account.pools.length) {
       t2mDevices = await this.flexyService.getEwonsOfPools(this.config.session, account.pools);
     } else {
       const response = await this.flexyService.getEwons(this.config.session);
@@ -246,7 +259,8 @@ export class BulkRegistrationComponent implements OnInit {
       devices.forEach((device) => ewonPromises.push(this.fetchDeviceData(device)));
       const ewons = await Promise.all(ewonPromises);
       if (!ewons || ewons.length < 1) throw new Error('could not fetch ewon data'); // TODO check feedback plausibility
-      return ewons;
+
+      return [...ewons];
     } catch (error) {
       this.alert.danger('Platform is currently unavailable.', error); // TODO check feedback plausibility
     }
@@ -269,6 +283,7 @@ export class BulkRegistrationComponent implements OnInit {
     await Promise.all(promises);
   }
 
+  // TODO move to service
   private async registerDevice(item: string) {
     const ewon: EwonFlexyStructure = this.rows.find((element) => element.id == item);
     const ewonId = ewon.id.toString();
@@ -354,7 +369,10 @@ export class BulkRegistrationComponent implements OnInit {
         this.installError = true;
         this.installInProgress = false;
       },
-      () => (this.installInProgress = false)
+      () => {
+        this.installInProgress = false;
+        this.dataGrid.cancel();
+      }
     );
   }
 
@@ -365,10 +383,10 @@ export class BulkRegistrationComponent implements OnInit {
   async startRegistration(selectedItems: string[]) {
     this.isRegistratingFlexy = true;
 
-    // 0.1 Get existing device requests
+    // 1 Get existing device requests
     this.existingRequests = await this.flexyRegistration.getDeviceRequestRegistration();
 
-    //0.2 Create group for pool definition
+    // 2 Create group for pool definition
     const groups = await this.flexyRegistration.getDeviceGroupInventoryList();
     for (const item of selectedItems) {
       const ewon = this.rows.find((element) => element.id == item);
@@ -387,6 +405,7 @@ export class BulkRegistrationComponent implements OnInit {
     await this.registerAllDevices(selectedItems);
     this.alert.info('Registration finished.', JSON.stringify(this.report));
     this.isRegistratingFlexy = false;
+    this.dataGrid.cancel();
   }
 
   openRegisterModal(): void {
@@ -403,6 +422,17 @@ export class BulkRegistrationComponent implements OnInit {
     dialog.content.closeSubject.subscribe((response: InstallAgentForm) => {
       if (response) this.handleInstallAgentDialog(response);
     });
+  }
+
+  // TODO remove after dev
+  reload(): Promise<void> {
+    this.devLog('reload');
+
+    this.installInProgress = false;
+    this.installProgressText = [];
+    this.installError = false;
+
+    return this.fetchContent();
   }
 
   // TODO remove after dev

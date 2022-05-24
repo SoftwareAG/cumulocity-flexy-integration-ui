@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
 import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@interfaces/flexy.interface';
-import { Observable, Subscriber } from 'rxjs';
+import { Observable, Subscriber, throwError } from 'rxjs';
 import { DevlogService } from './devlog.service';
 import { FlexyService } from './flexy.service';
 
@@ -17,7 +17,7 @@ export class InstallAgentService extends DevlogService {
 
   constructor(private flexyService: FlexyService) {
     super();
-    this.devLogEnabled = false;
+    this.devLogEnabled = true;
     this.devLogPrefix = 'IA.S';
   }
 
@@ -81,7 +81,7 @@ export class InstallAgentService extends DevlogService {
     } catch (error) {
       console.error('Could not obtain serialnumber', error);
       this.sendDeviceErrorMessage(devceName, index, 'Could not obtain serialnumber.', error.message);
-      return null;
+      return;
     }
   }
 
@@ -114,33 +114,64 @@ export class InstallAgentService extends DevlogService {
     // TODO check upload success
   }
 
+  private async loadFilesOntoDevice(device: EwonFlexyStructure, index: number, config = this.config): Promise<boolean> {
+    try {
+      // connector
+      const connector = await this.loadFile(device.name, index, '2.1', device.encodedName, config.url.connector);
+      if (!connector) return;
+      this.devLog('installAgent|connector', connector);
+
+      // JVMrun
+      const jvmrun = await this.loadFile(device.name, index, '2.2', device.encodedName, config.url.jvmrun);
+      if (!jvmrun) return;
+      this.devLog('installAgent|jvmrun', jvmrun);
+
+      // (optional) c8y config
+      if (config.url.hasOwnProperty('cumulocity') && !!config.url.cumulocity) {
+        const c8yconfig = await this.loadFile(device.name, index, '2.3', device.encodedName, config.url.cumulocity);
+        if (!c8yconfig) return;
+        this.devLog('installAgent|c8yconfig', c8yconfig);
+      }
+
+      return true;
+    } catch (error) {
+      this.sendDeviceErrorMessage(device.name, index, 'Could not reboot device', error.message);
+    }
+  }
+
   private async installAgent(device: EwonFlexyStructure, index: number, config = this.config): Promise<string> {
     this.devLog('installAgent', { device, index, config });
 
+    const isC8yDevice = device.hasOwnProperty('source') && !!device.source;
+    const isT2mDevice = device.hasOwnProperty('id') && !!device.id;
+    this.devLog('installAgent|connectionCheck', { isC8yDevice, isT2mDevice });
+
     try {
+      if (isC8yDevice && !isT2mDevice) throw new Error('Not connected to Talk2M');
+      // TODO fetch device status
+      if (!device.status || device.status !== 'online') throw new Error('Device is not online');
+
+      // TODO check if VPN connected - is possible @Stefan R
+      // install
+
       // 1. request SN
       const serial = await this.getSerial(device.name, index, device.encodedName);
       if (!serial) return;
-
-      // TODO check for duplicate
+      this.devLog('installAgent|serial', serial);
 
       // 2. files
-      const connector = await this.loadFile(device.name, index, '2.1', device.encodedName, config.url.connector);
-      if (!connector) return;
+      const files = await this.loadFilesOntoDevice(device, index, config);
+      if (!files) return;
 
-      const jvmrun = await this.loadFile(device.name, index, '2.2', device.encodedName, config.url.jvmrun);
-      if (!jvmrun) return;
-
-      const c8yconfig = await this.loadFile(device.name, index, '2.3', device.encodedName, config.url.cumulocity);
-      if (!c8yconfig) return;
-
-      // // 3. reboot
+      // 3. reboot
       this.sendDeviceSimpleMessage(device.name, index, 'Step 3 - Reboot', 'refresh');
-      return await this.flexyService.reboot(device.encodedName, config);
+      const reboot = await this.flexyService.reboot(device.encodedName, config);
+      this.devLog('installAgent|reboot', reboot);
+      // TODO register device
 
       return Promise.resolve('done');
     } catch (error) {
-      this.sendDeviceErrorMessage(device.name, index, 'Could not reboot device', error.message);
+      this.sendDeviceErrorMessage(device.name, index, 'Failed to install agent', error.message);
     }
   }
 
@@ -151,7 +182,7 @@ export class InstallAgentService extends DevlogService {
     return new Observable<ProgressMessage>((observer) => {
       this.observer$ = observer;
 
-      // validation
+      // input validation
       if (!devices.length) this.sendErrorMessage('No eligible devices available.');
       if (!config.deviceUsername) this.sendErrorMessage('Device username missing.');
       if (!config.devicePassword) this.sendErrorMessage('Device password missing.');
@@ -160,10 +191,9 @@ export class InstallAgentService extends DevlogService {
       } else {
         if (!config.url.connector || config.url.connector === '') this.sendErrorMessage('Connector file URL missing.');
         if (!config.url.jvmrun || config.url.jvmrun === '') this.sendErrorMessage('JVMrun file URL missing.');
-        if (!config.url.cumulocity || config.url.cumulocity === '')
-          this.sendErrorMessage('Cumulocity config file URL missing.');
       }
 
+      // start install
       this.sendSimpleMessage('Starting install', 'rocket');
       this.total = devices.length;
       this.config = config;

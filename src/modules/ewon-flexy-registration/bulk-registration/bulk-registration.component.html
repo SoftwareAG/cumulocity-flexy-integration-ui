@@ -80,6 +80,11 @@
 <div class="d-block">
   <!-- List of ewon items -->
   <ng-container *ngIf="!isLoading && rows.length > 0">
+    <!-- TODO remove after dev -->
+    <button type="button" class="btn btn-danger btn-icon m-b-8" (click)="reload()">
+      <i c8yIcon="refresh"></i>
+    </button>
+
     <c8y-data-grid
       #grid
       [title]="'Talk2M Flexy Devices' | translate"
@@ -97,6 +102,17 @@
               <a href="#/group/{{ group.id }}">{{ group.name }}</a>
             </p>
           </span>
+        </ng-container>
+      </c8y-column>
+
+      <c8y-column name="online">
+        <ng-container *c8yCellRendererDef="let context">
+          <ng-container *ngIf="context.value === 'online'; else offline">
+            <i c8yIcon="connected" class="text-success"></i>
+          </ng-container>
+          <ng-template #offline>
+            <i c8yIcon="disconnected" class="text-danger"></i>
+          </ng-template>
         </ng-container>
       </c8y-column>
 

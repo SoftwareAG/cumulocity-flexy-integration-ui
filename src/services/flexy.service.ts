@@ -89,14 +89,16 @@ export class FlexyService extends DevlogService {
   removeDuplicates(c8y: EwonFlexyStructure[], t2m: EwonFlexyStructure[]): EwonFlexyStructure[] {
     this.devLog('removeDuplicates', { c8y, t2m });
 
-    t2m.forEach((ewon) => {
+    const uniques = t2m.map((ewon) => {
       const duplicate = c8y.find((element) => element.id == ewon.id);
       if (duplicate) {
-        ewon.groups = duplicate.groups;
+        this.devLog('removeDuplicates|duplicate', duplicate);
         c8y.splice(c8y.indexOf(duplicate), 1);
+        return { ...duplicate, ...ewon };
       }
+      return ewon;
     });
 
-    return [...t2m, ...c8y];
+    return [...c8y, ...uniques];
   }
 }
