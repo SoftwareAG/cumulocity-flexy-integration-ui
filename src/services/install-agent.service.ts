@@ -167,7 +167,8 @@ export class InstallAgentService extends DevlogService {
       this.sendDeviceSimpleMessage(device.name, index, 'Step 3 - Reboot', 'refresh');
       const reboot = await this.flexyService.reboot(device.encodedName, config);
       this.devLog('installAgent|reboot', reboot);
-      // TODO register device
+      
+      this.flexyService.registerFlexy(device);
 
       return Promise.resolve('done');
     } catch (error) {

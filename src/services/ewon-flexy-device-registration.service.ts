@@ -10,16 +10,24 @@ import {
   IManagedObject
 } from '@c8y/client';
 import { IdentityService, InventoryService } from '@c8y/ngx-components/api';
-import { FLEXY_DEVICETYPE } from '@constants/flexy-integration.constants';
+import { FLEXY_DEVICETYPE, FLEXY_EXTERNALID_TALK2M_PREFIX } from '@constants/flexy-integration.constants';
 import { EwonFlexyStructure } from '@interfaces/flexy.interface';
+import { DevlogService } from './devlog.service';
 
 @Injectable({ providedIn: 'root' })
-export class EWONFlexyDeviceRegistrationService {
+export class EWONFlexyDeviceRegistrationService extends DevlogService {
+  private registrations: IDeviceRegistration[] = [];
+  private registrationsRequested: number = null;
+
   constructor(
     private inventoryService: InventoryService,
     private identityService: IdentityService,
     private deviceRegistration: DeviceRegistrationService
-  ) {}
+  ) {
+    super();
+    this.devLogEnabled = false;
+    this.devLogPrefix = 'EFDR.S';
+  }
 
   // InventoryService
   async createDeviceInventory(ewon: EwonFlexyStructure): Promise<IManagedObject> {
@@ -62,9 +70,7 @@ export class EWONFlexyDeviceRegistrationService {
 
   async getDeviceGroupInventoryList(): Promise<IManagedObject[]> {
     const filter: object = {
-      pageSize: 100,
-      withTotalPages: true,
-      fragmentType: 'c8y_IsDeviceGroup'
+      pageSize: 100, withTotalPages: true, fragmentType: 'c8y_IsDeviceGroup'
     };
     const { data } = await this.inventoryService.list(filter);
     return data;
@@ -162,16 +168,26 @@ export class EWONFlexyDeviceRegistrationService {
   //--------
 
   // DeviceRegistrationService
-  async getDeviceRequestRegistration(): Promise<IDeviceRegistration[]> {
+  async getDeviceRequestRegistration(ignoreCache = false): Promise<IDeviceRegistration[]> {
+    const now = new Date().getTime();
     const filter: object = {
       pageSize: 1000,
       withTotalPages: true
     };
+
+    // use cache
+    if (!ignoreCache && !!this.registrationsRequested && this.registrationsRequested - 300 < now) {
+      return this.registrations;
+    }
+
     const { data } = await this.deviceRegistration.list(filter);
+    this.registrations = data;
+    this.registrationsRequested = now;
+
     return data;
   }
 
-  async createDeviceRequestRegistration(id: string, prefix: string): Promise<IDeviceRegistration> {
+  async createDeviceRequestRegistration(id: string, prefix = FLEXY_EXTERNALID_TALK2M_PREFIX): Promise<IDeviceRegistration> {
     const registrationObject: IDeviceRegistrationCreate = {
       id: prefix + id
     };
@@ -179,7 +195,7 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
-  async requestDeviceCredentials(id: string, prefix: string): Promise<IDeviceCredentials> {
+  async requestDeviceCredentials(id: string, prefix = FLEXY_EXTERNALID_TALK2M_PREFIX): Promise<IDeviceCredentials> {
     const options: IDeviceBootstrapOptions = {
       //basicAuthToken: 'Basic dGVuYW50L3VzZXJuYW1lOnBhc3N3b3Jk',
       basicAuth: {
@@ -191,9 +207,10 @@ export class EWONFlexyDeviceRegistrationService {
     return data;
   }
 
-  async acceptDeviceRequest(id: string, prefix: string) {
+  async acceptDeviceRequest(id: string, prefix = FLEXY_EXTERNALID_TALK2M_PREFIX) {
     const { data } = await this.deviceRegistration.accept(prefix + id);
     return data;
   }
   //--------
+
 }
