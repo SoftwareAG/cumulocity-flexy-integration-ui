@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
 import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@interfaces/flexy.interface';
-import { Observable, Subscriber, throwError } from 'rxjs';
+import { Observable, Subscriber } from 'rxjs';
 import { DevlogService } from './devlog.service';
 import { FlexyService } from './flexy.service';
 
@@ -148,11 +148,7 @@ export class InstallAgentService extends DevlogService {
 
     try {
       if (isC8yDevice && !isT2mDevice) throw new Error('Not connected to Talk2M');
-      // TODO fetch device status
       if (!device.status || device.status !== 'online') throw new Error('Device is not online');
-
-      // TODO check if VPN connected - is possible @Stefan R
-      // install
 
       // 1. request SN
       const serial = await this.getSerial(device.name, index, device.encodedName);
@@ -164,11 +160,18 @@ export class InstallAgentService extends DevlogService {
       if (!files) return;
 
       // 3. reboot
-      this.sendDeviceSimpleMessage(device.name, index, 'Step 3 - Reboot', 'refresh');
+      this.sendDeviceSimpleMessage(device.name, index, 'Step 3.1 - Reboot', 'refresh');
       const reboot = await this.flexyService.reboot(device.encodedName, config);
       this.devLog('installAgent|reboot', reboot);
-      
-      this.flexyService.registerFlexy(device);
+
+      this.sendDeviceSimpleMessage(device.name, index, 'Step 3.2 - waiting for Reboot', 'clock1');
+      // TODO wait for reboot to finish
+
+      // 4. register device
+      if (!isC8yDevice) {
+        this.sendDeviceSimpleMessage(device.name, index, 'Step 4 - Register device', 'cloud-checked');
+        this.flexyService.registerFlexy(device); // TODO get device group
+      }
 
       return Promise.resolve('done');
     } catch (error) {
