@@ -1,0 +1,24 @@
+// Reference: https://code.visualstudio.com/docs/remote/containers#_devcontainerjson-reference
+{
+  "name": "Flexy Integration",
+  "dockerFile": "Dockerfile",
+  "appPort": [4000, 4200, 4433, 5000, 8080, 9876],
+  "postCreateCommand": "npm install",
+  "extensions": [
+    "devondcarew.bazel-code",
+    "gkalpak.aio-docs-utils",
+    "ms-vscode.vscode-typescript-tslint-plugin",
+    "xaver.clang-format",
+    "eamodio.gitlens",
+    "angular.ng-template",
+    "dbaeumer.vscode-eslint",
+    "formulahendry.auto-rename-tag",
+    "coenraads.bracket-pair-colorizer-2",
+    "gruntfuggly.todo-tree"
+  ],
+  "settings": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": true
+  }
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "841ec09d-9cc3-4c8a-971a-b0b32e4126ae",
+    "colName": "Talk2M",
+    "created": "2022-04-27T11:44:56.202Z",
+    "sortNum": 10000,
+    "folders": [],
+    "settings": {
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "text/plain"
+        }
+      ],
+      "tests": []
+    }
+  }
+]

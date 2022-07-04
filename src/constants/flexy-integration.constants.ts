@@ -22,13 +22,15 @@ export const C8Y_MICROSERVICE_ENDPOINT = {
     URL: { 
         GET_EWONS: '/service/ewon-flexy-integration/datamailbox/getewons?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}',
         SYNC_DATA: '/service/ewon-flexy-integration/datamailbox/syncdata?t2mtoken={t2mtoken}&t2mdevid={t2mdevid}&tenantId={tenantId}',
-        ONLOAD_NOW: '/service/ewon-flexy-integration/executejob'
+        ONLOAD_NOW: '/service/ewon-flexy-integration/executejob',
+        CHECK_FILES: '/service/ewon-flexy-integration/checkFiles'
     },
     VARIABLE: {
         TOKEN: '{t2mtoken}',
         DEVID: '{t2mdevid}',
         TENANTID: '{tenantId}',
-        JOBID: '{jobId}'
+        JOBID: '{jobId}',
+        FILESURL: '{filesUrl}'
       } ,
     APPKEY: 'ewon-flexy-integration-microservice-key'
 }
@@ -37,6 +39,13 @@ export const GET_OPTIONS: IFetchOptions = {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
+    }
+  };
+
+  export const CHECKFILES_OPTIONS: IFetchOptions = {
+    method: 'GET',
+    headers: {
+      'filesUrl': '{filesUrl}'
     }
   };
 

@@ -1,0 +1,222 @@
+[
+  {
+    "_id": "b5118014-0e3d-454b-9619-63e208b5c256",
+    "colId": "history",
+    "containerId": "",
+    "name": "{{url}}/login?developerId={{developer_id}}&account={{auth_account}}&username={{auth_user}}&password={{auth_pass}}",
+    "url": "{{url}}/login?developerId={{developer_id}}&account={{auth_account}}&username={{auth_user}}&password={{auth_pass}}",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-04-27T12:19:36.220Z",
+    "modified": "2022-04-27T12:19:36.667Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "developerId",
+        "value": "{{developer_id}}",
+        "isPath": false
+      },
+      {
+        "name": "account",
+        "value": "{{auth_account}}",
+        "isPath": false
+      },
+      {
+        "name": "username",
+        "value": "{{auth_user}}",
+        "isPath": false
+      },
+      {
+        "name": "password",
+        "value": "{{auth_pass}}",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  },
+  {
+    "_id": "b67310f9-7023-434f-ad70-63f080ecfa03",
+    "colId": "history",
+    "containerId": "",
+    "name": "{{url}}/login?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}",
+    "url": "{{url}}/login?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-04-27T12:20:05.076Z",
+    "modified": "2022-04-27T12:20:05.357Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "t2mdeveloperid",
+        "value": "{{developer_id}}",
+        "isPath": false
+      },
+      {
+        "name": "t2maccount",
+        "value": "{{auth_account}}",
+        "isPath": false
+      },
+      {
+        "name": "t2musername",
+        "value": "{{auth_user}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mpassword",
+        "value": "{{auth_pass}}",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  },
+  {
+    "_id": "4552b214-a1ee-4624-b873-fc0a4900e2c8",
+    "colId": "history",
+    "containerId": "",
+    "name": "{{url}}/get/{{deviceName}}/rcgi.bin/ParamForm/?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}&deviceName={{deviceName}}&AST_Param=$dtES",
+    "url": "{{url}}/get/{{deviceName}}/rcgi.bin/ParamForm/?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}&deviceName={{deviceName}}&AST_Param=$dtES",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-04-27T12:42:16.756Z",
+    "modified": "2022-04-27T12:42:28.741Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "t2mdeveloperid",
+        "value": "{{developer_id}}",
+        "isPath": false
+      },
+      {
+        "name": "t2maccount",
+        "value": "{{auth_account}}",
+        "isPath": false
+      },
+      {
+        "name": "t2musername",
+        "value": "{{auth_user}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mpassword",
+        "value": "{{auth_pass}}",
+        "isPath": false
+      },
+      {
+        "name": "deviceName",
+        "value": "{{deviceName}}",
+        "isPath": false
+      },
+      {
+        "name": "AST_Param",
+        "value": "$dtES",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  },
+  {
+    "_id": "77c67b3b-23a4-4023-a3c3-7829b37bdcdc",
+    "colId": "history",
+    "containerId": "",
+    "name": "{{url}}/get/{{deviceName}}/rcgi.bin/ParamForm/?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}&deviceName={{device_name}}&AST_Param=$dtES&t2mdeviceusername={{device_username}}&t2mdevicepassword={{device_password}}",
+    "url": "{{url}}/get/{{deviceName}}/rcgi.bin/ParamForm/?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}&deviceName={{device_name}}&AST_Param=$dtES&t2mdeviceusername={{device_username}}&t2mdevicepassword={{device_password}}",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-04-27T12:43:33.543Z",
+    "modified": "2022-04-27T12:44:54.752Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "t2mdeveloperid",
+        "value": "{{developer_id}}",
+        "isPath": false
+      },
+      {
+        "name": "t2maccount",
+        "value": "{{auth_account}}",
+        "isPath": false
+      },
+      {
+        "name": "t2musername",
+        "value": "{{auth_user}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mpassword",
+        "value": "{{auth_pass}}",
+        "isPath": false
+      },
+      {
+        "name": "deviceName",
+        "value": "{{device_name}}",
+        "isPath": false
+      },
+      {
+        "name": "AST_Param",
+        "value": "$dtES",
+        "isPath": false
+      },
+      {
+        "name": "t2mdeviceusername",
+        "value": "{{device_username}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mdevicepassword",
+        "value": "{{device_password}}",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  },
+  {
+    "_id": "766f9f1a-1b11-458c-b5bc-13b3916ef76a",
+    "colId": "history",
+    "containerId": "",
+    "name": "{{url}}/get/{{device_name}}/rcgi.bin/ParamForm/?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}&AST_Param=$dtES&t2mdeviceusername={{device_username}}&t2mdevicepassword={{device_password}}",
+    "url": "{{url}}/get/{{device_name}}/rcgi.bin/ParamForm/?t2mdeveloperid={{developer_id}}&t2maccount={{auth_account}}&t2musername={{auth_user}}&t2mpassword={{auth_pass}}&AST_Param=$dtES&t2mdeviceusername={{device_username}}&t2mdevicepassword={{device_password}}",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-04-27T12:46:55.340Z",
+    "modified": "2022-04-27T12:47:55.416Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "t2mdeveloperid",
+        "value": "{{developer_id}}",
+        "isPath": false
+      },
+      {
+        "name": "t2maccount",
+        "value": "{{auth_account}}",
+        "isPath": false
+      },
+      {
+        "name": "t2musername",
+        "value": "{{auth_user}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mpassword",
+        "value": "{{auth_pass}}",
+        "isPath": false
+      },
+      {
+        "name": "AST_Param",
+        "value": "$dtES",
+        "isPath": false
+      },
+      {
+        "name": "t2mdeviceusername",
+        "value": "{{device_username}}",
+        "isPath": false
+      },
+      {
+        "name": "t2mdevicepassword",
+        "value": "{{device_password}}",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  }
+]
