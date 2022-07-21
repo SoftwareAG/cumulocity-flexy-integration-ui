@@ -29,10 +29,6 @@ export class SettingsComponent implements OnInit {
     private credentialsService: CerdentialsService,
     private c8yMicroservice: MicroserviceIntegrationService
   ) {
-    // TODO remove after dev
-    this._config.account = 'SAG-IoT';
-    this._config.username = 'admin';
-    this._config.password = 's%3GXLnX6L';
   }
 
   ngOnInit(): void {

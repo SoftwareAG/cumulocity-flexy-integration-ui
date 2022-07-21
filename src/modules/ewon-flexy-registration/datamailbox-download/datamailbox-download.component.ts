@@ -41,7 +41,7 @@ export class DataMailboxDownloadComponent implements OnInit {
         this.alert.warning(
           'Missing credentials to connect.',
           JSON.stringify({
-            t2mtoke: this._config.token ? this._config.token : ''
+            t2mtoken: this._config.token ? this._config.token : ''
           })
         );
       }
