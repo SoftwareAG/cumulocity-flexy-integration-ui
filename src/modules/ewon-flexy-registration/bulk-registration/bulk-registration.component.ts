@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { IDeviceRegistration, IIdentified, IManagedObject } from '@c8y/client';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { IManagedObject } from '@c8y/client';
 import {
   AlertService,
   BulkActionControl,

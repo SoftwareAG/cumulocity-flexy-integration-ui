@@ -83,6 +83,13 @@ export class FlexyService extends DevlogService {
     return await this.talk2m.execScript('GETHTTP ' + [...[file.server], ...file.files].join(','), deviceName, config);
   }
 
+  async downloadSoftware(filename: string, deviceName: string, config: FlexySettings): Promise<boolean> {
+    this.devLog('downloadSoftware', { filename, deviceName, config });
+    const dl = await this.talk2m.downloadFile(filename, deviceName, config);
+    this.devLog('downloadSoftware|response', dl);
+    return !!dl; // TODO check response
+  }
+
   async reboot(deviceName: string, config: FlexySettings): Promise<string> {
     this.devLog('reboot', { deviceName, config });
     return await this.talk2m.execScript('REBOOT', deviceName, config);

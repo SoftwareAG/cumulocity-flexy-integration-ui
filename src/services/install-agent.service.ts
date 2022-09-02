@@ -4,6 +4,7 @@ import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@interfaces
 import { Observable, Subscriber } from 'rxjs';
 import { DevlogService } from './devlog.service';
 import { FlexyService } from './flexy.service';
+import * as _ from 'lodash';
 
 @Injectable({ providedIn: 'root' })
 export class InstallAgentService extends DevlogService {
@@ -21,6 +22,16 @@ export class InstallAgentService extends DevlogService {
     this.devLogPrefix = 'IA.S';
   }
 
+  // helper
+  private sleep(ms): Promise<NodeJS.Timer>{
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private getFilenameFromUrl(url: string): string {
+    return url.split('/').pop();
+  }
+
+  // ui response
   private generateDeviceLogMessage(deviceName: string, deviceIndex: number, message: string): string {
     this.devLog('generateDeviceLogMessage', { deviceName, deviceIndex, message });
     return deviceIndex < 0 ? message : `[${deviceIndex + 1}/${this.total}] ${deviceName}: ${message}`;
@@ -73,14 +84,14 @@ export class InstallAgentService extends DevlogService {
     } as FlexyCommandFile;
   }
 
-  private async getSerial(devceName: string, index: number, deviceName: string, config = this.config): Promise<string> {
-    this.devLog('getSerial', { devceName, index, deviceName, config });
-    this.sendDeviceSimpleMessage(devceName, index, 'Step 1 - Requesting Serial', 'certificate');
+  // step handling
+  private async getSerial(deviceName: string, index: number, encodedName: string, config = this.config): Promise<string> {
+    this.devLog('getSerial', { deviceName, index, encodedName, config });
     try {
-      return await this.flexyService.getSerial(deviceName, config);
+      return await this.flexyService.getSerial(encodedName, config);
     } catch (error) {
       console.error('Could not obtain serialnumber', error);
-      this.sendDeviceErrorMessage(devceName, index, 'Could not obtain serialnumber.', error.message);
+      this.sendDeviceErrorMessage(deviceName, index, 'Could not obtain serialnumber.', error.message);
       return;
     }
   }
@@ -97,7 +108,7 @@ export class InstallAgentService extends DevlogService {
     this.sendDeviceSimpleMessage(
       deviceName,
       index,
-      `Step ${step} - Loading file <code>${filename}</code>`,
+      `<b>Step ${step}</b> - Loading file <code>${filename}</code>`,
       'download-archive'
     );
     try {
@@ -115,20 +126,22 @@ export class InstallAgentService extends DevlogService {
   }
 
   private async loadFilesOntoDevice(device: EwonFlexyStructure, index: number, config = this.config): Promise<boolean> {
+    this.devLog('loadFilesOntoDevice', { device, index, config });
+
     try {
       // connector
-      const connector = await this.loadFile(device.name, index, '2.1', device.encodedName, config.url.connector);
+      const connector = await this.loadFile(device.name, index, '4.1', device.encodedName, config.url.connector);
       if (!connector) return;
       this.devLog('installAgent|connector', connector);
 
       // JVMrun
-      const jvmrun = await this.loadFile(device.name, index, '2.2', device.encodedName, config.url.jvmrun);
+      const jvmrun = await this.loadFile(device.name, index, '4.2', device.encodedName, config.url.jvmrun);
       if (!jvmrun) return;
       this.devLog('installAgent|jvmrun', jvmrun);
 
       // (optional) c8y config
       if (config.url.hasOwnProperty('cumulocity') && !!config.url.cumulocity) {
-        const c8yconfig = await this.loadFile(device.name, index, '2.3', device.encodedName, config.url.cumulocity);
+        const c8yconfig = await this.loadFile(device.name, index, '4.3', device.encodedName, config.url.cumulocity);
         if (!c8yconfig) return;
         this.devLog('installAgent|c8yconfig', c8yconfig);
       }
@@ -139,6 +152,66 @@ export class InstallAgentService extends DevlogService {
     }
   }
 
+  private async pollForFile(
+    device: EwonFlexyStructure,
+    index: number,
+    config = this.config,
+    file: string,
+    attempts = 5,
+    timeout = 60000
+  ): Promise<boolean> {
+    this.devLog('pollForFile', { device, index, config, file });
+    const filename = this.getFilenameFromUrl(file);
+    let fileExists = false;
+
+    // interval polling
+    for (let i = 1; i <= attempts; i++) {
+      try {
+        this.devLog('pollForLoadedFiles|attempt ' + i, { filename, device });
+        this.sendDeviceSimpleMessage(
+          device.name, index,
+          `Polling for file <span class="text-warning">"${filename}"</span>.<br><b>Attempt ${i} of ${attempts}</b>`, 'file-view'
+        );
+        fileExists = await this.flexyService.downloadSoftware(filename, device.name, config);
+        this.devLog('pollForLoadedFiles|file ' + i, { file, fileExists });
+      }
+      catch (error) {
+        // TODO check handling of error cases: file not found, bad gateway
+        this.devLog('pollForLoadedFiles|error', { attempt: i, device, filename, error });
+      }
+
+      if (fileExists) {
+        // file found
+        this.sendDeviceSimpleMessage(device.name, index, `File <span class="text-success">"${filename}" found</span>.`, 'check-document');
+        return true;
+      } else {
+        // next attempt or failure
+        // TODO exit on bad gateway?
+        if (i === attempts) {
+          this.sendDeviceSimpleMessage(device.name, index, `File <span class="text-error">"${filename}" not found</span>.`, 'delete-file');
+          return false;
+        } else {
+          this.sleep(timeout);
+        }
+      }
+    }
+  }
+
+  private checkForLoadedFiles(device: EwonFlexyStructure, index: number, config = this.config, attempts = 5): Promise<boolean> {
+    this.devLog('checkForLoadedFiles', { device, index, config });
+
+    const files = [
+      this.pollForFile(device, index, config, config.url.connector, attempts),
+      this.pollForFile(device, index, config, config.url.jvmrun, attempts)
+    ];
+
+    if (config.url.hasOwnProperty('cumulocity') && !!config.url.cumulocity) {
+      files.push(this.pollForFile(device, index, config, config.url.cumulocity, attempts));
+    }
+
+    return Promise.all(files).then((res) => res.reduce((p, c) => p && c, true));
+  }
+
   private async installAgent(device: EwonFlexyStructure, index: number, config = this.config): Promise<string> {
     this.devLog('installAgent', { device, index, config });
 
@@ -147,29 +220,51 @@ export class InstallAgentService extends DevlogService {
     this.devLog('installAgent|connectionCheck', { isC8yDevice, isT2mDevice });
 
     try {
+      // TODO remove check for c8y device
       if (isC8yDevice && !isT2mDevice) throw new Error('Not connected to Talk2M');
-      if (!device.status || device.status !== 'online') throw new Error('Device is not online');
+      // if (!device.status || device.status !== 'online') throw new Error('Device is not online');
 
       // 1. request SN
+      this.sendDeviceSimpleMessage(device.name, index, 'Step 1 - Requesting Serial', 'certificate');
       const serial = await this.getSerial(device.name, index, device.encodedName);
-      if (!serial) return;
-      this.devLog('installAgent|serial', serial);
+      this.devLog('installAgent|serial', [index + 1, serial]);
+      // if (!serial) return;
 
-      // 2. files
+      // 2. check if device was already connected via agent
+      this.sendDeviceSimpleMessage(device.name, index, '<b>Step 2</b> - Check if device was already connected via agent', 'plug');
+
+      // 3. check if files are already present on device
+      this.sendDeviceSimpleMessage(device.name, index, '<b>Step 3</b> - Check for preexisting files', 'search');
+      const filesExistAlready = await this.checkForLoadedFiles(device, index, config, 1);
+      if (filesExistAlready) {
+        this.sendDeviceErrorMessage(device.name, index, `File(s) already exist on device.`);
+        return;
+      }
+
+      // 4. files
+      this.sendDeviceSimpleMessage(device.name, index, `<b>Step 4</b> - Download files`, 'download-archive');
       const files = await this.loadFilesOntoDevice(device, index, config);
-      if (!files) return;
+      this.devLog('installAgent|loadFilesOntoDevice', [index + 1, files]);
+      // if (!files) return;
 
-      // 3. reboot
-      this.sendDeviceSimpleMessage(device.name, index, 'Step 3.1 - Reboot', 'refresh');
+      // 5. check files
+      this.sendDeviceSimpleMessage(device.name, index, '<b>Step 5</b> - Download files to device', 'cloud-download');
+      const filesLoaded = await this.checkForLoadedFiles(device, index, config);
+      this.devLog('installAgent|checkForLoadedFiles', [index + 1, filesLoaded]);
+      if (!filesLoaded) return;
+
+      // 6. reboot
+      this.sendDeviceSimpleMessage(device.name, index, '<b>Step 6</b> - Reboot', 'refresh');
       const reboot = await this.flexyService.reboot(device.encodedName, config);
-      this.devLog('installAgent|reboot', reboot);
+      this.devLog('installAgent|reboot', [index + 1, reboot]);
+      // this.devLog('installAgent|reboot', reboot);
 
-      this.sendDeviceSimpleMessage(device.name, index, 'Step 3.2 - waiting for Reboot', 'clock1');
-      // TODO wait for reboot to finish
+      this.sendDeviceSimpleMessage(device.name, index, '<b>Step 6</b> - waiting for Reboot', 'clock1');
+      // TODO wait for reboot to finish (poll for serial)
 
-      // 4. register device
+      // 7. register device
       if (!isC8yDevice) {
-        this.sendDeviceSimpleMessage(device.name, index, 'Step 4 - Register device', 'cloud-checked');
+        this.sendDeviceSimpleMessage(device.name, index, 'Step 7</b> - Register device', 'cloud-checked');
         this.flexyService.registerFlexy(device); // TODO get device group
       }
 

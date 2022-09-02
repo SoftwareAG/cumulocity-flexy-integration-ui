@@ -60,6 +60,17 @@ export class Talk2MService extends DevlogService {
     return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
   }
 
+  async downloadFile(filename: string, deviceName: string, config): Promise<string> {
+    const url = this.buildUrl(`get/${deviceName}/usr/${filename}`, {
+      AST_Param: '$dtIV$ftT', // issue #27 - usage unknown
+      session: config.session,
+      account: config.account,
+      deviceUsername: config.deviceUsername,
+      devicePassword: config.devicePassword
+    });
+    return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
+  }
+
   async login(account: string, username: string, password: string): Promise<string> {
     this.devLog('login', { account, username, password });
 
