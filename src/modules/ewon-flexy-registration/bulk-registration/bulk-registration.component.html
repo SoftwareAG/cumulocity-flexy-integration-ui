@@ -7,7 +7,7 @@
   </div>
 </c8y-action-bar-item>
 
-<c8y-action-bar-item [itemClass]="'btn-group'" [placement]="'right'">
+<c8y-action-bar-item [placement]="'right'" [itemClass]="'btn-group'">
   <button class="btn btn-clean" [disabled]="!isSessionConnected" (click)="openRegisterModal()">
     <i c8yIcon="plus-circle"></i>
     {{ 'Register Flexy manually' | translate }}
@@ -40,7 +40,7 @@
 <ng-container *ngIf="installProgressText.length">
   <button
     class="clear-log-button btn-icon btn-clean"
-    title="Clear Log"
+    tooltip="Clear Log"
     (click)="installProgressText = []; installError = false; installInProgress = false"
   >
     <i c8yIcon="times"></i>
@@ -63,8 +63,8 @@
     </strong>
   </div>
 
-  <c8y-list-group class="m-b-16" style="height: 600px; overflow-y: auto;">
-    <c8y-li-timeline *ngFor="let log of installProgressText">
+  <c8y-list-group class="m-b-16" style="max-height: 600px; overflow-y: auto;">
+    <c8y-li-timeline *ngFor="let log of installProgressText.slice().reverse()">
       {{ log.date | date: 'HH:mm:ss' }}<br />
       {{ log.date | date: '.SSS' }}
       <c8y-li>
@@ -81,7 +81,7 @@
   <!-- List of ewon items -->
   <ng-container *ngIf="!isLoading && rows.length > 0">
     <!-- TODO remove after dev -->
-    <button type="button" class="btn btn-danger btn-icon m-b-8" (click)="reload()">
+    <button type="button" class="btn btn-danger btn-icon m-b-8" tooltip="Reload" (click)="reload()">
       <i c8yIcon="refresh"></i>
     </button>
 

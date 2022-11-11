@@ -10,9 +10,13 @@ import {
   IManagedObject
 } from '@c8y/client';
 import { IdentityService, InventoryService } from '@c8y/ngx-components/api';
-import { FLEXY_DEVICETYPE, FLEXY_EXTERNALID_TALK2M_PREFIX } from '@constants/flexy-integration.constants';
+import {
+  FLEXY_DEVICETYPE,
+  FLEXY_EXTERNALID_TALK2M_PREFIX
+} from '@constants/flexy-integration.constants';
 import { EwonFlexyStructure } from '@interfaces/flexy.interface';
 import { DevlogService } from './devlog.service';
+import { ExternalIDService } from './external-id.service';
 
 @Injectable({ providedIn: 'root' })
 export class EWONFlexyDeviceRegistrationService extends DevlogService {
@@ -22,7 +26,8 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
   constructor(
     private inventoryService: InventoryService,
     private identityService: IdentityService,
-    private deviceRegistration: DeviceRegistrationService
+    private deviceRegistration: DeviceRegistrationService,
+    private externalIDService: ExternalIDService
   ) {
     super();
     this.devLogEnabled = false;
@@ -32,8 +37,6 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
   // InventoryService
   async createDeviceInventory(ewon: EwonFlexyStructure): Promise<IManagedObject> {
     let partialManagedObj: Partial<IManagedObject> = {
-      pageSize: 1,
-      withTotalPages: true,
       name: (ewon && ewon.name) || 'Unknown name',
       type: FLEXY_DEVICETYPE,
       c8y_IsDevice: {},
@@ -70,7 +73,9 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
 
   async getDeviceGroupInventoryList(): Promise<IManagedObject[]> {
     const filter: object = {
-      pageSize: 100, withTotalPages: true, fragmentType: 'c8y_IsDeviceGroup'
+      pageSize: 100,
+      withTotalPages: true,
+      fragmentType: 'c8y_IsDeviceGroup'
     };
     const { data } = await this.inventoryService.list(filter);
     return data;
@@ -128,27 +133,30 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
   //--------
 
   // IdentityService
+
+  /**
+   *
+   * @deprecated use ExternalIDService.getExternalID()
+   */
   async isDeviceRegistered(externalId: string, prefix: string, externalType: string): Promise<boolean> {
-    const identity: IExternalIdentity = {
-      type: externalType,
-      externalId: prefix + externalId
-    };
-    const data = await this.identityService.detail(identity).then(
-      (result) => {
-        return true;
-      },
-      (error) => {
-        return false;
-      }
+    return await this.externalIDService.getExternalID(prefix + externalId, externalType).then(
+      () => true,
+      () => false
     );
-    return data;
   }
 
+  /**
+   *
+   * @deprecated
+   */
   async getExternalIdsOfManagedObject(id: string): Promise<IExternalIdentity[]> {
-    const { data } = await this.identityService.list(id);
-    return data;
+    return await this.identityService.list(id).then((res) => res.data);
   }
 
+  /**
+   *
+   * @deprecated use external-id.service createExternalIDForDevice()
+   */
   async createIdentidyForDevice(
     deviceId: string,
     externalId: string,
@@ -187,7 +195,10 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
     return data;
   }
 
-  async createDeviceRequestRegistration(id: string, prefix = FLEXY_EXTERNALID_TALK2M_PREFIX): Promise<IDeviceRegistration> {
+  async createDeviceRequestRegistration(
+    id: string,
+    prefix = FLEXY_EXTERNALID_TALK2M_PREFIX
+  ): Promise<IDeviceRegistration> {
     const registrationObject: IDeviceRegistrationCreate = {
       id: prefix + id
     };
@@ -212,5 +223,4 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
     return data;
   }
   //--------
-
 }

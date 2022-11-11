@@ -1,12 +1,18 @@
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { TALK2M_BASEURL, TALK2M_DEVELOPERID } from '@constants/flexy-integration.constants';
+import { IExternalIdentity, IManagedObject } from '@c8y/client';
+import {
+  FLEXY_EXTERNALID_TALK2M_PREFIX,
+  TALK2M_BASEURL,
+  TALK2M_DEVELOPERID
+} from '@constants/flexy-integration.constants';
 import { FlexySettings, T2MAccount, t2mUrlOptions } from '@interfaces/flexy.interface';
 import { DevlogService } from './devlog.service';
+import { ExternalIDService } from './external-id.service';
 
 @Injectable({ providedIn: 'root' })
 export class Talk2MService extends DevlogService {
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private externalIDService: ExternalIDService) {
     super();
     this.devLogEnabled = false;
     this.devLogPrefix = 'T2M.S';
@@ -99,10 +105,31 @@ export class Talk2MService extends DevlogService {
 
   async getAccount(session: string): Promise<T2MAccount> {
     this.devLog('getAccount');
-    const response = await this.http
-      .get<any>(this.buildUrl('getaccountinfo', { session }), { observe: 'response' })
-      .toPromise();
-    this.devLog('getAccount|response', response);
-    return response.body as T2MAccount;
+
+    try {
+      const response = await this.http
+        .get<any>(this.buildUrl('getaccountinfo', { session }), { observe: 'response' })
+        .toPromise();
+      this.devLog('getAccount|response', response);
+      return response.body as T2MAccount;
+    } catch (error) {
+      return Promise.reject(error.message);
+    }
+  }
+
+  // new
+  private getExternalIDString(id): string {
+    this.devLog('getExternalIDString', { id });
+    return FLEXY_EXTERNALID_TALK2M_PREFIX + id;
+  }
+
+  async getExternalID(id): Promise<IExternalIdentity> {
+    this.devLog('getExternalID', { id });
+    return this.externalIDService.getExternalID(this.getExternalIDString(id));
+  }
+
+  async createExternalIDForDevice(deviceMO: IManagedObject, externalID: string): Promise<IExternalIdentity> {
+    this.devLog('createExternalIDForDevice', { deviceMO, externalID });
+    return this.externalIDService.createExternalIDForDevice(deviceMO.id, this.getExternalIDString(externalID));
   }
 }

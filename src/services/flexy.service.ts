@@ -1,7 +1,11 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { IIdentified } from '@c8y/client';
-import { EXTERNALID_TALK2M_SERIALTYPE, FLEXY_EXTERNALID_TALK2M_PREFIX } from '@constants/flexy-integration.constants';
+import { IExternalIdentity, IManagedObject } from '@c8y/client';
+import {
+  EXTERNALID_TALK2M_SERIALTYPE,
+  FLEXY_EXTERNALID_FLEXY_PREFIX,
+  FLEXY_EXTERNALID_TALK2M_PREFIX
+} from '@constants/flexy-integration.constants';
 import {
   EwonFlexyStructure,
   FlexyCommandFile,
@@ -12,6 +16,7 @@ import {
 } from '@interfaces/flexy.interface';
 import { DevlogService } from './devlog.service';
 import { EWONFlexyDeviceRegistrationService } from './ewon-flexy-device-registration.service';
+import { ExternalIDService } from './external-id.service';
 import { Talk2MService } from './talk2m.service';
 
 @Injectable({
@@ -21,7 +26,8 @@ export class FlexyService extends DevlogService {
   constructor(
     private talk2m: Talk2MService,
     private http: HttpClient,
-    private flexyRegistrationService: EWONFlexyDeviceRegistrationService
+    private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
+    private externalIDService: ExternalIDService
   ) {
     super();
     this.devLogEnabled = false;
@@ -99,7 +105,8 @@ export class FlexyService extends DevlogService {
     this.devLog('registerFlexy', { ewon, deviceGroupId });
     const ewonId = ewon.id.toString();
 
-    if (ewon.registered !== FlexyIntegrated.Not_integrated) return Promise.reject(`Device with ewonId "${ewonId}" is already registered.`);
+    if (ewon.registered !== FlexyIntegrated.Not_integrated)
+      return Promise.reject(`Device with ewonId "${ewonId}" is already registered.`);
 
     const requests = await this.flexyRegistrationService.getDeviceRequestRegistration();
     const existingRequest = requests.find((element) => element.id == FLEXY_EXTERNALID_TALK2M_PREFIX + ewonId);
@@ -127,18 +134,16 @@ export class FlexyService extends DevlogService {
     if (!deviceInventoryMO) return Promise.reject('Device owner was not set.');
 
     // 3. Assign externalId to inventory
-    const identityMO = await this.flexyRegistrationService.createIdentidyForDevice(
-      deviceInventoryMO.id,
-      ewonId,
-      FLEXY_EXTERNALID_TALK2M_PREFIX,
-      EXTERNALID_TALK2M_SERIALTYPE
-    );
+    const identityMO = await this.createExternalIDForDevice(deviceInventoryMO, ewonId);
     this.devLog('registerFlexy|identityMO', identityMO);
     if (!identityMO) return Promise.reject('External ID was not assigned.');
 
     // 4. Assign group to inventory
     if (ewon.pool && deviceGroupId) {
-      await this.flexyRegistrationService.addGroupChildAssetToDevice(deviceGroupId, identityMO.managedObject.id.toString());
+      await this.flexyRegistrationService.addGroupChildAssetToDevice(
+        deviceGroupId,
+        identityMO.managedObject.id.toString()
+      );
     }
 
     ewon.registered = FlexyIntegrated.Integrated;
@@ -160,5 +165,21 @@ export class FlexyService extends DevlogService {
     });
 
     return [...c8y, ...uniques];
+  }
+
+  // new
+  private getExternalIDString(id): string {
+    this.devLog('getExternalIDString', { id });
+    return FLEXY_EXTERNALID_FLEXY_PREFIX + id;
+  }
+
+  async getExternalID(id): Promise<IExternalIdentity> {
+    this.devLog('getExternalID', { id });
+    return this.externalIDService.getExternalID(this.getExternalIDString(id));
+  }
+
+  async createExternalIDForDevice(deviceMO: IManagedObject, externalID: string): Promise<IExternalIdentity> {
+    this.devLog('createExternalIDForDevice', { deviceMO, externalID });
+    return this.externalIDService.createExternalIDForDevice(deviceMO.id, this.getExternalIDString(externalID));
   }
 }

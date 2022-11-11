@@ -7,15 +7,13 @@ import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@interfaces/
 import { CerdentialsService } from '@services/credentials.service';
 import { EWONFlexyDeviceRegistrationService } from '@services/ewon-flexy-device-registration.service';
 import { FlexyService } from '@services/flexy.service';
-import { Talk2MService } from '@services/talk2m.service';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-registration-modal',
   templateUrl: './registration-modal.component.html',
-  styleUrls: ['registration-modal.component.less'],
-  providers: [Talk2MService]
+  styleUrls: ['registration-modal.component.less']
 })
 export class RegistrationModalComponent implements OnInit {
   @Input() set config(value: any) {
@@ -34,7 +32,6 @@ export class RegistrationModalComponent implements OnInit {
     private alert: AlertService,
     private bsModalRef: BsModalRef,
     private flexyCredentials: CerdentialsService,
-    private talk2m: Talk2MService,
     private flexyRegistration: EWONFlexyDeviceRegistrationService,
     private flexyService: FlexyService
   ) {

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { IManagedObject } from '@c8y/client';
 import {
   AlertService,
@@ -161,6 +161,8 @@ export class BulkRegistrationComponent implements OnInit {
     const response = await Promise.all([this.fetchDevices(), this.fetchCredentials()]);
     this.devLog('fetchContent|all', response);
 
+    if (!response[0] || !response[1]) return;
+
     const rows = await this.digestDevices(response[0], response[1]);
     this.devLog('fetchContent|digest', rows);
     this.rows = rows;
@@ -241,7 +243,7 @@ export class BulkRegistrationComponent implements OnInit {
 
       return account;
     } catch (error) {
-      this.alert.warning('Failed to get credentials. ', error);
+      this.alert.warning('Could not connect to T2M', error);
       this.isLoading = false;
       this.isSessionConnected = false;
     }
@@ -266,16 +268,17 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   private async registerSelectedDevices(selectedItems: string[]) {
-    const promises = selectedItems.map((item) => this.registerDevice(item)
-      .then(
-        () => this.report.successfull.push(item),
-        () => this.report.failed.push(item)
-      )
-      .then(
-        () =>
-        (this.completionPercent =
-          ((this.report.failed.length + this.report.successfull.length) / selectedItems.length) * 100)
-      )
+    const promises = selectedItems.map((item) =>
+      this.registerDevice(item)
+        .then(
+          () => this.report.successfull.push(item),
+          () => this.report.failed.push(item)
+        )
+        .then(
+          () =>
+            (this.completionPercent =
+              ((this.report.failed.length + this.report.successfull.length) / selectedItems.length) * 100)
+        )
     );
     await Promise.all(promises);
   }
@@ -288,9 +291,7 @@ export class BulkRegistrationComponent implements OnInit {
       ewon = await this.flexyService.registerFlexy(ewon, poolGroupId);
       const deviceIndex = this.rows.findIndex((element) => element.id == deviceID);
       this.rows[deviceIndex].registered = FlexyIntegrated.Integrated;
-      this.rows[deviceIndex].groups = [
-        { name: ewon.pool, id: poolGroupId }
-      ];
+      this.rows[deviceIndex].groups = [{ name: ewon.pool, id: poolGroupId }];
     } catch (error) {
       console.log('ERROR', error); // TODO proper error handling
     }
