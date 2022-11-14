@@ -2,6 +2,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IExternalIdentity, IManagedObject } from '@c8y/client';
 import {
+  EXTERNALID_FLEXY_SERIALTYPE,
   EXTERNALID_TALK2M_SERIALTYPE,
   FLEXY_EXTERNALID_FLEXY_PREFIX,
   FLEXY_EXTERNALID_TALK2M_PREFIX
@@ -81,7 +82,12 @@ export class FlexyService extends DevlogService {
       devicePassword: config.devicePassword,
       AST_Param: '$dtES'
     });
-    return await this.http.get<any>(url, this.talk2m.generateHeaderOptions()).toPromise();
+    const res = await this.http.get<any>(url, this.talk2m.generateHeaderOptions()).toPromise();
+    // grab serial from response (temp solution?);
+    const regEx = new RegExp(/SerNum:(\d{4}-\d{4}-\d{2})/gm);
+    const serial = res.match(regEx);
+
+    return serial.length ? serial[0].substring(7) : '';
   }
 
   async installSoftware(file: FlexyCommandFile, deviceName: string, config: FlexySettings): Promise<string> {
@@ -175,11 +181,15 @@ export class FlexyService extends DevlogService {
 
   async getExternalID(id): Promise<IExternalIdentity> {
     this.devLog('getExternalID', { id });
-    return this.externalIDService.getExternalID(this.getExternalIDString(id));
+    return this.externalIDService.getExternalID(this.getExternalIDString(id), EXTERNALID_FLEXY_SERIALTYPE);
   }
 
   async createExternalIDForDevice(deviceMO: IManagedObject, externalID: string): Promise<IExternalIdentity> {
     this.devLog('createExternalIDForDevice', { deviceMO, externalID });
-    return this.externalIDService.createExternalIDForDevice(deviceMO.id, this.getExternalIDString(externalID));
+    return this.externalIDService.createExternalIDForDevice(
+      deviceMO.id,
+      this.getExternalIDString(externalID),
+      EXTERNALID_FLEXY_SERIALTYPE
+    );
   }
 }

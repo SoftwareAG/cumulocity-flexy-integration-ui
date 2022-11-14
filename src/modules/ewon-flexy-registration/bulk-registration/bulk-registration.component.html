@@ -80,17 +80,12 @@
 <div class="d-block">
   <!-- List of ewon items -->
   <ng-container *ngIf="!isLoading && rows.length > 0">
-    <!-- TODO remove after dev -->
-    <button type="button" class="btn btn-danger btn-icon m-b-8" tooltip="Reload" (click)="reload()">
-      <i c8yIcon="refresh"></i>
-    </button>
-
     <c8y-data-grid
       #grid
       [title]="'Talk2M Flexy Devices' | translate"
       [columns]="columns"
       [pagination]="pagination"
-      [actionControls]="[]"
+      [actionControls]="actionControls"
       [bulkActionControls]="bulkActionControls"
       [rows]="rows"
       [selectable]="true"

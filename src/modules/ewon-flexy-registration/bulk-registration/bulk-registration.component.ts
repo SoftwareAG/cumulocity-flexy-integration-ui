@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { IManagedObject } from '@c8y/client';
 import {
+  ActionControl,
   AlertService,
   BulkActionControl,
   Column,
@@ -30,6 +31,7 @@ export class BulkRegistrationComponent implements OnInit {
   private devLogEnabled: boolean;
   private devLogPrefix: string;
   private config: FlexySettings = {};
+  private _dataGrid: DataGridComponent;
   isSessionConnected = false;
   isLoading = true;
   isRegistratingFlexy = false;
@@ -41,6 +43,7 @@ export class BulkRegistrationComponent implements OnInit {
   };
   columns: Column[] = [];
   rows: EwonFlexyStructure[] = [];
+  actionControls: ActionControl[] = [];
   bulkActionControls: BulkActionControl[] = [
     {
       type: '',
@@ -69,7 +72,13 @@ export class BulkRegistrationComponent implements OnInit {
   installProgressText: ProgressMessage[] = [];
   installError = false;
 
-  @ViewChild('grid', { static: false }) dataGrid: DataGridComponent;
+  @ViewChild('grid', { static: false }) set dataGrid(grid: DataGridComponent) {
+    this._dataGrid = grid;
+    if (grid) this._dataGrid.reload = () => this.reload();
+  }
+  get dataGrid(): DataGridComponent {
+    return this._dataGrid;
+  }
 
   constructor(
     private alert: AlertService,
@@ -90,7 +99,73 @@ export class BulkRegistrationComponent implements OnInit {
 
   ngOnInit() {
     this.devLog('OnInit');
-    this.fetchContent();
+    void this.fetchContent();
+  }
+
+  async startRegistration(selectedItems: string[]) {
+    this.isRegistratingFlexy = true;
+
+    const groups = await this.flexyRegistration.getDeviceGroupInventoryList();
+    for (const item of selectedItems) {
+      const ewon = this.rows.find((element) => element.id == item);
+      if (this.poolGroupList.has(ewon.pool)) {
+        continue;
+      }
+      const group = groups.find((group) => group.name == ewon.pool);
+      if (ewon.pool && group) {
+        this.poolGroupList.set(ewon.pool, group.id);
+      } else if (ewon.pool && !group) {
+        const createdGroup = await this.flexyRegistration.createDeviceGroupInventory(ewon.pool);
+        this.poolGroupList.set(ewon.pool, createdGroup.id);
+      }
+    }
+
+    await this.registerSelectedDevices(selectedItems);
+    this.alert.info('Registration finished.', JSON.stringify(this.report));
+    this.isRegistratingFlexy = false;
+    this.dataGrid.cancel();
+  }
+
+  openRegisterModal(): void {
+    this.registerManuallyService.openModalRegistration().subscribe((newFlexy) => {
+      newFlexy.registered = FlexyIntegrated.Integrated;
+      newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
+      this.rows = this.rows.concat(newFlexy);
+    });
+  }
+
+  openAgentInstallModal(selectedItems?: string[]): void {
+    const dialog = this.modalService.show(AgentInstallOverlayComponent);
+    dialog.content.devices = this.getSelectedDevices(selectedItems);
+    dialog.content.closeSubject.subscribe((response: InstallAgentForm) => {
+      if (response) this.handleInstallAgentDialog(response);
+    });
+  }
+
+  // TODO remove after dev
+  reload(): Promise<void> {
+    this.devLog('reload');
+
+    this.installInProgress = false;
+    this.installProgressText = [];
+    this.installError = false;
+
+    return this.fetchContent();
+  }
+
+  // TODO remove after dev
+  rebootDevices(selectedItems: string[]): void {
+    const devices = this.getSelectedDevices(selectedItems);
+    const reboots: Promise<string>[] = [];
+    const config = { ...this.config, ...{ deviceUsername: 'adm', devicePassword: 'adm' } };
+
+    devices.forEach((device) => reboots.push(this.flexyService.reboot(device.encodedName, config)));
+
+    Promise.all(reboots)
+      .then(() =>
+        this.alert.add({ text: `${selectedItems.length} device(s) rebooting`, type: 'success', timeout: 3000 })
+      )
+      .catch((reason) => this.alert.danger('Reboot failed', reason));
   }
 
   // TODO move to service
@@ -323,71 +398,5 @@ export class BulkRegistrationComponent implements OnInit {
 
   private getSelectedDevices(selectedItems: string[]): EwonFlexyStructure[] {
     return this.rows.filter((d) => selectedItems.indexOf(d.id as string) > -1);
-  }
-
-  async startRegistration(selectedItems: string[]) {
-    this.isRegistratingFlexy = true;
-
-    const groups = await this.flexyRegistration.getDeviceGroupInventoryList();
-    for (const item of selectedItems) {
-      const ewon = this.rows.find((element) => element.id == item);
-      if (this.poolGroupList.has(ewon.pool)) {
-        continue;
-      }
-      const group = groups.find((group) => group.name == ewon.pool);
-      if (ewon.pool && group) {
-        this.poolGroupList.set(ewon.pool, group.id);
-      } else if (ewon.pool && !group) {
-        const createdGroup = await this.flexyRegistration.createDeviceGroupInventory(ewon.pool);
-        this.poolGroupList.set(ewon.pool, createdGroup.id);
-      }
-    }
-
-    await this.registerSelectedDevices(selectedItems);
-    this.alert.info('Registration finished.', JSON.stringify(this.report));
-    this.isRegistratingFlexy = false;
-    this.dataGrid.cancel();
-  }
-
-  openRegisterModal(): void {
-    this.registerManuallyService.openModalRegistration().subscribe((newFlexy) => {
-      newFlexy.registered = FlexyIntegrated.Integrated;
-      newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
-      this.rows = this.rows.concat(newFlexy);
-    });
-  }
-
-  openAgentInstallModal(selectedItems?: string[]): void {
-    const dialog = this.modalService.show(AgentInstallOverlayComponent);
-    dialog.content.devices = this.getSelectedDevices(selectedItems);
-    dialog.content.closeSubject.subscribe((response: InstallAgentForm) => {
-      if (response) this.handleInstallAgentDialog(response);
-    });
-  }
-
-  // TODO remove after dev
-  reload(): Promise<void> {
-    this.devLog('reload');
-
-    this.installInProgress = false;
-    this.installProgressText = [];
-    this.installError = false;
-
-    return this.fetchContent();
-  }
-
-  // TODO remove after dev
-  rebootDevices(selectedItems: string[]): void {
-    const devices = this.getSelectedDevices(selectedItems);
-    const reboots: Promise<string>[] = [];
-    const config = { ...this.config, ...{ deviceUsername: 'adm', devicePassword: 'adm' } };
-
-    devices.forEach((device) => reboots.push(this.flexyService.reboot(device.encodedName, config)));
-
-    Promise.all(reboots)
-      .then(() =>
-        this.alert.add({ text: `${selectedItems.length} device(s) rebooting`, type: 'success', timeout: 3000 })
-      )
-      .catch((reason) => this.alert.danger('Reboot failed', reason));
   }
 }

@@ -94,7 +94,7 @@ export class SynchjobModalComponent implements OnInit {
           }
         }
       } else {
-        this.alert.warning('Missing credentials to conntect.', JSON.stringify({ t2mtoke: this._config.token }));
+        this.alert.warning('Missing credentials to conntect.', JSON.stringify({ t2mtoken: this._config.token }));
       }
       this.isLoading = false;
     });
