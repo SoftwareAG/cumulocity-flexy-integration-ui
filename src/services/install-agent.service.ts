@@ -33,6 +33,36 @@ export class InstallAgentService extends DevlogService {
     this.devLogPrefix = 'IA.S';
   }
 
+  install(devices: EwonFlexyStructure[], config: FlexySettings): Observable<ProgressMessage> {
+    this.devLog('install', { devices, config });
+
+    const devicePromises = [];
+    return new Observable<ProgressMessage>((observer) => {
+      this.progressLogger.observer$ = observer;
+
+      // input validation
+      if (!devices.length) this.progressLogger.sendErrorMessage('No eligible devices available.');
+      if (!config.deviceUsername) this.progressLogger.sendErrorMessage('Device username missing.');
+      if (!config.devicePassword) this.progressLogger.sendErrorMessage('Device password missing.');
+      if (!config.url) {
+        this.progressLogger.sendErrorMessage('File URLs missing.');
+      } else {
+        if (!config.url.connector || config.url.connector === '')
+          this.progressLogger.sendErrorMessage('Connector file URL missing.');
+        if (!config.url.jvmrun || config.url.jvmrun === '')
+          this.progressLogger.sendErrorMessage('JVMrun file URL missing.');
+      }
+
+      // start install
+      this.progressLogger.sendSimpleMessage('Starting install', 'rocket');
+      this.progressLogger.total = devices.length;
+      this.config = config;
+
+      devices.forEach((device, index) => devicePromises.push(this.installAgent(device, index)));
+      Promise.all(devicePromises).then(() => this.progressLogger.observer$.complete());
+    });
+  }
+
   // helper
   private sleep(seconds): Promise<NodeJS.Timer> {
     // TODO display timeout between requests to user (progress-bar?)
@@ -153,9 +183,11 @@ export class InstallAgentService extends DevlogService {
       */
       const deviceMO = await this.externalIDService.getDeviceByIdentity(flexy);
       if (deviceMO && this.deviceHasAgentFragment(deviceMO)) {
-        // TODO test & exception handling
-        if (!talk2m) void (await this.talk2mService.createExternalIDForDevice(deviceMO, flexy.externalId));
-        return Promise.reject({ message: 'Device MO already has an external Flexy ID.' });
+        if (!talk2m) {
+          this.devLog('checkIfDeviceConectedViaAgent|adding talk2m external ID');
+          void (await this.talk2mService.createExternalIDForDevice(deviceMO, flexy.externalId));
+        }
+        return Promise.reject({ message: 'Already connected: Device MO has an external Flexy ID.' });
       }
     } else if (talk2m) {
       /*
@@ -166,7 +198,7 @@ export class InstallAgentService extends DevlogService {
       const externalIDs = await await this.externalIDService.getExternalIDsForDevice(deviceMO);
       const flexyIDs = externalIDs.filter((id) => id.externalId.indexOf(FLEXY_EXTERNALID_FLEXY_PREFIX) >= 0);
 
-      if (flexyIDs.length) return Promise.reject('Device MO already has an external Talk2M ID.');
+      if (flexyIDs.length) return Promise.reject('Already connected: Device MO has an external Talk2M ID.');
       else this.devLog('updateDeviceMO|Device has external talk2m ID, but no other flexy ID', { externalIDs });
     }
 
@@ -317,7 +349,7 @@ export class InstallAgentService extends DevlogService {
     this.devLog('hasAgentFragment|external ids', ids);
     if (!ids.length) return Promise.reject({ message: 'No external IDs found for device.' });
 
-    const mo = await this.externalIDService.getDeviceByExternalID(ids[0].externalId);
+    const mo = await this.flexyService.getDeviceByExternalID(ids[0].externalId);
     this.devLog('hasAgentFragment|device mo', mo);
     if (!mo) return Promise.reject({ message: 'No device MO found for Device.' });
 
@@ -326,6 +358,7 @@ export class InstallAgentService extends DevlogService {
       : Promise.reject({ message: `Device is missing "${DEVICE_AGENT_FRAGMENT}" fragment` });
   }
 
+  // install process
   private async installAgent(device: EwonFlexyStructure, index: number, config = this.config): Promise<string> {
     console.clear(); // TODO remove after dev
     this.devLog('installAgent', { device, index, config });
@@ -372,7 +405,12 @@ export class InstallAgentService extends DevlogService {
       }
 
       // 3. check if files are already present on device
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, '<b>Step 3</b> - Check for preexisting files', 'search');
+      this.progressLogger.sendDeviceSimpleMessage(
+        device.name,
+        index,
+        '<b>Step 3</b> - Check for preexisting files',
+        'search'
+      );
       const filesExistAlready = await this.checkForLoadedFiles(device, index, config, 1);
       if (filesExistAlready) {
         this.progressLogger.sendDeviceErrorMessage(device.name, index, `File(s) already exist on device.`);
@@ -380,13 +418,23 @@ export class InstallAgentService extends DevlogService {
       }
 
       // 4. files
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 4</b> - Download files`, 'download-archive');
+      this.progressLogger.sendDeviceSimpleMessage(
+        device.name,
+        index,
+        `<b>Step 4</b> - Download files`,
+        'download-archive'
+      );
       const files = await this.loadFilesOntoDevice(device, index, config);
       this.devLog('installAgent|loadFilesOntoDevice', [index + 1, files]);
       if (!files) return;
 
       // 5. check files
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, '<b>Step 5</b> - Download files to device', 'cloud-download');
+      this.progressLogger.sendDeviceSimpleMessage(
+        device.name,
+        index,
+        '<b>Step 5</b> - Download files to device',
+        'cloud-download'
+      );
       const filesLoaded = await this.checkForLoadedFiles(device, index, config);
       this.devLog('installAgent|checkForLoadedFiles', [index + 1, filesLoaded]);
       if (!filesLoaded) {
@@ -410,10 +458,15 @@ export class InstallAgentService extends DevlogService {
         return;
       }
 
-      // TODO (check) flag agent installed if has agent fragment
+      // check if device MO has agent fragment
       this.progressLogger.sendDeviceSimpleMessage(device.name, index, '<b>Step 7</b> - Update status', 'pencil');
       const hasAgentFragment = await this.hasAgentFragment(device);
       if (!hasAgentFragment) return;
+
+      /*
+        TODO Continue here
+        » Add external IDs to device MO
+      */
 
       // 8. register device
       this.progressLogger.sendDeviceSimpleMessage(
@@ -422,6 +475,7 @@ export class InstallAgentService extends DevlogService {
         '<b>Step 8</b> - Register device',
         'cloud-checked'
       );
+      // TODO check functionality of register function
       // void this.flexyService.registerFlexy(device); // TODO get device group
 
       return Promise.resolve('done');
@@ -430,35 +484,5 @@ export class InstallAgentService extends DevlogService {
       const message = typeof error === 'string' ? error : error.message;
       this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Failed to install agent', message);
     }
-  }
-
-  install(devices: EwonFlexyStructure[], config: FlexySettings): Observable<ProgressMessage> {
-    this.devLog('install', { devices, config });
-
-    const devicePromises = [];
-    return new Observable<ProgressMessage>((observer) => {
-      this.progressLogger.observer$ = observer;
-
-      // input validation
-      if (!devices.length) this.progressLogger.sendErrorMessage('No eligible devices available.');
-      if (!config.deviceUsername) this.progressLogger.sendErrorMessage('Device username missing.');
-      if (!config.devicePassword) this.progressLogger.sendErrorMessage('Device password missing.');
-      if (!config.url) {
-        this.progressLogger.sendErrorMessage('File URLs missing.');
-      } else {
-        if (!config.url.connector || config.url.connector === '')
-          this.progressLogger.sendErrorMessage('Connector file URL missing.');
-        if (!config.url.jvmrun || config.url.jvmrun === '')
-          this.progressLogger.sendErrorMessage('JVMrun file URL missing.');
-      }
-
-      // start install
-      this.progressLogger.sendSimpleMessage('Starting install', 'rocket');
-      this.progressLogger.total = devices.length;
-      this.config = config;
-
-      devices.forEach((device, index) => devicePromises.push(this.installAgent(device, index)));
-      Promise.all(devicePromises).then(() => this.progressLogger.observer$.complete());
-    });
   }
 }

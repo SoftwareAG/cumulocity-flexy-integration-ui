@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IExternalIdentity, IManagedObject, InventoryService } from '@c8y/client';
 import { IdentityService } from '@c8y/ngx-components/api';
-import { EXTERNALID_TALK2M_SERIALTYPE } from '@constants/flexy-integration.constants';
+import { EXTERNALID_FLEXY_SERIALTYPE, EXTERNALID_TALK2M_SERIALTYPE } from '@constants/flexy-integration.constants';
 import { DevlogService } from './devlog.service';
 
 @Injectable({
@@ -14,7 +14,7 @@ export class ExternalIDService extends DevlogService {
     this.devLogPrefix = 'EID.S';
   }
 
-  async getExternalID(externalId: string, type: string = EXTERNALID_TALK2M_SERIALTYPE): Promise<IExternalIdentity> {
+  async getExternalID(externalId: string, type: string): Promise<IExternalIdentity> {
     this.devLog('getExternalID', { externalId, type });
     return this.identityService
       .detail({
@@ -29,9 +29,9 @@ export class ExternalIDService extends DevlogService {
     return this.inventoryService.detail(identity.managedObject.id).then((res) => res.data);
   }
 
-  async getDeviceByExternalID(externalId: string): Promise<IManagedObject> {
-    this.devLog('getDeviceByExternalID', { externalId });
-    const identity = await this.getExternalID(externalId);
+  async getDeviceByExternalID(externalId: string, externalType: string): Promise<IManagedObject> {
+    this.devLog('getDeviceByExternalID', { externalId, externalType });
+    const identity = await this.getExternalID(externalId, externalType);
     return this.getDeviceByIdentity(identity);
   }
 
@@ -48,7 +48,7 @@ export class ExternalIDService extends DevlogService {
   async createExternalIDForDevice(
     deviceId: string,
     externalId: string,
-    externalType: string = EXTERNALID_TALK2M_SERIALTYPE
+    externalType: string
   ): Promise<IExternalIdentity> {
     this.devLog('createExternalIDForDevice', { deviceId, externalId, externalType });
     return this.identityService

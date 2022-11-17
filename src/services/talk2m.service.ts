@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IExternalIdentity, IManagedObject } from '@c8y/client';
 import {
+  EXTERNALID_TALK2M_SERIALTYPE,
   FLEXY_EXTERNALID_TALK2M_PREFIX,
   TALK2M_BASEURL,
   TALK2M_DEVELOPERID
@@ -125,11 +126,15 @@ export class Talk2MService extends DevlogService {
 
   async getExternalID(id): Promise<IExternalIdentity> {
     this.devLog('getExternalID', { id });
-    return this.externalIDService.getExternalID(this.getExternalIDString(id));
+    return this.externalIDService.getExternalID(this.getExternalIDString(id), EXTERNALID_TALK2M_SERIALTYPE);
   }
 
   async createExternalIDForDevice(deviceMO: IManagedObject, externalID: string): Promise<IExternalIdentity> {
     this.devLog('createExternalIDForDevice', { deviceMO, externalID });
-    return this.externalIDService.createExternalIDForDevice(deviceMO.id, this.getExternalIDString(externalID));
+    return this.externalIDService.createExternalIDForDevice(
+      deviceMO.id,
+      this.getExternalIDString(externalID),
+      EXTERNALID_TALK2M_SERIALTYPE
+    );
   }
 }

@@ -192,4 +192,9 @@ export class FlexyService extends DevlogService {
       EXTERNALID_FLEXY_SERIALTYPE
     );
   }
+
+  async getDeviceByExternalID(externalID: string): Promise<IManagedObject> {
+    this.devLog('getDeviceByExternalID', { externalID });
+    return this.externalIDService.getDeviceByExternalID(externalID, EXTERNALID_FLEXY_SERIALTYPE);
+  }
 }
