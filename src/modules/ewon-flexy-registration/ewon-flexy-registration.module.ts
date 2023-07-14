@@ -17,6 +17,7 @@ import { SynchjobCardComponent } from './datamailbox-download/synchjob-card/sync
 import { SynchjobModalComponent } from './datamailbox-download/synchjob-modal/synchjob-modal.component';
 import { FlexyNavigatorNodeFactory } from './factories/navigator-node.factory';
 import { FlexyTabFactory } from './factories/tab.factory';
+import { LoadingSpinnerComponent } from './loading-spinner/loading-spinner.component';
 import { SettingsComponent } from './settings/settings.component';
 
 const moduleRoutes: Routes = [
@@ -74,7 +75,8 @@ const moduleNavigation: Provider[] = [
     SynchjobCardComponent,
     SynchjobModalComponent,
     RegistrationModalComponent,
-    AgentInstallOverlayComponent
+    AgentInstallOverlayComponent,
+    LoadingSpinnerComponent
   ],
   entryComponents: [
     SettingsComponent,
