@@ -15,7 +15,7 @@ import { ExternalIDService } from './external-id.service';
 export class Talk2MService extends DevlogService {
   constructor(private http: HttpClient, private externalIDService: ExternalIDService) {
     super();
-    this.devLogEnabled = false;
+    // this.devLogEnabled = false;
     this.devLogPrefix = 'T2M.S';
   }
 
@@ -30,7 +30,9 @@ export class Talk2MService extends DevlogService {
       password: 't2mpassword',
       session: 't2msession',
       deviceUsername: 't2mdeviceusername',
-      devicePassword: 't2mdevicepassword'
+      devicePassword: 't2mdevicepassword',
+      c8yUser: 'username',
+      c8yPass: 'password'
     };
 
     config = { ...{ developerId }, ...config };
@@ -67,9 +69,25 @@ export class Talk2MService extends DevlogService {
     return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
   }
 
+  async restart(deviceName: string, config: FlexySettings): Promise<string> {
+    this.devLog('restart', { deviceName });
+
+    const url = this.buildUrl(`get/${deviceName}/rcgi.bin/wsdForm`, {
+      session: config.session,
+      account: config.account,
+      deviceUsername: config.deviceUsername,
+      devicePassword: config.devicePassword,
+      AST_ErrorMsg: "Reboot%20will%20occur...",
+      com_Csave: 1,
+      resetAction: 1,
+      com_BootOp: 0,
+    });
+    return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
+  }
+
   async downloadFile(filename: string, deviceName: string, config): Promise<string> {
     const url = this.buildUrl(`get/${deviceName}/usr/${filename}`, {
-      AST_Param: '$dtIV$ftT', // issue #27 - usage unknown
+      AST_Param: '$dtIV $ftT $st_m3', // issue #27 - usage unknown
       session: config.session,
       account: config.account,
       deviceUsername: config.deviceUsername,
@@ -136,5 +154,23 @@ export class Talk2MService extends DevlogService {
       this.getExternalIDString(externalID),
       EXTERNALID_TALK2M_SERIALTYPE
     );
+  }
+
+  async sendConfig(deviceName: string, config: FlexySettings): Promise<boolean> {
+    this.devLog('sendConfig', { deviceName, config });
+    const url = this.buildUrl(`get/${deviceName}/rcgi.bin/jvmForm`, {
+      formName: 'overwriteBootstrapAuth', // 'setBootstrapAuth',
+      session: config.session,
+      account: config.account,
+      deviceUsername: config.deviceUsername,
+      devicePassword: config.devicePassword,
+      port: config.c8yPort,
+      c8yUser: config.c8yUsername,
+      c8yPass: config.c8yPassword,
+      host: config.c8yHost,
+      tenant: config.c8yTenant,
+    });
+
+    return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
   }
 }

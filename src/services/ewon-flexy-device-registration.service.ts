@@ -27,10 +27,10 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
     private inventoryService: InventoryService,
     private identityService: IdentityService,
     private deviceRegistration: DeviceRegistrationService,
-    private externalIDService: ExternalIDService
+    private externalIDService: ExternalIDService,
   ) {
     super();
-    this.devLogEnabled = false;
+    this.devLogEnabled = true;
     this.devLogPrefix = 'EFDR.S';
   }
 
@@ -203,10 +203,14 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
       id: prefix + id
     };
     const { data } = await this.deviceRegistration.create(registrationObject);
+
     return data;
   }
 
+  // register device on management tenant
+  // @obsolete?
   async requestDeviceCredentials(id: string, prefix = FLEXY_EXTERNALID_TALK2M_PREFIX): Promise<IDeviceCredentials> {
+    // TODO set as tenant option
     const options: IDeviceBootstrapOptions = {
       //basicAuthToken: 'Basic dGVuYW50L3VzZXJuYW1lOnBhc3N3b3Jk',
       basicAuth: {

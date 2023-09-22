@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { IExternalIdentity, IManagedObject } from '@c8y/client';
 import { DEVICE_AGENT_FRAGMENT, FLEXY_EXTERNALID_FLEXY_PREFIX } from '@constants/flexy-integration.constants';
 import { ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
-import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@interfaces/flexy.interface';
+import { EwonFlexyStructure, FlexyCommandFile, FlexyIntegrated, FlexySettings } from '@interfaces/flexy.interface';
 import { Observable } from 'rxjs';
 import { DevlogService } from './devlog.service';
 import { ExternalIDService } from './external-id.service';
@@ -12,10 +12,11 @@ import { Talk2MService } from './talk2m.service';
 
 @Injectable({ providedIn: 'root' })
 export class InstallAgentService extends DevlogService {
-  private filePollAttempts = 10;
+  private filePollAttempts = 30;
   private filePollInterval = 10; // in sec
-  private rebootAttempts = 10;
-  private rebootInterval = 30; // in sec
+  private rebootAttempts = 30;
+  private rebootInterval = 10; // in sec
+  private initialRebootDelay = 10; // in sec
   count = 0;
   url: string;
   version: string;
@@ -29,7 +30,7 @@ export class InstallAgentService extends DevlogService {
     private progressLogger: ProgressLoggerService
   ) {
     super();
-    this.devLogEnabled = true;
+    // this.devLogEnabled = true;
     this.devLogPrefix = 'IA.S';
   }
 
@@ -92,14 +93,17 @@ export class InstallAgentService extends DevlogService {
     deviceName: string,
     index: number,
     encodedName: string,
-    config = this.config
+    config = this.config,
+    log = true
   ): Promise<string> {
     this.devLog('getSerial', { deviceName, index, encodedName, config });
     try {
       return await this.flexyService.getSerial(encodedName, config);
     } catch (error) {
-      console.error('Could not obtain serialnumber', error);
-      this.progressLogger.sendDeviceErrorMessage(deviceName, index, 'Could not obtain serialnumber.', error.message);
+      if (log) {
+        console.error('Could not obtain serialnumber', error);
+        this.progressLogger.sendDeviceErrorMessage(deviceName, index, 'Could not obtain serialnumber.', error.message);
+      }
       return;
     }
   }
@@ -124,7 +128,7 @@ export class InstallAgentService extends DevlogService {
       );
 
       try {
-        serial = await this.getSerial(deviceName, index, encodedName, config);
+        serial = await this.getSerial(deviceName, index, encodedName, config, false);
       } catch (error) {
         this.devLog('checkIfDeviceIsOnline|error', { attempt: i, deviceName, error });
       }
@@ -217,7 +221,7 @@ export class InstallAgentService extends DevlogService {
     this.progressLogger.sendDeviceSimpleMessage(
       deviceName,
       index,
-      `<b>Step ${step}</b> - Loading file <code>${filename}</code>`,
+      `<b>Step ${step}</b> - Loading file from<br><code>${filename}</code>`,
       'download-archive'
     );
     try {
@@ -326,7 +330,7 @@ export class InstallAgentService extends DevlogService {
     device: EwonFlexyStructure,
     index: number,
     config = this.config,
-    attempts = 5
+    attempts = this.filePollAttempts
   ): Promise<boolean> {
     this.devLog('checkForLoadedFiles', { device, index, config });
 
@@ -342,25 +346,44 @@ export class InstallAgentService extends DevlogService {
     return Promise.all(files).then((res) => res.reduce((p, c) => p && c, true));
   }
 
-  private async hasAgentFragment(device: EwonFlexyStructure): Promise<boolean> {
-    this.devLog('hasAgentFragment', { device });
+  private async registerFlexy(
+    device: EwonFlexyStructure,
+    index: number,
+    config = this.config): Promise<boolean> {
+    // device was already registered?
+    const isRegistered = this.flexyService.isRegistered(device);
+  
+    if (isRegistered) {
+      this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device is already registered.');
+      return;
+    }
 
-    const ids = (await this.getExternalIDs(device)).filter((id) => !!id);
-    this.devLog('hasAgentFragment|external ids', ids);
-    if (!ids.length) return Promise.reject({ message: 'No external IDs found for device.' });
+    // create request
+    try {
+      const register = await this.flexyService.createRegistration(device);
+      console.log('register', register);
+    } catch (error) {
+      console.log('err', error);
+      this.progressLogger.sendDeviceErrorMessage(device.name, index, 'ERR.');
+      return;
+    }
+  }
 
-    const mo = await this.flexyService.getDeviceByExternalID(ids[0].externalId);
-    this.devLog('hasAgentFragment|device mo', mo);
-    if (!mo) return Promise.reject({ message: 'No device MO found for Device.' });
+  private async sendConnectionConfig(device: EwonFlexyStructure, index: number, config = this.config): Promise<boolean> {
+    this.devLog('sendConnectionConfig', { device, index, config });
 
-    return this.deviceHasAgentFragment(mo)
-      ? true
-      : Promise.reject({ message: `Device is missing "${DEVICE_AGENT_FRAGMENT}" fragment` });
+    return await this.talk2mService.sendConfig(device.name, config);
+  }
+
+  private async acceptRegistration(device: EwonFlexyStructure, index: number, config = this.config): Promise<boolean> {
+    this.devLog('acceptRegistration', { device, index, config });
+
+    return await this.flexyService.acceptRegistration(device);
   }
 
   // install process
   private async installAgent(device: EwonFlexyStructure, index: number, config = this.config): Promise<string> {
-    console.clear(); // TODO remove after dev
+    // console.clear(); // TODO remove after dev
     this.devLog('installAgent', { device, index, config });
 
     const isC8yDevice = device.hasOwnProperty('source') && !!device.source;
@@ -369,7 +392,7 @@ export class InstallAgentService extends DevlogService {
 
     try {
       if (isC8yDevice && !isT2mDevice) throw new Error('Not connected to Talk2M.');
-      // if (!device.status || device.status !== 'online') throw new Error('Device is not online.');
+      if (!device.status || device.status !== 'online') throw new Error('Device is not online.');
 
       // 1. request SN (and online-check)
       this.progressLogger.sendDeviceSimpleMessage(
@@ -381,7 +404,7 @@ export class InstallAgentService extends DevlogService {
       const serial = await this.getSerial(device.name, index, device.encodedName);
       this.devLog('installAgent|serial', [index + 1, serial]);
       if (!serial) return;
-      device.serial = serial; // TODO move?
+      device.serial = serial;
 
       // 2. check if device was already connected via agent
       this.progressLogger.sendDeviceSimpleMessage(
@@ -414,7 +437,7 @@ export class InstallAgentService extends DevlogService {
       const filesExistAlready = await this.checkForLoadedFiles(device, index, config, 1);
       if (filesExistAlready) {
         this.progressLogger.sendDeviceErrorMessage(device.name, index, `File(s) already exist on device.`);
-        return;
+        return; // TODO reinstate after dev
       }
 
       // 4. files
@@ -432,7 +455,7 @@ export class InstallAgentService extends DevlogService {
       this.progressLogger.sendDeviceSimpleMessage(
         device.name,
         index,
-        '<b>Step 5</b> - Download files to device',
+        '<b>Step 5</b> - Check for downloaded files',
         'cloud-download'
       );
       const filesLoaded = await this.checkForLoadedFiles(device, index, config);
@@ -446,37 +469,71 @@ export class InstallAgentService extends DevlogService {
         return;
       }
 
-      // 6. reboot
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, '<b>Step 6</b> - Reboot', 'refresh');
+      // 6. register device
+      this.progressLogger.sendDeviceSimpleMessage(
+        device.name,
+        index,
+        '<b>Step 6</b> - Register device',
+        'cloud-checked'
+      );
+      const registered = await this.registerFlexy(device, index, config);
+      this.devLog('installAgent|register', registered);
+      if (registered) {
+        this.progressLogger.sendDeviceErrorMessage(
+          device.name,
+          index,
+          'Could not register the device.'
+        );
+      }
+
+      // 7. send config
+      this.progressLogger.sendDeviceSimpleMessage(
+        device.name,
+        index,
+        '<b>Step 7</b> - Send connection config to device',
+        'file-settings' // settings
+      );
+      const connectionConfig = await this.sendConnectionConfig(device, index, config);
+      this.devLog('installAgent|connectionConfig', connectionConfig);
+      if (!connectionConfig) {
+        this.progressLogger.sendDeviceErrorMessage(
+          device.name,
+          index,
+          'Could not send config to device.'
+        );
+      }
+
+      // 8. reboot
+      this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 8</b> - Reboot<br><small>Let's give the device a ${this.initialRebootDelay}sec headstart</small>`, 'refresh');
+      await this.sleep(this.initialRebootDelay);
       const reboot = await this.flexyService.reboot(device.encodedName, config);
       this.devLog('installAgent|reboot', [index + 1, reboot]);
 
       // wait for reboot to finish (poll for serial)
       const isOnline = await this.checkIfDeviceIsOnline(device.name, index, device.encodedName);
       if (!isOnline) {
-        this.progressLogger.sendDeviceErrorMessage(device.name, index, `Device not online.`);
+        this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device not online.');
         return;
       }
 
-      // check if device MO has agent fragment
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, '<b>Step 7</b> - Update status', 'pencil');
-      const hasAgentFragment = await this.hasAgentFragment(device);
-      if (!hasAgentFragment) return;
-
-      /*
-        TODO Continue here
-        » Add external IDs to device MO
-      */
-
-      // 8. register device
+      // 9. accept registration
       this.progressLogger.sendDeviceSimpleMessage(
         device.name,
         index,
-        '<b>Step 8</b> - Register device',
-        'cloud-checked'
+        '<b>Step 9</b> - Accept device registration',
+        'check'
       );
-      // TODO check functionality of register function
-      // void this.flexyService.registerFlexy(device); // TODO get device group
+      const accept = await this.acceptRegistration(device, index, config);
+      this.devLog('installAgent|acceptRegistration', accept);
+      if (!accept) {
+        this.progressLogger.sendDeviceErrorMessage(
+          device.name,
+          index,
+          'Could not accept device registration.'
+        );
+      }
+
+      // write device.registered = FlexyIntegrated.Integrated;
 
       return Promise.resolve('done');
     } catch (error) {

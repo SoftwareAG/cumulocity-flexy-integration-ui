@@ -1,22 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ModalLabels } from '@c8y/ngx-components';
 import { InstallAgentForm } from '@interfaces/c8y-custom-objects.interface';
-import { EwonFlexyStructure, FlexySettings } from '@interfaces/flexy.interface';
+import { EwonFlexyStructure, FlexyConnectorRelease, FlexySettings } from '@interfaces/flexy.interface';
+import { FlexyService } from '@services/flexy.service';
 import { Subject } from 'rxjs';
 
 @Component({
   selector: 'agent-install-overlay',
   templateUrl: './agent-install-overlay.component.html'
 })
-export class AgentInstallOverlayComponent {
-  private _devices: EwonFlexyStructure[];
-  private _config: FlexySettings;
+export class AgentInstallOverlayComponent implements OnInit {
   closeSubject = new Subject<InstallAgentForm>();
+  showPassword = false;
+  showC8YPassword = false;
+  loadingReleases = false;
   labels: ModalLabels = {
     ok: 'Install Agent',
     cancel: 'Cancel'
   };
-  showPassword = false;
 
   set devices(devices: EwonFlexyStructure[]) {
     this._devices = devices;
@@ -32,7 +33,10 @@ export class AgentInstallOverlayComponent {
     return this._config;
   }
 
-  constructor() {
+  private _devices: EwonFlexyStructure[];
+  private _config: FlexySettings;
+
+  constructor(private flexyService: FlexyService) {
     // form content init
     this._config = {
       url: {
@@ -41,17 +45,21 @@ export class AgentInstallOverlayComponent {
         cumulocity: ''
       },
       deviceUsername: '',
-      devicePassword: ''
+      devicePassword: '',
+      c8yHost: 'mqtt.eu-latest.cumulocity.com',
+      c8yPort: 8883,
+      c8yTenant: 'management',
+      c8yUsername: 'devicebootstrap',
+      c8yPassword: 'Fhdt1bb1f',
     };
+
     // TODO remove after dev
-    this._config.url = {
-      connector:
-        'https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.2.0/flexy-cumulocity-connector-1.2.0-full.jar',
-      jvmrun: 'https://github.com/hms-networks/flexy-cumulocity-connector/releases/download/v1.2.0/jvmrun',
-      cumulocity: 'https://my.server/path/CumulocityConnectorConfig.json'
-    };
     this._config.deviceUsername = 'adm'; // TODO remove after dev
     this._config.devicePassword = 'adm'; // TODO remove after dev
+  }
+
+  async ngOnInit(): Promise<void> {
+    void this.fetchReleases();
   }
 
   submit(): void {
@@ -60,5 +68,26 @@ export class AgentInstallOverlayComponent {
 
   dismiss(): void {
     this.closeSubject.next(null);
+  }
+
+  private async fetchReleases(): Promise<void> {
+    this.loadingReleases = true;
+
+    try {
+      const releases = await this.flexyService.fetchConnectorReleases();
+      let latestRelease: FlexyConnectorRelease;
+
+      if (releases) latestRelease = releases[0];
+
+      this._config.url = {
+        connector: latestRelease.jar.download_url,
+        jvmrun: latestRelease.jvmRun.download_url,
+        cumulocity: latestRelease.configuration.download_url
+      }
+    } catch (err) {
+      console.warn('Could not load release list');
+    }
+
+    this.loadingReleases = false;
   }
 }

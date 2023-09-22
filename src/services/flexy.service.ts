@@ -1,15 +1,17 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { IExternalIdentity, IManagedObject } from '@c8y/client';
+import { DeviceRegistrationService, FetchClient, IExternalIdentity, IFetchResponse, IManagedObject } from '@c8y/client';
 import {
   EXTERNALID_FLEXY_SERIALTYPE,
   EXTERNALID_TALK2M_SERIALTYPE,
+  FLEXY_CONNECTOR_RELEASE_LIST_URL,
   FLEXY_EXTERNALID_FLEXY_PREFIX,
   FLEXY_EXTERNALID_TALK2M_PREFIX
 } from '@constants/flexy-integration.constants';
 import {
   EwonFlexyStructure,
   FlexyCommandFile,
+  FlexyConnectorRelease,
   FlexyIntegrated,
   FlexySettings,
   T2MPool,
@@ -28,10 +30,12 @@ export class FlexyService extends DevlogService {
     private talk2m: Talk2MService,
     private http: HttpClient,
     private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
-    private externalIDService: ExternalIDService
+    private externalIDService: ExternalIDService,
+    private deviceRegistrationService: DeviceRegistrationService,
+    private fetchClient: FetchClient,
   ) {
     super();
-    this.devLogEnabled = false;
+    // this.devLogEnabled = true;
     this.devLogPrefix = 'F.S';
   }
 
@@ -92,19 +96,26 @@ export class FlexyService extends DevlogService {
 
   async installSoftware(file: FlexyCommandFile, deviceName: string, config: FlexySettings): Promise<string> {
     this.devLog('installSoftware', { file, deviceName, config });
-    return await this.talk2m.execScript('GETHTTP ' + [...[file.server], ...file.files].join(','), deviceName, config);
+    // new: REQUESTHTTPX "${url}","GET","","","","/usr/${fileName}"
+    // old: 'GETHTTP ' + [...[file.server], ...file.files].join(',')
+    const url = file.server + file.files[0];
+    const fileName = url.split(/\/+/).pop();
+    const command = `REQUESTHTTPX+"${url}","GET","","","","/usr/${fileName}"`;
+
+    return await this.talk2m.execScript(command, deviceName, config);
   }
 
   async downloadSoftware(filename: string, deviceName: string, config: FlexySettings): Promise<boolean> {
     this.devLog('downloadSoftware', { filename, deviceName, config });
     const dl = await this.talk2m.downloadFile(filename, deviceName, config);
-    this.devLog('downloadSoftware|response', dl);
-    return !!dl; // TODO check response
+    // this.devLog('downloadSoftware|response', dl);
+    return !!dl;
   }
 
   async reboot(deviceName: string, config: FlexySettings): Promise<string> {
     this.devLog('reboot', { deviceName, config });
-    return await this.talk2m.execScript('REBOOT', deviceName, config);
+    // return await this.talk2m.execScript('REBOOT', deviceName, config);
+    return await this.talk2m.restart(deviceName, config);
   }
 
   async registerFlexy(ewon: EwonFlexyStructure, deviceGroupId?: string): Promise<EwonFlexyStructure> {
@@ -197,4 +208,107 @@ export class FlexyService extends DevlogService {
     this.devLog('getDeviceByExternalID', { externalID });
     return this.externalIDService.getDeviceByExternalID(externalID, EXTERNALID_FLEXY_SERIALTYPE);
   }
+
+  // TODO – CORS on request
+  async fetchConnectorReleases(): Promise<FlexyConnectorRelease[]> {
+    const releases: FlexyConnectorRelease[] = [];
+
+    try {
+      const data = await this.http.get<any>(FLEXY_CONNECTOR_RELEASE_LIST_URL, {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Authorization, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method, Authorization',
+          'Access-Control-Allow-Methods': 'GET'
+        }),
+        responseType: 'json',
+      }).toPromise();
+
+      console.log('fetchConnectorReleases|data', data);
+      // releases.push(...data);
+    } catch (err) {
+      console.log('fetchConnectorReleases|error', err);
+    }
+
+    // TODO remove on successful data pull
+    releases.push({
+      name: "v1.3.6",
+      jar: {
+        name: "flexy-cumulocity-connector-1.3.6-full.jar",
+        download_url: "https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v1.3.6/flexy-cumulocity-connector-1.3.6-full.jar"
+      },
+      configuration: {
+        name: "CumulocityConnectorConfig.json",
+        download_url: "https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v1.3.6/CumulocityConnectorConfig.json"
+      },
+      jvmRun: {
+        name: "jvmrun",
+        download_url: "https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v1.3.6/jvmrun"
+      }
+    });
+
+    return releases;
+  }
+
+  isRegistered(ewon: EwonFlexyStructure): boolean {
+    return ewon.registered !== FlexyIntegrated.Not_integrated;
+  }
+
+  async deviceHasRegisterRequest(ewonId: string): Promise<boolean> {
+    const requests = await this.flexyRegistrationService.getDeviceRequestRegistration();
+    return !!requests.find((element) => element.id == ewonId);
+  }
+
+  async createRegistration(ewon: EwonFlexyStructure, prefix = FLEXY_EXTERNALID_FLEXY_PREFIX): Promise<EwonFlexyStructure> {
+    this.devLog('xxx', { ewon, prefix });
+    const ewonId = String(ewon.serial);
+    const prefixedEwonId = prefix + ewonId;
+
+    // device has registration?
+    const existingRequest = await this.deviceHasRegisterRequest(prefixedEwonId);
+    console.log('createRegistration', existingRequest);
+    if (existingRequest) {
+      return Promise.reject('Device registration already existing.');
+    }
+
+    this.devLog('createRegistration|createDeviceRequestRegistration', prefixedEwonId);
+    const registration = await this.deviceRegistrationService.create({ id: prefixedEwonId });
+
+    if (!registration.data) {
+      return Promise.reject('Could not create device registration.');
+    }
+
+    return ewon;
+  }
+
+  async acceptRegistration(ewon: EwonFlexyStructure, prefix = FLEXY_EXTERNALID_FLEXY_PREFIX): Promise<boolean> {
+    this.devLog('acceptRegistration', { ewon, prefix });
+    const ewonId = String(ewon.serial);
+    const prefixedEwonId = prefix + ewonId;
+
+    const existingRequest = await this.deviceHasRegisterRequest(prefixedEwonId);
+    console.log('createRegistration', existingRequest);
+    if (!existingRequest) {
+      return Promise.reject('Device has no open registration.');
+    }
+
+    const { data } = await this.deviceRegistrationService.accept(prefixedEwonId);
+    console.log('acceptRegistration', { data });
+
+    // Sobald das Gerät dann anfängt nach seinen credentials zu fragen, sollte es direkt die Zugangsdaten bekommen
+
+    return data && !!data.id;
+  }
+
+  // async bulkAccept(devices: EwonFlexyStructure[], prefix = FLEXY_EXTERNALID_FLEXY_PREFIX) {
+  //   // build promise.all
+  //   devices.forEach((d) => {
+  //     const ewonId = String(d.serial);
+  //     const prefixedEwonId = prefix + ewonId;
+
+  //     const existingRequest = await this.deviceHasRegisterRequest(prefixedEwonId);
+  //   });
+
+  //   // acceptRegistration();
+  // }
 }

@@ -14,6 +14,11 @@ export interface FlexySettings {
     cumulocity?: string;
   };
   filesExist?: boolean;
+  c8yHost?: string;
+  c8yPort?: number;
+  c8yTenant?: string;
+  c8yUsername?: string;
+  c8yPassword?: string;
 }
 
 export interface EwonFlexyStructure {
@@ -63,6 +68,18 @@ export declare const enum FlexyIntegrated {
   Not_integrated = 'no'
 }
 
+export interface FlexyConnectorFile {
+  name: string,
+  download_url: string
+}
+
+export interface FlexyConnectorRelease {
+  name: string;
+  jar: FlexyConnectorFile,
+  configuration: FlexyConnectorFile,
+  jvmRun: FlexyConnectorFile
+}
+
 export interface t2mUrlOptions {
   account?: string;
   password?: string;
@@ -70,7 +87,7 @@ export interface t2mUrlOptions {
   username?: string;
   deviceUsername?: string;
   devicePassword?: string;
-  [key: string]: string;
+  [key: string]: string | number | boolean;
 }
 
 export interface T2MPool {

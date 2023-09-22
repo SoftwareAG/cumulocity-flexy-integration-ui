@@ -15,6 +15,9 @@ export const FLEXY_EXTERNALID_TALK2M_PREFIX = 'HMS-Talk2M-';
 export const FLEXY_EXTERNALID_FLEXY_PREFIX = 'HMS-Flexy-';
 export const FLEXY_DEVICETYPE = 'c8y_EwonFlexy';
 
+// export const FLEXY_CONNECTOR_RELEASE_LATEST_URL = 'https://cumulocity-connector.s3.eu-central-1.amazonaws.com/latest.json';
+export const FLEXY_CONNECTOR_RELEASE_LIST_URL = 'https://cumulocity-connector.s3.eu-central-1.amazonaws.com/manifest.json';
+
 export const TALK2M_BASEURL = 'https://m2web.talk2m.com/t2mapi';
 export const TALK2M_DEVELOPERID = 'c86cfaf7-f353-40c5-9263-8cacbfd411a2';
 
