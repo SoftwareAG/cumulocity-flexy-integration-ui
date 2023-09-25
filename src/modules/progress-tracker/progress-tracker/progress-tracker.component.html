@@ -1,0 +1,19 @@
+<ul class="m-b-16">
+  <ng-container *ngIf="track?.history">
+    <li *ngFor="let log of track.history.slice().reverse()">
+      <aside>
+        <span class="date">{{ log.date | date : 'HH:mm:ss' }}</span>
+        <span class="ms">{{ log.date | date : '.SSS' }}</span>
+      </aside>
+
+      <div class="message">
+        <i *ngIf="log.icon" class="{{ log.icon }}"></i>
+
+        <div>
+          <div [innerHTML]="log.message"></div>
+          <small *ngIf="log.details" [innerHTML]="log.details"></small>
+        </div>
+      </div>
+    </li>
+  </ng-container>
+</ul>
