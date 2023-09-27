@@ -10,10 +10,7 @@ export class ProgressDisplayComponent {
   progressName: ProgressTrack['name'] = 'Track 1';
   progressTracks: Partial<ProgressTrack>[] = [];
   selectedProgressKey: ProgressTrack['key'] = '';
-
-  get progressKeys(): ProgressTrack['key'][] {
-    return this.progressTracks.map((p) => p.key);
-  }
+  progressKeys: ProgressTrack['key'][] = [];
 
   constructor(private progressTrackerService: ProgressTrackerService) { }
 
@@ -26,6 +23,7 @@ export class ProgressDisplayComponent {
     if (!this.progressTracks.find((t) => t.key === track.key)) {
       this.progressTracks.push(track);
       this.progressTrackerService.addTrack(track.key, track.name);
+      this.setProgressKeys()
     }
 
     if (this.progressTracks.length === 1) {
@@ -41,11 +39,11 @@ export class ProgressDisplayComponent {
     try {
       await this.addRandom(5);
 
-      this.message('sleep… zZz…');
+      this.message('sleep… zZz…', key);
       await this.sleep(2);
       await this.rejectPromise();
       await this.throwError();
-      this.message('sleep… zZz…');
+      this.message('sleep… zZz…', key);
       await this.sleep(1);
     } catch (error) {
       this.progressTrackerService.addItem(key, {
@@ -70,6 +68,24 @@ export class ProgressDisplayComponent {
 
       await this.sleep(delay);
     }
+  }
+
+  async removeTrack(key = this.selectedProgressKey): Promise<void> {
+    await this.progressTrackerService.removeTrack(key);
+
+    this.progressTracks.forEach((t, index) => {
+      if (t.key === key) {
+        this.progressTracks.splice(index, 1);
+      }
+    });
+  }
+
+  tabChange(tab: string) {
+    console.log('tabChange', tab);
+  }
+
+  private setProgressKeys(tracks = this.progressTracks) {
+    this.progressKeys = tracks.map((p) => p.key);
   }
 
   private sleep(seconds = 1): Promise<NodeJS.Timer> {

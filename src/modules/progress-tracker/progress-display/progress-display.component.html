@@ -7,7 +7,7 @@
     <button type="button" class="btn btn-primary" (click)="addProgress(progressName)">Add</button>
 </div>
 
-<ng-container *ngIf="progressKeys.length">
+<ng-container *ngIf="progressTracks.length">
   <div class="row m-t-16">
     <div class="col-md-3">
       <select id="track" [(ngModel)]="selectedProgressKey">
@@ -20,8 +20,9 @@
       <button type="button" class="btn btn-default" (click)="message()">Add Item</button>
       <button type="button" class="btn btn-default" (click)="addRandom()">Add Random</button>
       <button type="button" class="btn btn-default" (click)="startProcess()">Start Process</button>
+      <button type="button" class="btn btn-error" (click)="removeTrack(selectedProgressKey)">Remove Tack</button>
     </div>
   </div>
-  
-  <progress-group [keys]="progressKeys"></progress-group>
+
+  <progress-group [keys]="progressKeys" (tabChange)="tabChange($event)"></progress-group>
 </ng-container>

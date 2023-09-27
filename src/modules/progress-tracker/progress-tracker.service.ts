@@ -36,10 +36,16 @@ export class ProgressTrackerService {
   }
 
   addItem(key: ProgressTrack['key'], item: Partial<ProgressTrackItem>) {
-    const track$ = this.getTrackSubject(key);
+    let track$: BehaviorSubject<ProgressTrack>;
+
+    try {
+      track$ = this.getTrackSubject(key);
+    } catch(error) {
+      throw new Error('Track does not exist');
+    }
 
     if (!track$) {
-      throw new Error('Track does not exist');
+      return;
     }
 
     const current = track$.value;
@@ -58,6 +64,21 @@ export class ProgressTrackerService {
 
   getAllTracks(): ProgressTrack[] {
     return this.tracks.map((pt) => pt.track$.getValue());
+  }
+
+  removeTrack(key: ProgressTrack['key']): ProgressTrack {
+    if (!this.hasTrack(key)) {
+      throw new Error('Track does not exist');
+    }
+
+    let track: ProgressTrack;
+    this.tracks.forEach((t, index) => {
+      if (t.key === key) {
+        track = this.tracks.splice(index, 1)[0].track$.value;
+      }
+    });
+
+    return track;
   }
 
   private getTrack(key: ProgressTrack['key']): TrackSubject {

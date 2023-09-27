@@ -1,6 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ProgressTrack } from '../progress-tracker.models';
 import { ProgressTrackerService } from '../progress-tracker.service';
+import { eq } from 'lodash';
 
 @Component({
   selector: 'progress-group',
@@ -8,17 +9,27 @@ import { ProgressTrackerService } from '../progress-tracker.service';
   styleUrls: ['./progress-group.component.less']
 })
 export class ProgressGroupComponent {
+  @Input() alwaysShowTabs = false; 
   @Input() set keys(keys: ProgressTrack['key'][]) {
     this._keys = keys;
-    this.getTracks();
+    this.tracks = this.getTracks();
 
-    if (keys.length === 1) {
+    if (!this.activeTack && keys.length === 1) {
       this.setTrack(this._keys[0]);
     }
   }
   get keys(): ProgressTrack['key'][] {
     return this._keys;
   }
+
+  @Input() set tab(tab: ProgressTrack['key']) {
+    this.setTrack(tab);
+  }
+  get tab(): ProgressTrack['key'] {
+    return this.activeTack;
+  }
+
+  @Output() tabChange = new EventEmitter<ProgressTrack['key']>();
 
   activeTack: ProgressTrack['key'];
   tracks: ProgressTrack[];
@@ -28,10 +39,15 @@ export class ProgressGroupComponent {
   constructor(private progressTrackerService: ProgressTrackerService) {}
 
   setTrack(key: ProgressTrack['key']): void {
+    if (!key || this.activeTack === key || !this.keys.includes(key)) {
+      return;
+    }
+
     this.activeTack = key;
+    this.tabChange.emit(this.activeTack);
   }
 
-  private getTracks(): void {
-    this.tracks = this.progressTrackerService.getAllTracks();
+  private getTracks(): ProgressTrack[] {
+    return this.progressTrackerService.getAllTracks();
   }
 }

@@ -1,5 +1,5 @@
-<ng-container *ngIf="keys.length && tracks.length">
-  <nav>
+<ng-container *ngIf="tracks.length">
+  <nav *ngIf="alwaysShowTabs || tracks.length > 1">
     <ul>
       <li *ngFor="let t of tracks">
         <button type="button" [ngClass]="{ 'active': t.key === activeTack }" (click)="setTrack(t.key)">
