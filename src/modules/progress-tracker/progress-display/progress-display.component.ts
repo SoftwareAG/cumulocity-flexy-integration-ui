@@ -80,10 +80,6 @@ export class ProgressDisplayComponent {
     });
   }
 
-  tabChange(tab: string) {
-    console.log('tabChange', tab);
-  }
-
   private setProgressKeys(tracks = this.progressTracks) {
     this.progressKeys = tracks.map((p) => p.key);
   }
