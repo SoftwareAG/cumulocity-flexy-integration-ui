@@ -1,19 +1,41 @@
-<ul class="m-b-16">
-  <ng-container *ngIf="track?.history">
-    <li *ngFor="let log of track.history.slice().reverse()">
-      <aside>
-        <span class="date">{{ log.date | date : 'HH:mm:ss' }}</span>
-        <span class="ms">{{ log.date | date : '.SSS' }}</span>
-      </aside>
+<!-- timeline -->
+<c8y-list-group>
+  <ng-container *ngIf="track?.history && track.history.length; else noHistory">
+    <!-- item -->
+    <c8y-li-timeline *ngFor="let log of track.history.slice().reverse()">
+      <!-- date -->
+      <small class="c8y-list--timeline__item__date">
+        {{ log.date | date : 'HH:mm:ss' }}
+        {{ log.date | date : '.SSS' }}
+      </small>
 
-      <div class="message">
-        <i *ngIf="log.icon" class="{{ log.icon }}"></i>
+      <!-- body -->
+      <c8y-li>
+        <!-- icon -->
+        <c8y-li-icon *ngIf="log.icon" [icon]="log.icon" [ngClass]="log.iconClass"></c8y-li-icon>
 
-        <div>
-          <div [innerHTML]="log.message"></div>
-          <small *ngIf="log.details" [innerHTML]="log.details"></small>
-        </div>
-      </div>
-    </li>
+        <!-- details -->
+        <c8y-li-body>
+          <div class="d-flex a-i-start">
+            <div>
+              <span class="text-truncate-wrap" [innerHTML]="log.message"></span>
+              <small *ngIf="log.details" [innerHTML]="log.details"></small>
+            </div>
+            <span *ngIf="log.badge" class="label label-{{ log.badge.status }} m-l-auto m-t-4">
+              {{ log.badge.text }}
+            </span>
+          </div>
+        </c8y-li-body>
+      </c8y-li>
+    </c8y-li-timeline>
   </ng-container>
-</ul>
+</c8y-list-group>
+
+<ng-template #noHistory>
+  <c8y-li>
+    <div class="c8y-empty-state text-left">
+      <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-events"></h1>
+      <h3>No history available.</h3>
+    </div>
+  </c8y-li>
+</ng-template>

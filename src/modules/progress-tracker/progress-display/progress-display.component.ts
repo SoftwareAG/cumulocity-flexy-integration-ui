@@ -1,24 +1,71 @@
 import { Component } from '@angular/core';
 import { ProgressTrackerService } from '../progress-tracker.service';
+import { ProgressTrack, ProgressTrackItem } from '../progress-tracker.models';
 
 @Component({
   selector: 'progress-display',
   templateUrl: './progress-display.component.html',
 })
 export class ProgressDisplayComponent {
-  progressKey = 'aeneanParturient';
+  progressName: ProgressTrack['name'] = 'Track 1';
+  progressTracks: Partial<ProgressTrack>[] = [];
+  selectedProgressKey: ProgressTrack['key'] = '';
 
-  constructor(private progressTrackerService: ProgressTrackerService) {}
-
-  message(text = 'Commodo Porta') {
-    this.progressTrackerService.addMessage(this.progressKey, text);
+  get progressKeys(): ProgressTrack['key'][] {
+    return this.progressTracks.map((p) => p.key);
   }
 
-  async addRandom(count = 10, delay = 1, prefix = 'ABC-') {
+  constructor(private progressTrackerService: ProgressTrackerService) { }
+
+  addProgress(name: ProgressTrack['name']) {
+    const track: Partial<ProgressTrack> = {
+      name,
+      key: name.toLocaleLowerCase().replace(/(\W+\b)/g, '')
+    }
+
+    if (!this.progressTracks.find((t) => t.key === track.key)) {
+      this.progressTracks.push(track);
+      this.progressTrackerService.addTrack(track.key, track.name);
+    }
+
+    if (this.progressTracks.length === 1) {
+      this.selectedProgressKey = track.key;
+    }
+  }
+
+  message(text: ProgressTrackItem['message'] = 'Commodo Porta', key: ProgressTrack['key'] = this.selectedProgressKey) {
+    this.progressTrackerService.addMessage(key, text);
+  }
+
+  async startProcess(key = this.selectedProgressKey): Promise<void> {
+    try {
+      await this.addRandom(5);
+
+      this.message('sleep… zZz…');
+      await this.sleep(2);
+      await this.rejectPromise();
+      await this.throwError();
+      this.message('sleep… zZz…');
+      await this.sleep(1);
+    } catch (error) {
+      this.progressTrackerService.addItem(key, {
+        message: 'Could not complete process.',
+        details: String(error),
+        icon: 'warning',
+        iconClass: 'text-danger',
+        badge: {
+          status: 'danger',
+          text: 'Error'
+        }
+      });
+    }
+  }
+
+  async addRandom(count = 10, delay = 1, prefix = 'ABC-', key = this.selectedProgressKey) {
     for (let i = 1; i <= count; i++) {
-      this.progressTrackerService.addItem(this.progressKey, {
+      this.progressTrackerService.addItem(key, {
         message: `${prefix}${i}/${count}`,
-        icon: 'dlt-c8y-icon-clock1',
+        icon: 'clock1',
       });
 
       await this.sleep(delay);
@@ -39,24 +86,5 @@ export class ProgressDisplayComponent {
     await this.sleep(sleep);
 
     return Promise.reject(text);
-  }
-
-  async startProcess(): Promise<void> {
-    try {
-      await this.addRandom(5);
-
-      this.message('sleep… zZz…');
-      await this.sleep(2);
-      await this.rejectPromise();
-      await this.throwError();
-      this.message('sleep… zZz…');
-      await this.sleep(1);
-    } catch (error) {
-      this.progressTrackerService.addItem(this.progressKey, {
-        message: 'Could not complete process.',
-        details: String(error),
-        icon: 'dlt-c8y-icon-warning text-danger',
-      });
-    }
   }
 }

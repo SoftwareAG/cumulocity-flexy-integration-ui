@@ -15,7 +15,10 @@
     "formulahendry.auto-rename-tag",
     "coenraads.bracket-pair-colorizer-2",
     "gruntfuggly.todo-tree",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "Angular.ng-template",
+    "alexiv.vscode-angular2-files",
+    "withfig.fig"
   ],
   "settings": {
     "editor.tabSize": 2,

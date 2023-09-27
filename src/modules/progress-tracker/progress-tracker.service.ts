@@ -7,13 +7,14 @@ import { ProgressTrack, ProgressTrackItem, TrackSubject } from './progress-track
 export class ProgressTrackerService {
   protected tracks: TrackSubject[] = [];
 
-  addTrack(key: ProgressTrack['key']): TrackSubject['track$'] {
+  addTrack(key: ProgressTrack['key'], name?: ProgressTrack['name']): TrackSubject['track$'] {
     if (this.hasTrack(key)) {
-      throw new Error('Track already exists');
+      return this.getTrackSubject(key);
     }
 
     const track: ProgressTrack = {
       key,
+      name,
       history: [],
     };
     const subject: TrackSubject = {
@@ -53,6 +54,10 @@ export class ProgressTrackerService {
 
   addMessage(key: ProgressTrack['key'], message: ProgressTrackItem['message']) {
     return this.addItem(key, { message });
+  }
+
+  getAllTracks(): ProgressTrack[] {
+    return this.tracks.map((pt) => pt.track$.getValue());
   }
 
   private getTrack(key: ProgressTrack['key']): TrackSubject {

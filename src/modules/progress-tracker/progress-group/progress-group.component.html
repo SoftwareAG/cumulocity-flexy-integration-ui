@@ -1,0 +1,17 @@
+<ng-container *ngIf="keys.length && tracks.length">
+  <nav>
+    <ul>
+      <li *ngFor="let t of tracks">
+        <button type="button" [ngClass]="{ 'active': t.key === activeTack }" (click)="setTrack(t.key)">
+          {{ t.name }}
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <ng-container *ngFor="let t of tracks">
+    <ng-container *ngIf="t.key === activeTack">
+      <progress-tracker [key]="t.key"></progress-tracker>
+    </ng-container>
+  </ng-container>
+</ng-container>

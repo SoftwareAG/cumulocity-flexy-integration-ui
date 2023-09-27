@@ -1,5 +1,27 @@
-<button type="button" (click)="message()">Add Item</button>
-<button type="button" (click)="addRandom()">Add Random</button>
-<button type="button" (click)="startProcess()">Start Process</button>
+<div class="form-inline">
+    <div class="form-group">
+      <label id="track-name">Tack Name</label>
+      <input type="text" name="track-name" id="track-name" class="form-control" [(ngModel)]="progressName" />
+    </div>
 
-<progress-tracker [key]="progressKey"></progress-tracker>
+    <button type="button" class="btn btn-primary" (click)="addProgress(progressName)">Add</button>
+</div>
+
+<ng-container *ngIf="progressKeys.length">
+  <div class="row m-t-16">
+    <div class="col-md-3">
+      <select id="track" [(ngModel)]="selectedProgressKey">
+        <option *ngFor="let track of progressTracks" value="{{ track.key }}">
+          {{ track.name }}
+        </option>
+      </select>
+    </div>
+    <div class="col-md-9">
+      <button type="button" class="btn btn-default" (click)="message()">Add Item</button>
+      <button type="button" class="btn btn-default" (click)="addRandom()">Add Random</button>
+      <button type="button" class="btn btn-default" (click)="startProcess()">Start Process</button>
+    </div>
+  </div>
+  
+  <progress-group [keys]="progressKeys"></progress-group>
+</ng-container>
