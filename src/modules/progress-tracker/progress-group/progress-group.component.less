@@ -19,3 +19,27 @@ nav > ul {
     }
   }
 }
+
+progress-tracker {
+  max-height: clamp(200px, 40vh, 600px);
+  padding-right: 8px;
+  overflow-y: scroll;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(57, 72, 82, 0.2);
+    border-radius: 2px;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: #677680;
+  }
+}
+
+:host ::ng-deep c8y-list-group {
+  margin: 0 !important;
+}

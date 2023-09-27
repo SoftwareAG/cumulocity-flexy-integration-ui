@@ -1,6 +1,10 @@
 // override duplicate padding
-:host ::ng-deep .c8y-list__item__body:last-child {
-  padding-right: 0;
+:host {
+  display: block;
+
+  ::ng-deep .c8y-list__item__body:last-child {
+    padding-right: 0;
+  }
 }
 
 c8y-list-group {
