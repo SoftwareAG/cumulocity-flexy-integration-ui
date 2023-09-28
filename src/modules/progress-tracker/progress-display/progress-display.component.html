@@ -1,10 +1,12 @@
 <div class="form-inline">
+  <form (ngSubmit)="addProgress(progressName)">
     <div class="form-group">
       <label id="track-name">Tack Name</label>
       <input type="text" name="track-name" id="track-name" class="form-control" [(ngModel)]="progressName" />
     </div>
 
-    <button type="button" class="btn btn-primary" (click)="addProgress(progressName)">Add</button>
+    <button type="submit" class="btn btn-primary">Add</button>
+  </form>
 </div>
 
 <ng-container *ngIf="progressTracks.length">

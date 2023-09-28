@@ -78,6 +78,11 @@ export class ProgressDisplayComponent {
         this.progressTracks.splice(index, 1);
       }
     });
+    this.setProgressKeys();
+
+    if (this.progressTracks.length === 1) {
+      this.selectedProgressKey = this.progressTracks[0].key;
+    }
   }
 
   private setProgressKeys(tracks = this.progressTracks) {
