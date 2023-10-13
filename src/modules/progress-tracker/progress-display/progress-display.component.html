@@ -1,3 +1,5 @@
+<c8y-title>Progress Track Display Test</c8y-title>
+
 <div class="form-inline">
   <form (ngSubmit)="addProgress(progressName)">
     <div class="form-group">
@@ -25,6 +27,6 @@
       <button type="button" class="btn btn-error" (click)="removeTrack(selectedProgressKey)">Remove Tack</button>
     </div>
   </div>
-
-  <progress-group [keys]="progressKeys"></progress-group>
 </ng-container>
+
+<progress-group [keys]="progressKeys"></progress-group>

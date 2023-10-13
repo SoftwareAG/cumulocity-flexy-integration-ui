@@ -437,7 +437,7 @@ export class InstallAgentService extends DevlogService {
       const filesExistAlready = await this.checkForLoadedFiles(device, index, config, 1);
       if (filesExistAlready) {
         this.progressLogger.sendDeviceErrorMessage(device.name, index, `File(s) already exist on device.`);
-        return; // TODO reinstate after dev
+        return;
       }
 
       // 4. files
@@ -486,11 +486,24 @@ export class InstallAgentService extends DevlogService {
         );
       }
 
-      // 7. send config
+      // 7. reboot
+      this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 7</b> - Reboot<br><small>Let's give the device a ${this.initialRebootDelay}sec headstart</small>`, 'refresh');
+      await this.sleep(this.initialRebootDelay);
+      const reboot = await this.flexyService.reboot(device.encodedName, config);
+      this.devLog('installAgent|reboot', [index + 1, reboot]);
+
+      // wait for reboot to finish (poll for serial)
+      const isOnline = await this.checkIfDeviceIsOnline(device.name, index, device.encodedName);
+      if (!isOnline) {
+        this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device not online.');
+        return;
+      }
+
+      // 8. send config
       this.progressLogger.sendDeviceSimpleMessage(
         device.name,
         index,
-        '<b>Step 7</b> - Send connection config to device',
+        '<b>Step 8</b> - Send connection config to device',
         'file-settings' // settings
       );
       const connectionConfig = await this.sendConnectionConfig(device, index, config);
@@ -503,24 +516,15 @@ export class InstallAgentService extends DevlogService {
         );
       }
 
-      // 8. reboot
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 8</b> - Reboot<br><small>Let's give the device a ${this.initialRebootDelay}sec headstart</small>`, 'refresh');
-      await this.sleep(this.initialRebootDelay);
-      const reboot = await this.flexyService.reboot(device.encodedName, config);
-      this.devLog('installAgent|reboot', [index + 1, reboot]);
+      // TODO clean up code
+      this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 9</b> - Config send delay<br><small>Let's give the device another 20sec headstart</small>`, 'refresh');
+      await this.sleep(20);
 
-      // wait for reboot to finish (poll for serial)
-      const isOnline = await this.checkIfDeviceIsOnline(device.name, index, device.encodedName);
-      if (!isOnline) {
-        this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device not online.');
-        return;
-      }
-
-      // 9. accept registration
+      // 10. accept registration
       this.progressLogger.sendDeviceSimpleMessage(
         device.name,
         index,
-        '<b>Step 9</b> - Accept device registration',
+        '<b>Step 10</b> - Accept device registration',
         'check'
       );
       const accept = await this.acceptRegistration(device, index, config);
