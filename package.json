@@ -19,7 +19,7 @@
     "c8ycli": "c8ycli",
     "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "build": "rimraf dist && c8ycli build",
-    "deploy": "c8ycli deploy",
+    "deploy": "c8ycli deploy -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "lint": "tsc --noEmit && eslint . --ext js,ts,json --quiet --fix",
     "lint:ci": "tsc --noEmit && eslint . --ext js,ts,json --quiet"
   },

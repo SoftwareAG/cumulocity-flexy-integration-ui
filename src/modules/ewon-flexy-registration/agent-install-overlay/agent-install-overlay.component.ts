@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalLabels } from '@c8y/ngx-components';
 import { InstallAgentForm } from '@interfaces/c8y-custom-objects.interface';
-import { EwonFlexyStructure, FlexyConnectorRelease, FlexySettings } from '@interfaces/flexy.interface';
+import { EwonFlexyStructure, FlexyConnectorRelease, FlexyInstallProgressSteps, FlexyInstallSteps, FlexySettings } from '@interfaces/flexy.interface';
 import { FlexyService } from '@services/flexy.service';
 import { Subject } from 'rxjs';
 
@@ -10,6 +10,7 @@ import { Subject } from 'rxjs';
   templateUrl: './agent-install-overlay.component.html'
 })
 export class AgentInstallOverlayComponent implements OnInit {
+  showAdvancedOptions = false;
   closeSubject = new Subject<InstallAgentForm>();
   showPassword = false;
   showC8YPassword = false;
@@ -18,6 +19,44 @@ export class AgentInstallOverlayComponent implements OnInit {
     ok: 'Install Agent',
     cancel: 'Cancel'
   };
+  installProcessSteps: FlexyInstallProgressSteps[] = [
+    {
+      id: FlexyInstallSteps.REQUEST_SN,
+      label: 'Reuqest Serial',
+    },
+    {
+      id: FlexyInstallSteps.WAS_CONNECTED,
+      label: 'Check if device was already connected via agent'
+    },
+    {
+      id: FlexyInstallSteps.FILES_EXIST,
+      label: 'Check for preexisting files'
+    },
+    {
+      id: FlexyInstallSteps.DOWNLOAD_FILES,
+      label: 'Download files'
+    },
+    {
+      id: FlexyInstallSteps.CHECK_FILES_DOWNLOAD,
+      label: 'Check for downloaded files'
+    },
+    {
+      id: FlexyInstallSteps.REGISTER_DEVICE,
+      label: 'Register device'
+    },
+    {
+      id: FlexyInstallSteps.REBOOT_DEVICE,
+      label: 'Reboot Device'
+    },
+    {
+      id: FlexyInstallSteps.SEND_CONFIG,
+      label: 'Send connection config to device'
+    },
+    {
+      id: FlexyInstallSteps.ACCEPT_REGISTRATION,
+      label: 'Accept device registration'
+    },
+  ];
 
   set devices(devices: EwonFlexyStructure[]) {
     this._devices = devices;
@@ -51,6 +90,7 @@ export class AgentInstallOverlayComponent implements OnInit {
       c8yTenant: 'management',
       c8yUsername: 'devicebootstrap',
       c8yPassword: 'Fhdt1bb1f',
+      installProcessSkipSteps: []
     };
 
     // TODO remove after dev
@@ -63,6 +103,11 @@ export class AgentInstallOverlayComponent implements OnInit {
   }
 
   submit(): void {
+    const skipSteps = this.installProcessSteps
+      .filter((s) => s.selected === false)
+      .map((s) => s.id);
+    this.config.installProcessSkipSteps = skipSteps;
+
     this.closeSubject.next({ config: this.config, devices: this.devices });
   }
 

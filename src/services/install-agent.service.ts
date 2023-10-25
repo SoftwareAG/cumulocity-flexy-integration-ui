@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { IExternalIdentity, IManagedObject } from '@c8y/client';
 import { DEVICE_AGENT_FRAGMENT, FLEXY_EXTERNALID_FLEXY_PREFIX } from '@constants/flexy-integration.constants';
 import { ProgressMessage } from '@interfaces/c8y-custom-objects.interface';
-import { EwonFlexyStructure, FlexyCommandFile, FlexyIntegrated, FlexySettings } from '@interfaces/flexy.interface';
+import { EwonFlexyStructure, FlexyCommandFile, FlexyInstallSteps, FlexySettings } from '@interfaces/flexy.interface';
 import { Observable } from 'rxjs';
 import { DevlogService } from './devlog.service';
 import { ExternalIDService } from './external-id.service';
@@ -352,7 +352,7 @@ export class InstallAgentService extends DevlogService {
     config = this.config): Promise<boolean> {
     // device was already registered?
     const isRegistered = this.flexyService.isRegistered(device);
-  
+
     if (isRegistered) {
       this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device is already registered.');
       return;
@@ -381,6 +381,10 @@ export class InstallAgentService extends DevlogService {
     return await this.flexyService.acceptRegistration(device);
   }
 
+  private skipStepCheck(step: FlexyInstallSteps, config = this.config.installProcessSkipSteps): boolean {
+    return config.includes(step);
+  }
+
   // install process
   private async installAgent(device: EwonFlexyStructure, index: number, config = this.config): Promise<string> {
     // console.clear(); // TODO remove after dev
@@ -395,146 +399,164 @@ export class InstallAgentService extends DevlogService {
       if (!device.status || device.status !== 'online') throw new Error('Device is not online.');
 
       // 1. request SN (and online-check)
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        '<b>Step 1</b> - Requesting Serial',
-        'certificate'
-      );
-      const serial = await this.getSerial(device.name, index, device.encodedName);
-      this.devLog('installAgent|serial', [index + 1, serial]);
-      if (!serial) return;
-      device.serial = serial;
-
-      // 2. check if device was already connected via agent
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        '<b>Step 2</b> - Check if device was already connected via agent.',
-        'plug'
-      );
-
-      const connectedViaAgent = await this.checkIfDeviceConectedViaAgent(device, index, config);
-      if (connectedViaAgent) {
-        this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device already connected via Agent.');
-        return;
-      } else {
+      if (!this.skipStepCheck(FlexyInstallSteps.REQUEST_SN)) {
         this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,
-          'Device has <span class="text-success">not been connected</span> via agent.',
-          'check'
+          '<b>Step 1</b> - Requesting Serial',
+          'certificate'
         );
+        const serial = await this.getSerial(device.name, index, device.encodedName);
+        this.devLog('installAgent|serial', [index + 1, serial]);
+        if (!serial) return;
+        device.serial = serial;
+      }
+
+      // 2. check if device was already connected via agent
+      if (!this.skipStepCheck(FlexyInstallSteps.WAS_CONNECTED)) {
+        this.progressLogger.sendDeviceSimpleMessage(
+          device.name,
+          index,
+          '<b>Step 2</b> - Check if device was already connected via agent.',
+          'plug'
+        );
+
+        const connectedViaAgent = await this.checkIfDeviceConectedViaAgent(device, index, config);
+        if (connectedViaAgent) {
+          this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device already connected via Agent.');
+          return;
+        } else {
+          this.progressLogger.sendDeviceSimpleMessage(
+            device.name,
+            index,
+            'Device has <span class="text-success">not been connected</span> via agent.',
+            'check'
+          );
+        }
       }
 
       // 3. check if files are already present on device
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        '<b>Step 3</b> - Check for preexisting files',
-        'search'
-      );
-      const filesExistAlready = await this.checkForLoadedFiles(device, index, config, 1);
-      if (filesExistAlready) {
-        this.progressLogger.sendDeviceErrorMessage(device.name, index, `File(s) already exist on device.`);
-        return;
+      if (!this.skipStepCheck(FlexyInstallSteps.FILES_EXIST)) {
+        this.progressLogger.sendDeviceSimpleMessage(
+          device.name,
+          index,
+          '<b>Step 3</b> - Check for preexisting files',
+          'search'
+        );
+        const filesExistAlready = await this.checkForLoadedFiles(device, index, config, 1);
+        if (filesExistAlready) {
+          this.progressLogger.sendDeviceErrorMessage(device.name, index, `File(s) already exist on device.`);
+          return;
+        }
       }
 
       // 4. files
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        `<b>Step 4</b> - Download files`,
-        'download-archive'
-      );
-      const files = await this.loadFilesOntoDevice(device, index, config);
-      this.devLog('installAgent|loadFilesOntoDevice', [index + 1, files]);
-      if (!files) return;
-
-      // 5. check files
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        '<b>Step 5</b> - Check for downloaded files',
-        'cloud-download'
-      );
-      const filesLoaded = await this.checkForLoadedFiles(device, index, config);
-      this.devLog('installAgent|checkForLoadedFiles', [index + 1, filesLoaded]);
-      if (!filesLoaded) {
-        this.progressLogger.sendDeviceErrorMessage(
+      if (!this.skipStepCheck(FlexyInstallSteps.DOWNLOAD_FILES)) {
+        this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,
-          'Could not verify that all files were downloaded onto the device.'
+          `<b>Step 4</b> - Download files`,
+          'download-archive'
         );
-        return;
+        const files = await this.loadFilesOntoDevice(device, index, config);
+        this.devLog('installAgent|loadFilesOntoDevice', [index + 1, files]);
+        if (!files) return;
+      }
+
+      // 5. check files
+      if (!this.skipStepCheck(FlexyInstallSteps.CHECK_FILES_DOWNLOAD)) {
+        this.progressLogger.sendDeviceSimpleMessage(
+          device.name,
+          index,
+          '<b>Step 5</b> - Check for downloaded files',
+          'cloud-download'
+        );
+        const filesLoaded = await this.checkForLoadedFiles(device, index, config);
+        this.devLog('installAgent|checkForLoadedFiles', [index + 1, filesLoaded]);
+        if (!filesLoaded) {
+          this.progressLogger.sendDeviceErrorMessage(
+            device.name,
+            index,
+            'Could not verify that all files were downloaded onto the device.'
+          );
+          return;
+        }
       }
 
       // 6. register device
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        '<b>Step 6</b> - Register device',
-        'cloud-checked'
-      );
-      const registered = await this.registerFlexy(device, index, config);
-      this.devLog('installAgent|register', registered);
-      if (registered) {
-        this.progressLogger.sendDeviceErrorMessage(
+      if (!this.skipStepCheck(FlexyInstallSteps.REGISTER_DEVICE)) {
+        this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,
-          'Could not register the device.'
+          '<b>Step 6</b> - Register device',
+          'cloud-checked'
         );
+        const registered = await this.registerFlexy(device, index, config);
+        this.devLog('installAgent|register', registered);
+        if (registered) {
+          this.progressLogger.sendDeviceErrorMessage(
+            device.name,
+            index,
+            'Could not register the device.'
+          );
+        }
       }
 
       // 7. reboot
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 7</b> - Reboot<br><small>Let's give the device a ${this.initialRebootDelay}sec headstart</small>`, 'refresh');
-      await this.sleep(this.initialRebootDelay);
-      const reboot = await this.flexyService.reboot(device.encodedName, config);
-      this.devLog('installAgent|reboot', [index + 1, reboot]);
+      if (!this.skipStepCheck(FlexyInstallSteps.REBOOT_DEVICE)) {
+        this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 7</b> - Reboot<br><small>Let's give the device a ${this.initialRebootDelay}sec headstart</small>`, 'refresh');
+        await this.sleep(this.initialRebootDelay);
+        const reboot = await this.flexyService.reboot(device.encodedName, config);
+        this.devLog('installAgent|reboot', [index + 1, reboot]);
 
-      // wait for reboot to finish (poll for serial)
-      const isOnline = await this.checkIfDeviceIsOnline(device.name, index, device.encodedName);
-      if (!isOnline) {
-        this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device not online.');
-        return;
+        // wait for reboot to finish (poll for serial)
+        const isOnline = await this.checkIfDeviceIsOnline(device.name, index, device.encodedName);
+        if (!isOnline) {
+          this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Device not online.');
+          return;
+        }
       }
 
       // 8. send config
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        '<b>Step 8</b> - Send connection config to device',
-        'file-settings' // settings
-      );
-      const connectionConfig = await this.sendConnectionConfig(device, index, config);
-      this.devLog('installAgent|connectionConfig', connectionConfig);
-      if (!connectionConfig) {
-        this.progressLogger.sendDeviceErrorMessage(
+      if (!this.skipStepCheck(FlexyInstallSteps.SEND_CONFIG)) {
+        this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,
-          'Could not send config to device.'
+          '<b>Step 8</b> - Send connection config to device',
+          'file-settings' // settings
         );
+        const connectionConfig = await this.sendConnectionConfig(device, index, config);
+        this.devLog('installAgent|connectionConfig', connectionConfig);
+        if (!connectionConfig) {
+          this.progressLogger.sendDeviceErrorMessage(
+            device.name,
+            index,
+            'Could not send config to device.'
+          );
+        }
+
+        this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 9</b> - Config send delay<br><small>Let's give the device another 20sec for chages to take effect</small>`, 'refresh');
+        await this.sleep(20);
       }
 
-      // TODO clean up code
-      this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 9</b> - Config send delay<br><small>Let's give the device another 20sec headstart</small>`, 'refresh');
-      await this.sleep(20);
 
       // 10. accept registration
-      this.progressLogger.sendDeviceSimpleMessage(
-        device.name,
-        index,
-        '<b>Step 10</b> - Accept device registration',
-        'check'
-      );
-      const accept = await this.acceptRegistration(device, index, config);
-      this.devLog('installAgent|acceptRegistration', accept);
-      if (!accept) {
-        this.progressLogger.sendDeviceErrorMessage(
+      if (!this.skipStepCheck(FlexyInstallSteps.ACCEPT_REGISTRATION)) {
+        this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,
-          'Could not accept device registration.'
+          '<b>Step 10</b> - Accept device registration',
+          'check'
         );
+        const accept = await this.acceptRegistration(device, index, config);
+        this.devLog('installAgent|acceptRegistration', accept);
+        if (!accept) {
+          this.progressLogger.sendDeviceErrorMessage(
+            device.name,
+            index,
+            'Could not accept device registration.'
+          );
+        }
       }
 
       // write device.registered = FlexyIntegrated.Integrated;

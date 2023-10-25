@@ -122,5 +122,29 @@
         </div>
       </div>
     </fieldset>
+
+    <fieldset>
+      <div class="legend form-block" (click)="showAdvancedOptions = !showAdvancedOptions" style="cursor: pointer">
+        <i [ngClass]="{
+          'dlt-c8y-icon-add-new': !showAdvancedOptions,
+          'dlt-c8y-icon-negative': showAdvancedOptions,
+          'm-r-8': true
+        }"></i>
+        {{ 'Advanced Options' | translate}}
+      </div>
+
+      <div *ngIf="showAdvancedOptions">
+        <label>Process Steps</label>
+        <ul [ngStyle]="{ 'list-style': 'none', padding: 0, margin: '8px 0' }">
+          <li *ngFor="let step of installProcessSteps">
+            <label class="c8y-checkbox">
+              <input type="checkbox" [(ngModel)]="!step.selected"  />
+              <span></span>
+              <span>{{ step.label }}</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+    </fieldset>
   </div>
 </c8y-modal>
