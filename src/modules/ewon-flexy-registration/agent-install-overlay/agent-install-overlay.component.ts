@@ -23,38 +23,48 @@ export class AgentInstallOverlayComponent implements OnInit {
     {
       id: FlexyInstallSteps.REQUEST_SN,
       label: 'Reuqest Serial',
+      selected: true,
+      disabled: true
     },
     {
       id: FlexyInstallSteps.WAS_CONNECTED,
-      label: 'Check if device was already connected via agent'
+      label: 'Check if device was already connected via agent',
+      selected: true
     },
     {
       id: FlexyInstallSteps.FILES_EXIST,
-      label: 'Check for preexisting files'
+      label: 'Check for preexisting files',
+      selected: true
     },
     {
       id: FlexyInstallSteps.DOWNLOAD_FILES,
-      label: 'Download files'
+      label: 'Download files',
+      selected: true
     },
     {
       id: FlexyInstallSteps.CHECK_FILES_DOWNLOAD,
-      label: 'Check for downloaded files'
+      label: 'Check for downloaded files',
+      selected: true
     },
     {
       id: FlexyInstallSteps.REGISTER_DEVICE,
-      label: 'Register device'
+      label: 'Register device',
+      selected: true
     },
     {
       id: FlexyInstallSteps.REBOOT_DEVICE,
-      label: 'Reboot Device'
+      label: 'Reboot Device',
+      selected: true
     },
     {
       id: FlexyInstallSteps.SEND_CONFIG,
-      label: 'Send connection config to device'
+      label: 'Send connection config to device',
+      selected: true
     },
     {
       id: FlexyInstallSteps.ACCEPT_REGISTRATION,
-      label: 'Accept device registration'
+      label: 'Accept device registration',
+      selected: true
     },
   ];
 
@@ -102,7 +112,7 @@ export class AgentInstallOverlayComponent implements OnInit {
     void this.fetchReleases();
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     const skipSteps = this.installProcessSteps
       .filter((s) => s.selected === false)
       .map((s) => s.id);

@@ -361,9 +361,7 @@ export class InstallAgentService extends DevlogService {
     // create request
     try {
       const register = await this.flexyService.createRegistration(device);
-      console.log('register', register);
     } catch (error) {
-      console.log('err', error);
       this.progressLogger.sendDeviceErrorMessage(device.name, index, 'ERR.');
       return;
     }
@@ -534,11 +532,13 @@ export class InstallAgentService extends DevlogService {
             'Could not send config to device.'
           );
         }
+      }
 
+      // step 9 wait a bit
+      if (!this.skipStepCheck(FlexyInstallSteps.SEND_CONFIG) || !this.skipStepCheck(FlexyInstallSteps.ACCEPT_REGISTRATION)) {
         this.progressLogger.sendDeviceSimpleMessage(device.name, index, `<b>Step 9</b> - Config send delay<br><small>Let's give the device another 20sec for chages to take effect</small>`, 'refresh');
         await this.sleep(20);
       }
-
 
       // 10. accept registration
       if (!this.skipStepCheck(FlexyInstallSteps.ACCEPT_REGISTRATION)) {
@@ -548,6 +548,7 @@ export class InstallAgentService extends DevlogService {
           '<b>Step 10</b> - Accept device registration',
           'check'
         );
+
         const accept = await this.acceptRegistration(device, index, config);
         this.devLog('installAgent|acceptRegistration', accept);
         if (!accept) {

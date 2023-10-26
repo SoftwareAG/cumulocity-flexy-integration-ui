@@ -138,7 +138,7 @@
         <ul [ngStyle]="{ 'list-style': 'none', padding: 0, margin: '8px 0' }">
           <li *ngFor="let step of installProcessSteps">
             <label class="c8y-checkbox">
-              <input type="checkbox" [(ngModel)]="!step.selected"  />
+              <input type="checkbox" [disabled]="step.disabled" [(ngModel)]="step.selected"  />
               <span></span>
               <span>{{ step.label }}</span>
             </label>

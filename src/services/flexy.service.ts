@@ -255,7 +255,8 @@ export class FlexyService extends DevlogService {
   }
 
   async deviceHasRegisterRequest(ewonId: string): Promise<boolean> {
-    const requests = await this.flexyRegistrationService.getDeviceRequestRegistration();
+    const requests = await this.flexyRegistrationService.getDeviceRequestRegistration(true);
+
     return !!requests.find((element) => element.id == ewonId);
   }
 
@@ -266,7 +267,7 @@ export class FlexyService extends DevlogService {
 
     // device has registration?
     const existingRequest = await this.deviceHasRegisterRequest(prefixedEwonId);
-    console.log('createRegistration', existingRequest);
+
     if (existingRequest) {
       return Promise.reject('Device registration already existing.');
     }
@@ -287,15 +288,11 @@ export class FlexyService extends DevlogService {
     const prefixedEwonId = prefix + ewonId;
 
     const existingRequest = await this.deviceHasRegisterRequest(prefixedEwonId);
-    console.log('createRegistration', existingRequest);
     if (!existingRequest) {
       return Promise.reject('Device has no open registration.');
     }
 
     const { data } = await this.deviceRegistrationService.accept(prefixedEwonId);
-    console.log('acceptRegistration', { data });
-
-    // Sobald das Gerät dann anfängt nach seinen credentials zu fragen, sollte es direkt die Zugangsdaten bekommen
 
     return data && !!data.id;
   }

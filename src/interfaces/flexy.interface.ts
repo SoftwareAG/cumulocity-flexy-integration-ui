@@ -123,4 +123,5 @@ export interface FlexyInstallProgressSteps {
   id: FlexyInstallSteps;
   label: string;
   selected?: boolean;
+  disabled?: boolean;
 }
