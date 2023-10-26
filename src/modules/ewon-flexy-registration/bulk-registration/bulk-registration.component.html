@@ -1,121 +1,129 @@
-<c8y-title>{{ "Ewon Flexy Registration" | translate }}</c8y-title>
-<!--Action Bar connected-->
-<c8y-action-bar-item [placement]="'right'"  [priority]="-99999">
+<c8y-title>{{ 'Ewon Flexy Registration' | translate }}</c8y-title>
+
+<c8y-action-bar-item [placement]="'right'" [priority]="-99999">
   <div class="c8y-realtime">
-    <span [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"></span> 
+    <span [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"></span>
     Talk2M Session
   </div>
 </c8y-action-bar-item>
-<!--Action Bar Add Sync job-->
-<c8y-action-bar-item [itemClass]="'btn-group'" [placement]="'right'" >
-  <button class="btn btn-link" (click)="openModal()" style="margin:-1rem; padding-right:2rem;" [ngStyle]="!isSessionConnected ? {'display': 'none'} : ''">
+
+<c8y-action-bar-item [placement]="'right'" [itemClass]="'btn-group'">
+  <button class="btn btn-clean" [disabled]="!isSessionConnected" (click)="openRegisterModal()">
     <i c8yIcon="plus-circle"></i>
     {{ 'Register Flexy manually' | translate }}
   </button>
 </c8y-action-bar-item>
 
-
-<!--Menu Bar
-<div class="d-block">
-<div class="row">
- <div class="col-lg-12">
-    <div class="card m-b-4">
-      <div class="card-header separator">
-        <h4 class="card-title">{{ "Select gateways to import" | translate }}</h4>
-      </div>
-      <div class="card-block">
-        <form>
-          <label class="c8y-radio radio-inline" title="Radio One">
-            <input type="radio" checked="checked" name="c8y-group" />
-            <span></span>
-            <span></span>
-          </label>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
--->
 <!--Registration Progress bar-->
 <ng-container *ngIf="isRegistratingFlexy">
-<div class="d-block">
-<div class="progress progress-striped active ">
-  <div
-    class="progress-bar"
-    role="progressbar"
-    aria-valuenow="0"
-    aria-valuemin="0"
-    aria-valuemax="100"
-    [style.width.%]="completionPercent"
-  ></div>
-</div>
-</div>
+  <div class="d-block">
+    <div class="progress progress-striped active">
+      <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+        [style.width.%]="completionPercent"></div>
+    </div>
+  </div>
 </ng-container>
+
+<ng-container *ngIf="installInProgress">
+  <div class="alert alert-warning" role="alert" style="max-width: initial">
+    <strong>Please keep this page open until the install for all devices is handled.</strong>
+  </div>
+</ng-container>
+
+<!-- TODO use progressbar? -->
+<ng-container *ngIf="installProgressText.length">
+  <button class="clear-log-button btn-icon btn-clean" tooltip="Clear Log"
+    (click)="installProgressText = []; installError = false; installInProgress = false">
+    <i c8yIcon="times"></i>
+  </button>
+
+  <div class="alert" role="alert" style="max-width: initial" [ngClass]="{
+      'alert-info': installInProgress,
+      'alert-danger': installError,
+      'alert-success': !installInProgress && !installError
+    }">
+    <strong>
+      <ng-container *ngIf="installInProgress">Agent install in progress</ng-container>
+      <ng-container *ngIf="installError">Agent install failed</ng-container>
+      <ng-container *ngIf="!installInProgress && !installError">Install Process finished</ng-container>
+    </strong>
+  </div>
+
+  <c8y-list-group class="m-b-16">
+    <c8y-li-timeline *ngFor="let log of installProgressText.slice().reverse()">
+      {{ log.date | date: 'HH:mm:ss' }}<br />
+      {{ log.date | date: '.SSS' }}
+      <c8y-li>
+        <c8y-li-icon *ngIf="log.icon" [icon]="log.icon"></c8y-li-icon>
+        <div [innerHTML]="log.message"></div>
+        <c8y-li-footer *ngIf="log.details">{{ log.details }}</c8y-li-footer>
+      </c8y-li>
+    </c8y-li-timeline>
+  </c8y-list-group>
+</ng-container>
+
 <!--Table of Ewon Flexy gateways-->
 <div class="d-block">
   <!-- List of ewon items -->
-  <ng-container *ngIf="!isLoading && rows.length > 0;">
-    <c8y-data-grid
-    [title]="'Talk2M Flexy Devices' | translate"
-    [columns]="columns"
-    [pagination]="pagination"
-    [actionControls]="actionControls"
-    [rows]="rows"
-    [selectable]="true"
-    (itemsSelect)="selectItems($event)"
-    (onFilter)="poolFilter($event)"
-    (refresh)="onRefresh($event)"
-    >
-    <c8y-column name="groups">
-      <ng-container *c8yCellRendererDef="let groups">
-        <span *ngFor="let group of groups.value">
-          <p><a href="#/group/{{ group.id }}">{{ group.name }}</a></p>
-        </span>
-        
-      </ng-container>
-    </c8y-column>
-        <c8y-column name="registered">
-          <ng-container *c8yCellRendererDef="let context">
-            <span class = "d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle" style="color: #008800; padding-left:1rem;"></i></span>
-            <span class = "d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block" style="color: #58656D; padding-left:1rem;"></i></span>
-          </ng-container>
-        </c8y-column>
-        <c8y-column name="talk2m_integrated">
-          <ng-container *c8yCellRendererDef="let context">
-            <span class = "d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle" style="color: #008800; padding-left:1rem;"></i></span>
-            <span class = "d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block" style="color: #58656D; padding-left:1rem;"></i></span>
-          </ng-container>
-        </c8y-column>
+  <ng-container *ngIf="!isLoading && rows.length > 0">
+    <c8y-data-grid #grid [title]="'Talk2M Flexy Devices' | translate" [columns]="columns" [pagination]="pagination"
+      [actionControls]="actionControls" [bulkActionControls]="bulkActionControls" [rows]="rows" [selectable]="true">
+      <c8y-column name="groups">
+        <ng-container *c8yCellRendererDef="let groups">
+          <span *ngFor="let group of groups.value">
+            <p>
+              <a href="#/group/{{ group.id }}">{{ group.name }}</a>
+            </p>
+          </span>
+        </ng-container>
+      </c8y-column>
 
+      <c8y-column name="online">
+        <ng-container *c8yCellRendererDef="let context">
+          <ng-container *ngIf="context.value === 'online'; else offline">
+            <i c8yIcon="connected" class="text-success"></i>
+          </ng-container>
+          <ng-template #offline>
+            <i c8yIcon="disconnected" class="text-danger"></i>
+          </ng-template>
+        </ng-container>
+      </c8y-column>
+
+      <c8y-column name="registered">
+        <ng-container *c8yCellRendererDef="let context">
+          <span class="d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle"
+              style="color: #008800; padding-left: 1rem"></i></span>
+          <span class="d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block"
+              style="color: #58656d; padding-left: 1rem"></i></span>
+        </ng-container>
+      </c8y-column>
+
+      <c8y-column name="talk2m_integrated">
+        <ng-container *c8yCellRendererDef="let context">
+          <span class="d-flex j-c-center" *ngIf="context.value == 'yes'">YES <i class="dlt-c8y-icon-check-circle"
+              style="color: #008800; padding-left: 1rem"></i></span>
+          <span class="d-flex j-c-center" *ngIf="context.value == 'no'">NO <i class="dlt-c8y-icon-block"
+              style="color: #58656d; padding-left: 1rem"></i></span>
+        </ng-container>
+      </c8y-column>
     </c8y-data-grid>
-    <button *ngIf="selectedItems.length > 0;" type="button" class="btn btn-primary btn btn-block" (click)="startRegistration()">
-      <h4 class="m-r-16" style="margin: 1rem; text-align: left;">Register {{selectedItems.length}} selected items.</h4>
-    </button>
   </ng-container>
 
   <!--Loading spinner-->
-  <ng-container *ngIf="isLoading;">
-    <div class="c8y-empty-state text-center">
-      <div class="spinner" style="position: relative">
-        <div class="rect1"></div>
-        <div class="rect2"></div>
-        <div class="rect3"></div>
-        <div class="rect4"></div>
-        <div class="rect5"></div>
-      </div>
-      <h3 translate="">Request for Ewon devices.</h3>
-      <p translate="">This process may take some few seconds.</p>
-    </div>
-  </ng-container>
+  <loading-spinner [loading]="isLoading" [title]="'Loading Ewon devices'"
+    [copy]="'This process may take some few seconds.'"></loading-spinner>
 
   <!-- empty view -->
-  <ng-container *ngIf="!isLoading && rows.length == 0;">
+  <ng-container *ngIf="!isLoading && rows.length == 0">
     <div class="c8y-empty-state text-center">
       <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device"></h1>
       <h3>{{ 'There are no Ewon Flexy gateways.' | translate }}</h3>
-      <h4 *ngIf="!isSessionConnected">{{ 'Session is disconnected.' | translate }}</h4>
-      <h4 *ngIf="isSessionConnected">{{ 'Provided session does not contain any devices.' | translate }}</h4>
+      <h4 *ngIf="!isSessionConnected">
+        {{ 'Session is disconnected.' | translate }}
+      </h4>
+      <h4 *ngIf="isSessionConnected">
+        {{ 'Provided session does not contain any devices.' | translate }}
+      </h4>
     </div>
   </ng-container>
-
 </div>

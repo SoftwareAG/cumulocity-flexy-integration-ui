@@ -1,187 +1,216 @@
-import { Injectable } from "@angular/core";
-import { IManagedObject, IExternalIdentity, DeviceRegistrationService, IDeviceRegistrationCreate, IDeviceRegistration, IDeviceBootstrapOptions, IDeviceCredentials, IIdentified } from "@c8y/client";
-import { InventoryService, IdentityService } from "@c8y/ngx-components/api";
-import { EwonFlexyStructure } from "../interfaces/ewon-flexy-registration.interface";
-import { FLEXY_DEVICETYPE } from './../constants/flexy-integration.constants';
+import { Injectable } from '@angular/core';
+import {
+  DeviceRegistrationService,
+  IDeviceBootstrapOptions,
+  IDeviceCredentials,
+  IDeviceRegistration,
+  IDeviceRegistrationCreate,
+  IExternalIdentity,
+  IIdentified,
+  IManagedObject
+} from '@c8y/client';
+import { IdentityService, InventoryService } from '@c8y/ngx-components/api';
+import {
+  FLEXY_DEVICETYPE,
+  FLEXY_EXTERNALID_TALK2M_PREFIX
+} from '@constants/flexy-integration.constants';
+import { EwonFlexyStructure } from '@interfaces/flexy.interface';
+import { DevlogService } from './devlog.service';
+import { ExternalIDService } from './external-id.service';
 
-@Injectable()
-export class EWONFlexyDeviceRegistrationService {
+@Injectable({ providedIn: 'root' })
+export class EWONFlexyDeviceRegistrationService extends DevlogService {
+  private registrations: IDeviceRegistration[] = [];
+  private registrationsRequested: number = null;
 
   constructor(
     private inventoryService: InventoryService,
     private identityService: IdentityService,
     private deviceRegistration: DeviceRegistrationService,
-  ) {}
+    private externalIDService: ExternalIDService,
+  ) {
+    super();
+    this.devLogEnabled = true;
+    this.devLogPrefix = 'EFDR.S';
+  }
 
   // InventoryService
-  async createDeviceInventory(ewon:EwonFlexyStructure): Promise<IManagedObject> {
+  async createDeviceInventory(ewon: EwonFlexyStructure): Promise<IManagedObject> {
     let partialManagedObj: Partial<IManagedObject> = {
-             pageSize: 1,
-             withTotalPages: true,
-             name: ewon && ewon.name || "Unknown name",
-             type:  FLEXY_DEVICETYPE,
-             c8y_IsDevice: {},
-             talk2m: { 
-              id : ewon && ewon.id || "",
-              encodedName : ewon && ewon.encodedName || "",
-              description : ewon && ewon.description || "",
-              pool :  ewon && ewon.pool || "",
-              m2webServer : ewon && ewon.m2webServer || "",
-              ewonServices : [],
-              customAttributes : [],
-              lanDevices : []
-             }
-           };
-    if (ewon && ewon.customAttributes){
+      name: (ewon && ewon.name) || 'Unknown name',
+      type: FLEXY_DEVICETYPE,
+      c8y_IsDevice: {},
+      talk2m: {
+        id: (ewon && ewon.id) || '',
+        encodedName: (ewon && ewon.encodedName) || '',
+        description: (ewon && ewon.description) || '',
+        pool: (ewon && ewon.pool) || '',
+        m2webServer: (ewon && ewon.m2webServer) || '',
+        ewonServices: [],
+        customAttributes: [],
+        lanDevices: []
+      }
+    };
+    if (ewon && ewon.customAttributes) {
       for (const attribute of ewon.customAttributes) {
         partialManagedObj.talk2m.customAttributes.push(attribute);
       }
     }
-    if (ewon && ewon.ewonServices){
+    if (ewon && ewon.ewonServices) {
       for (const services of ewon.ewonServices) {
         partialManagedObj.talk2m.ewonServices.push(services);
-      } 
+      }
     }
-    if (ewon && ewon.lanDevices){
+    if (ewon && ewon.lanDevices) {
       for (const lanDevice of ewon.lanDevices) {
         partialManagedObj.talk2m.lanDevices.push(lanDevice);
       }
     }
-    
-    const { data, res } = await this.inventoryService.create(partialManagedObj);
+
+    const { data } = await this.inventoryService.create(partialManagedObj);
     return data;
   }
-  async getDeviceGroupInventoryList(): Promise<IManagedObject[]>{
+
+  async getDeviceGroupInventoryList(): Promise<IManagedObject[]> {
     const filter: object = {
-           pageSize: 100,
-           withTotalPages: true,
-           fragmentType: 'c8y_IsDeviceGroup'
-         };
-    const {data, res, paging} = await this.inventoryService.list(filter);
+      pageSize: 100,
+      withTotalPages: true,
+      fragmentType: 'c8y_IsDeviceGroup'
+    };
+    const { data } = await this.inventoryService.list(filter);
     return data;
   }
-  async getGroupInventoryListOfDevice(deviceId: string):Promise<IManagedObject[]>{
-      const filter: object = {
+
+  async getGroupInventoryListOfDevice(deviceId: string): Promise<IManagedObject[]> {
+    const filter: object = {
       pageSize: 100,
       childAssetId: deviceId,
       withTotalPages: false,
       withChildren: false,
       withParents: true
-      };
-      
-    const {data, res} = await this.inventoryService.list(filter);
+    };
+
+    const { data } = await this.inventoryService.list(filter);
     return data;
   }
-  async getDeviceEwonFlexyInventoryList():  Promise<IManagedObject[]>{
+
+  async getDeviceEwonFlexyInventoryList(): Promise<IManagedObject[]> {
     const filter: object = {
       pageSize: 100,
       withTotalPages: true,
       type: FLEXY_DEVICETYPE
     };
-    const {data, res, paging} = await this.inventoryService.list(filter);
+    const { data } = await this.inventoryService.list(filter);
     return data;
   }
-  async createDeviceGroupInventory(pool:string): Promise<IManagedObject> {
+
+  async createDeviceGroupInventory(pool: string): Promise<IManagedObject> {
     const partialManagedObj: Partial<IManagedObject> = {
-             pageSize: 1,
-             withTotalPages: true,
-             name: pool,
-             type:  'c8y_DeviceGroup',
-             c8y_IsDeviceGroup: {}
-           };   
-    const { data, res } = await this.inventoryService.create(partialManagedObj);
+      pageSize: 1,
+      withTotalPages: true,
+      name: pool,
+      type: 'c8y_DeviceGroup',
+      c8y_IsDeviceGroup: {}
+    };
+    const { data } = await this.inventoryService.create(partialManagedObj);
     return data;
   }
-  async addGroupChildAssetToDevice(groupId: string, deviceId: string): Promise<IIdentified>{
-    const {data, res} = await this.inventoryService.childAssetsAdd(deviceId, groupId);
+
+  async addGroupChildAssetToDevice(groupId: string, deviceId: string): Promise<IIdentified> {
+    const { data } = await this.inventoryService.childAssetsAdd(deviceId, groupId);
     return data;
   }
-  async setDevivceOwnerExternalId(externalId: string, mo_id: string): Promise<IManagedObject>{
-    
+
+  async setDevivceOwnerExternalId(externalId: string, mo_id: string): Promise<IManagedObject> {
     const partialUpdateObject: Partial<IManagedObject> = {
-          id: mo_id,
-          owner: 'device_' + externalId
-        };
-      
-    const {data, res} = await this.inventoryService.update(partialUpdateObject);
+      id: mo_id,
+      owner: 'device_' + externalId
+    };
+
+    const { data } = await this.inventoryService.update(partialUpdateObject);
     return data;
   }
-  //--------  
+  //--------
 
   // IdentityService
-  async isDeviceRegistered(externalId:string, prefix: string, externalType: string): Promise<boolean> {
-    const identity: IExternalIdentity = {
-            type: externalType,
-            externalId: prefix + externalId
-          };
-    const data = await this.identityService.detail(identity).then(
-      (result) => { return true;},
-      (error) => { return false; }
-    )
-    return data;
+
+  /**
+   *
+   * @deprecated use ExternalIDService.getExternalID()
+   */
+  async isDeviceRegistered(externalId: string, prefix: string, externalType: string): Promise<boolean> {
+    return await this.externalIDService.getExternalID(prefix + externalId, externalType).then(
+      () => true,
+      () => false
+    );
   }
 
-  async getExternalIdsOfManagedObject(id:string): Promise<IExternalIdentity[]>{
-    const {data, res, paging} = await this.identityService.list(id);
-    return data;
+  /**
+   *
+   * @deprecated
+   */
+  async getExternalIdsOfManagedObject(id: string): Promise<IExternalIdentity[]> {
+    return await this.identityService.list(id).then((res) => res.data);
   }
-  
-  async getDeviceManagedObjectWithExternalId(externalId:string, prefix: string, externalType: string): Promise<IIdentified>{
+
+  /**
+   *
+   * @deprecated use external-id.service createExternalIDForDevice()
+   */
+  async createIdentidyForDevice(
+    deviceId: string,
+    externalId: string,
+    prefix: string,
+    externalType: string
+  ): Promise<IExternalIdentity> {
     const identity: IExternalIdentity = {
       type: externalType,
-      externalId: prefix + externalId
-    };
-    const data = await this.identityService.detail(identity).then(
-      (identity) => {
-        //const managedObjId: number =identity.data.managedObject.id;
-        //inventoryService
-        return identity.data.managedObject;
-      }, (error) => {
-        console.debug("Managed object with external id " + prefix + externalId + " does not exists.");
-        throw error;
+      externalId: prefix + externalId,
+      managedObject: {
+        id: deviceId
       }
-    );
-    return data;
-  }
-
-  async createIdentidyForDevice(deviceId:string, externalId:string, prefix: string, externalType: string): Promise<IExternalIdentity>{
-    const identity: IExternalIdentity = {
-            type: externalType,
-            externalId: prefix + externalId,
-            managedObject: {
-              id: deviceId
-            }
-          };
-    const {data, res} = await this.identityService.create(identity);
+    };
+    const { data } = await this.identityService.create(identity);
     return data;
   }
   //--------
 
   // DeviceRegistrationService
-  async getDeviceRequestRegistration(): Promise<IDeviceRegistration[]>{
+  async getDeviceRequestRegistration(ignoreCache = false): Promise<IDeviceRegistration[]> {
+    const now = new Date().getTime();
     const filter: object = {
-           pageSize: 1000,
-           withTotalPages: true
-         };
-    const {data, res, paging} = await this.deviceRegistration.list(filter);
+      pageSize: 1000,
+      withTotalPages: true
+    };
+
+    // use cache
+    if (!ignoreCache && !!this.registrationsRequested && this.registrationsRequested - 300 < now) {
+      return this.registrations;
+    }
+
+    const { data } = await this.deviceRegistration.list(filter);
+    this.registrations = data;
+    this.registrationsRequested = now;
+
     return data;
   }
 
-  async createDeviceRequestRegistration(id:string, prefix: string): Promise<IDeviceRegistration>{
+  async createDeviceRequestRegistration(
+    id: string,
+    prefix = FLEXY_EXTERNALID_TALK2M_PREFIX
+  ): Promise<IDeviceRegistration> {
     const registrationObject: IDeviceRegistrationCreate = {
-            id: prefix + id,
-          };
-    const {data, res} = await this.deviceRegistration.create(registrationObject);
+      id: prefix + id
+    };
+    const { data } = await this.deviceRegistration.create(registrationObject);
+
     return data;
   }
 
-  async deleteDeviceRequestRegistration(id:string){
-    const {data, res} = await this.deviceRegistration.delete(id);
-    return data;
-  }
-
-  async requestDeviceCredentials(id:string, prefix: string): Promise<IDeviceCredentials>{
-
+  // register device on management tenant
+  // @obsolete?
+  async requestDeviceCredentials(id: string, prefix = FLEXY_EXTERNALID_TALK2M_PREFIX): Promise<IDeviceCredentials> {
+    // TODO set as tenant option
     const options: IDeviceBootstrapOptions = {
       //basicAuthToken: 'Basic dGVuYW50L3VzZXJuYW1lOnBhc3N3b3Jk',
       basicAuth: {
@@ -189,12 +218,12 @@ export class EWONFlexyDeviceRegistrationService {
         pass: 'Fhdt1bb1f'
       }
     };
-    const {data, res} = await this.deviceRegistration.bootstrap(prefix + id, options);
+    const { data } = await this.deviceRegistration.bootstrap(prefix + id, options);
     return data;
   }
 
-  async acceptDeviceRequest(id:string, prefix: string){
-    const {data, res} = await this.deviceRegistration.accept(prefix + id);
+  async acceptDeviceRequest(id: string, prefix = FLEXY_EXTERNALID_TALK2M_PREFIX) {
+    const { data } = await this.deviceRegistration.accept(prefix + id);
     return data;
   }
   //--------

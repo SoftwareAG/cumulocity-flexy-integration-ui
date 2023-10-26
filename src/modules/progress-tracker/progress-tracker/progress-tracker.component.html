@@ -1,0 +1,41 @@
+<!-- timeline -->
+<c8y-list-group>
+  <ng-container *ngIf="track?.history && track.history.length; else noHistory">
+    <!-- item -->
+    <c8y-li-timeline *ngFor="let log of track.history.slice().reverse()">
+      <!-- date -->
+      <small class="c8y-list--timeline__item__date">
+        {{ log.date | date : 'HH:mm:ss' }}
+        {{ log.date | date : '.SSS' }}
+      </small>
+
+      <!-- body -->
+      <c8y-li>
+        <!-- icon -->
+        <c8y-li-icon *ngIf="log.icon" [icon]="log.icon" [ngClass]="log.iconClass"></c8y-li-icon>
+
+        <!-- details -->
+        <c8y-li-body>
+          <div class="d-flex a-i-start">
+            <div>
+              <span class="text-truncate-wrap" [innerHTML]="log.message"></span>
+              <small *ngIf="log.details" [innerHTML]="log.details"></small>
+            </div>
+            <span *ngIf="log.badge" class="label label-{{ log.badge.status }} m-l-auto m-t-4">
+              {{ log.badge.text }}
+            </span>
+          </div>
+        </c8y-li-body>
+      </c8y-li>
+    </c8y-li-timeline>
+  </ng-container>
+</c8y-list-group>
+
+<ng-template #noHistory>
+  <c8y-li>
+    <div class="c8y-empty-state text-left">
+      <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-events"></h1>
+      <h3 translate>No history available.</h3>
+    </div>
+  </c8y-li>
+</ng-template>

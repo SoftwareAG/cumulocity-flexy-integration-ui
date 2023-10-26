@@ -1,0 +1,10 @@
+{
+  "/posts": {
+    "target": "https://cumulocity-connector.s3.eu-central-1.amazonaws.com",
+    "secure": true,
+    "pathRewrite": {
+      "^/posts": ""
+    },
+    "changeOrigin": true
+  }
+}

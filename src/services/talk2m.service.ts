@@ -1,96 +1,176 @@
-import { TALK2M_BASEURL, TALK2M_DEVELOPERID } from "./../constants/flexy-integration.constants";
-import { HttpClient, HttpHeaders, HttpResponse } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { AlertService } from "@c8y/ngx-components";
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { IExternalIdentity, IManagedObject } from '@c8y/client';
+import {
+  EXTERNALID_TALK2M_SERIALTYPE,
+  FLEXY_EXTERNALID_TALK2M_PREFIX,
+  TALK2M_BASEURL,
+  TALK2M_DEVELOPERID
+} from '@constants/flexy-integration.constants';
+import { FlexySettings, T2MAccount, t2mUrlOptions } from '@interfaces/flexy.interface';
+import { DevlogService } from './devlog.service';
+import { ExternalIDService } from './external-id.service';
 
-@Injectable()
-export class Talk2MService {
-  
-  constructor(private http: HttpClient, private alert: AlertService) {}
-
-  async login(
-    account: string,
-    username: string,
-    password: string
-  ) : Promise<HttpResponse<any> >{
-    const url_service =
-      "/login?t2maccount=" + account +
-      "&t2musername=" + username +
-      "&t2mpassword=" + password +
-      "&t2mdeveloperid=" + TALK2M_DEVELOPERID;
-
-    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: "response" }).toPromise();
-    return response;
-
+@Injectable({ providedIn: 'root' })
+export class Talk2MService extends DevlogService {
+  constructor(private http: HttpClient, private externalIDService: ExternalIDService) {
+    super();
+    // this.devLogEnabled = false;
+    this.devLogPrefix = 'T2M.S';
   }
 
-  async isSessionActive(session: string): Promise<boolean>{
+  buildUrl(path: string, config: t2mUrlOptions, developerId = TALK2M_DEVELOPERID): string {
+    this.devLog('buildUrl', { path, config, developerId });
+    let url = `/${path}`;
+    const params = [];
+    const keyList = {
+      developerId: 't2mdeveloperid',
+      account: 't2maccount',
+      username: 't2musername',
+      password: 't2mpassword',
+      session: 't2msession',
+      deviceUsername: 't2mdeviceusername',
+      devicePassword: 't2mdevicepassword',
+      c8yUser: 'username',
+      c8yPass: 'password'
+    };
 
-    return this.getaccountinfo(session).then(
-      () => {
-        return true;
-      }, (error) => {
-        return false;
-      }
-    );
-    
-  }
+    config = { ...{ developerId }, ...config };
 
-  async logout(session: string) : Promise<HttpResponse<any> >{
-    const url_service =
-      "/logout?t2msession=" + session + "&t2mdeveloperid=" + TALK2M_DEVELOPERID;
+    Object.keys(config).forEach((key) => {
+      if (keyList.hasOwnProperty(key)) params.push(`${keyList[key]}=${config[key]}`);
+      else params.push(`${key}=${config[key]}`);
+    });
 
-      const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: "response" }).toPromise();
-      return response;
-  }
-
-  async getaccountinfo(session: string) : Promise<HttpResponse<any> >{
-    const url_service =
-      "/getaccountinfo?t2msession=" + session + "&t2mdeveloperid=" + TALK2M_DEVELOPERID;
-
-      const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: "response" }).toPromise();
-      return response;
-  }
-
-  async getewons(session: string, pool?: string) : Promise<HttpResponse<any> > {
-    let url_service = "";
-    if (pool) {
-        url_service =
-        "/getewons?t2msession=" +
-        session +
-        "&t2mdeveloperid=" +
-        TALK2M_DEVELOPERID +
-        "&pool=" +
-        pool;
-      
-    } else {
-        url_service =
-        "/getewons?t2msession=" + session + "&t2mdeveloperid=" + TALK2M_DEVELOPERID;
+    if (params.length) {
+      url += '?' + params.join('&');
     }
 
-    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, { observe: "response" }).toPromise();
-    return response;
+    return TALK2M_BASEURL + url;
   }
 
-  async getserialnumber(device_name:string, device_user:string, device_pass:string, account:string, session:string,) : Promise<string> {
-    
-    const url_service =
-      "/get/" + device_name 
-      + "/rcgi.bin/ParamForm?AST_Param=$dtES&t2maccount=" + account 
-      + "&t2msession=" + session 
-      + "&t2mdeviceusername=" + device_user 
-      + "&t2mdevicepassword=" + device_pass 
-      +"&t2mdeveloperid=" + TALK2M_DEVELOPERID;
+  generateHeaderOptions(request = 'text/plain', response = 'text'): Object {
+    this.devLog('generateHeaderOptions', { request, response });
+    return {
+      headers: new HttpHeaders({ 'Content-Type': request }),
+      responseType: response
+    };
+  }
 
-      let HTTPOptions:Object = {
+  async execScript(command: string, deviceName: string, config: FlexySettings): Promise<string> {
+    this.devLog('execScript', { command, deviceName, config });
+    const url = this.buildUrl(`get/${deviceName}/rcgi.bin/ExeScriptForm`, {
+      session: config.session,
+      account: config.account,
+      deviceUsername: config.deviceUsername,
+      devicePassword: config.devicePassword,
+      Command1: command
+    });
+    return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
+  }
 
-        headers: new HttpHeaders({
-            'Content-Type': 'text/plain'
-        }),
-        responseType: 'text'
-     }
+  async restart(deviceName: string, config: FlexySettings): Promise<string> {
+    this.devLog('restart', { deviceName });
 
-    const response = await this.http.get<any>(TALK2M_BASEURL + url_service, HTTPOptions ).toPromise();
-    return response;
+    const url = this.buildUrl(`get/${deviceName}/rcgi.bin/wsdForm`, {
+      session: config.session,
+      account: config.account,
+      deviceUsername: config.deviceUsername,
+      devicePassword: config.devicePassword,
+      AST_ErrorMsg: "Reboot%20will%20occur...",
+      com_Csave: 1,
+      resetAction: 1,
+      com_BootOp: 0,
+    });
+    return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
+  }
+
+  async downloadFile(filename: string, deviceName: string, config): Promise<string> {
+    const url = this.buildUrl(`get/${deviceName}/usr/${filename}`, {
+      AST_Param: '$dtIV $ftT $st_m3', // issue #27 - usage unknown
+      session: config.session,
+      account: config.account,
+      deviceUsername: config.deviceUsername,
+      devicePassword: config.devicePassword
+    });
+    return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
+  }
+
+  async login(account: string, username: string, password: string): Promise<string> {
+    this.devLog('login', { account, username, password });
+
+    const url = this.buildUrl('login', { account, username, password });
+    const response = await this.http.get<any>(url, { observe: 'response' }).toPromise();
+    const session =
+      !!response && response.hasOwnProperty('body') && response.body.hasOwnProperty('t2msession')
+        ? response.body.t2msession
+        : null;
+
+    return session;
+  }
+
+  async logout(session: string): Promise<HttpResponse<any>> {
+    this.devLog('logout', { session });
+    return await this.http.get<any>(this.buildUrl('logout', { session }), { observe: 'response' }).toPromise();
+  }
+
+  async isSessionActive(session: string): Promise<boolean> {
+    this.devLog('isSessionActive');
+    return this.getAccount(session).then(
+      () => true,
+      () => false
+    );
+  }
+
+  async getAccount(session: string): Promise<T2MAccount> {
+    this.devLog('getAccount');
+
+    try {
+      const response = await this.http
+        .get<any>(this.buildUrl('getaccountinfo', { session }), { observe: 'response' })
+        .toPromise();
+      this.devLog('getAccount|response', response);
+      return response.body as T2MAccount;
+    } catch (error) {
+      return Promise.reject(error.message);
+    }
+  }
+
+  // new
+  private getExternalIDString(id): string {
+    this.devLog('getExternalIDString', { id });
+    return FLEXY_EXTERNALID_TALK2M_PREFIX + id;
+  }
+
+  async getExternalID(id): Promise<IExternalIdentity> {
+    this.devLog('getExternalID', { id });
+    return this.externalIDService.getExternalID(this.getExternalIDString(id), EXTERNALID_TALK2M_SERIALTYPE);
+  }
+
+  async createExternalIDForDevice(deviceMO: IManagedObject, externalID: string): Promise<IExternalIdentity> {
+    this.devLog('createExternalIDForDevice', { deviceMO, externalID });
+    return this.externalIDService.createExternalIDForDevice(
+      deviceMO.id,
+      this.getExternalIDString(externalID),
+      EXTERNALID_TALK2M_SERIALTYPE
+    );
+  }
+
+  async sendConfig(deviceName: string, config: FlexySettings): Promise<boolean> {
+    this.devLog('sendConfig', { deviceName, config });
+    const url = this.buildUrl(`get/${deviceName}/rcgi.bin/jvmForm`, {
+      formName: 'overwriteBootstrapAuth', // 'setBootstrapAuth',
+      session: config.session,
+      account: config.account,
+      deviceUsername: config.deviceUsername,
+      devicePassword: config.devicePassword,
+      port: config.c8yPort,
+      c8yUser: config.c8yUsername,
+      c8yPass: config.c8yPassword,
+      host: config.c8yHost,
+      tenant: config.c8yTenant,
+    });
+
+    return await this.http.get<any>(url, this.generateHeaderOptions()).toPromise();
   }
 }

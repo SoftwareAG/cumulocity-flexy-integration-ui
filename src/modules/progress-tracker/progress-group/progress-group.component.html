@@ -1,0 +1,25 @@
+<ng-container *ngIf="tracks.length; else noTracks">
+  <nav *ngIf="alwaysShowTabs || tracks.length > 1">
+    <ul>
+      <li *ngFor="let t of tracks">
+        <button type="button" [ngClass]="{ 'active': t.key === activeTack }" (click)="setTrack(t.key)">
+          {{ t.name }}
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <ng-container *ngFor="let t of tracks">
+    <ng-container *ngIf="t.key === activeTack">
+      <progress-tracker [key]="t.key"></progress-tracker>
+    </ng-container>
+  </ng-container>
+</ng-container>
+
+<ng-template #noTracks>
+  <div class="c8y-empty-state">
+    <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-oee"></h1>
+    <h3 translate>No Tracks set</h3>
+    <p translate>Add a track to view its history items listed.</p>
+  </div>
+</ng-template>

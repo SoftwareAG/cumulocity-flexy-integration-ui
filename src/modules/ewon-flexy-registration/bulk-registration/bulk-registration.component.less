@@ -1,0 +1,32 @@
+:host ::ng-deep {
+  .dlt-c8y-icon-high-priority {
+    color: #E0000E;
+  }
+}
+
+.clear-log-button {
+  position: absolute;
+  right: 38px;
+  margin-top: 18px;
+  z-index: 10;
+}
+
+c8y-list-group {
+  max-height: clamp(200px, 40vh, 600px);
+  padding-right: 8px;
+  overflow-y: scroll;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(57, 72, 82, 0.2);
+    border-radius: 2px;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: #677680;
+  }
+}
