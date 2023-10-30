@@ -4,7 +4,5 @@ export * from './bulk-registration/registration-modal/registration-modal.compone
 export * from './datamailbox-download/datamailbox-download.component';
 export * from './datamailbox-download/synchjob-card/synchjob-card.component';
 export * from './datamailbox-download/synchjob-modal/synchjob-modal.component';
-export * from './factories/navigator-node.factory';
-export * from './factories/tab.factory';
 export * from './loading-spinner/loading-spinner.component';
 export * from './settings/settings.component';

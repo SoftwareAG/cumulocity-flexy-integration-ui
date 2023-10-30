@@ -7,15 +7,30 @@ import {
 } from '@flexy/constants/flexy-integration.constants';
 import { FlexySettings } from '@flexy/models/flexy.model';
 import { T2MAccount, T2MUrlOptions, TALK2M_BASEURL, TALK2M_DEVELOPERID } from '@flexy/models/talk-2-m.model';
+import { BehaviorSubject } from 'rxjs';
 import { DevlogService } from './devlog.service';
 import { ExternalIDService } from './external-id.service';
 
 @Injectable({ providedIn: 'root' })
 export class Talk2MService extends DevlogService {
+  session$: BehaviorSubject<string>;
+
+  set sessionID(sessionID: string) {
+    this._sessionID = sessionID;
+    this.session$.next(sessionID);
+  }
+  get sessionID(): string {
+    return this._sessionID;
+  }
+
+  private _sessionID: string;
+
   constructor(private http: HttpClient, private externalIDService: ExternalIDService) {
     super();
     // this.devLogEnabled = false;
     this.devLogPrefix = 'T2M.S';
+
+    this.session$ = new BehaviorSubject(this.sessionID);
   }
 
   buildUrl(path: string, config: T2MUrlOptions, developerId = TALK2M_DEVELOPERID): string {
@@ -100,17 +115,22 @@ export class Talk2MService extends DevlogService {
 
     const url = this.buildUrl('login', { account, username, password });
     const response = await this.http.get<any>(url, { observe: 'response' }).toPromise();
-    const session =
-      !!response && response.hasOwnProperty('body') && response.body.hasOwnProperty('t2msession')
+
+    const session = !!response && response.hasOwnProperty('body') && response.body.hasOwnProperty('t2msession')
         ? response.body.t2msession
-        : null;
+      : null;
+
+    this.sessionID = session;
 
     return session;
   }
 
   async logout(session: string): Promise<HttpResponse<any>> {
     this.devLog('logout', { session });
-    return await this.http.get<any>(this.buildUrl('logout', { session }), { observe: 'response' }).toPromise();
+    const response = await this.http.get<any>(this.buildUrl('logout', { session }), { observe: 'response' }).toPromise();
+    this.sessionID = null;
+
+    return response;
   }
 
   async isSessionActive(session: string): Promise<boolean> {
