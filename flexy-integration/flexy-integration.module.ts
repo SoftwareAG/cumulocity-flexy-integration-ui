@@ -1,7 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CoreModule, FormsModule, gettext, hookActionBar, hookComponent, hookNavigator, hookRoute } from '@c8y/ngx-components';
+import {
+  CoreModule,
+  FormsModule,
+  gettext,
+  hookActionBar,
+  hookComponent,
+  hookNavigator,
+  hookRoute
+} from '@c8y/ngx-components';
 import { ProgressTrackerModule } from '@progress/progress-tracker.module';
 import { ButtonsModule } from 'ngx-bootstrap/buttons';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
@@ -23,6 +31,7 @@ import {
   FLEXY_REGISTRATION_PATH,
   FLEXY_SETTINGS_PATH
 } from './constants/flexy-integration.constants';
+import { PluginService, Talk2mRequestService, Talk2mSessionService } from './services';
 
 const declarations = [
   AgentInstallOverlayComponent,
@@ -37,6 +46,9 @@ const declarations = [
 ];
 
 const providers = [
+  PluginService,
+  Talk2mRequestService,
+  Talk2mSessionService,
   hookComponent({
     id: 'hms.flex-integration.plugin',
     label: gettext('HMS Flexy Untegration Plugin'),

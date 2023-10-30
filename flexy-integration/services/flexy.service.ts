@@ -15,10 +15,11 @@ import {
   FlexyIntegrated,
   FlexySettings
 } from '@flexy/models/flexy.model';
-import { T2MPool, T2MUrlOptions } from '@flexy/models/talk-2-m.model';
+import { Talk2MPool, Talk2MUrlOptions } from '@flexy/models/talk2m.model';
 import { DevlogService } from './devlog.service';
 import { EWONFlexyDeviceRegistrationService } from './ewon-flexy-device-registration.service';
 import { ExternalIDService } from './external-id.service';
+import { Talk2mRequestService } from './talk2m-request.service';
 import { Talk2MService } from './talk2m.service';
 
 @Injectable({
@@ -26,8 +27,9 @@ import { Talk2MService } from './talk2m.service';
 })
 export class FlexyService extends DevlogService {
   constructor(
-    private talk2m: Talk2MService,
     private http: HttpClient,
+    private talk2m: Talk2MService,
+    private talk2mRequest: Talk2mRequestService,
     private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
     private externalIDService: ExternalIDService,
     private deviceRegistrationService: DeviceRegistrationService
@@ -41,13 +43,15 @@ export class FlexyService extends DevlogService {
     // TODO use session from appService
     this.devLog('getEwons', { pool });
 
-    const config: T2MUrlOptions = { session };
+    const config: Talk2MUrlOptions = { session };
     if (pool) config.pool = pool;
 
-    return await this.http.get<any>(this.talk2m.buildUrl('getewons', config), { observe: 'response' }).toPromise();
+    return await this.http
+      .get<any>(this.talk2mRequest.buildUrl('getewons', config), { observe: 'response' })
+      .toPromise();
   }
 
-  async getEwonsByPool(session: string, pool: T2MPool): Promise<EwonFlexyStructure[]> {
+  async getEwonsByPool(session: string, pool: Talk2MPool): Promise<EwonFlexyStructure[]> {
     this.devLog('getEwonsByPool', { session, pool });
     const response = await this.getEwons(session, pool.id);
     if (!response || !response.hasOwnProperty('body') || !response.body.hasOwnProperty('ewons')) return null;
@@ -66,7 +70,7 @@ export class FlexyService extends DevlogService {
     });
   }
 
-  async getEwonsOfPools(session: string, pools: T2MPool[]): Promise<EwonFlexyStructure[]> {
+  async getEwonsOfPools(session: string, pools: Talk2MPool[]): Promise<EwonFlexyStructure[]> {
     // TODO use session from appService
     this.devLog('getEwonsOfPools', { session, pools });
     const response = await Promise.all(pools.map((pool) => this.getEwonsByPool(session, pool)));
@@ -76,7 +80,7 @@ export class FlexyService extends DevlogService {
 
   async getSerial(deviceName: string, config: FlexySettings): Promise<string> {
     this.devLog('getSerial', { deviceName, config });
-    const url = this.talk2m.buildUrl(`get/${deviceName}/rcgi.bin/ParamForm`, {
+    const url = this.talk2mRequest.buildUrl(`get/${deviceName}/rcgi.bin/ParamForm`, {
       session: config.session,
       deviceName,
       account: config.account,
@@ -84,7 +88,7 @@ export class FlexyService extends DevlogService {
       devicePassword: config.devicePassword,
       AST_Param: '$dtES'
     });
-    const res = await this.http.get<any>(url, this.talk2m.generateHeaderOptions()).toPromise();
+    const res = await this.http.get<any>(url, this.talk2mRequest.generateHeaderOptions()).toPromise();
     // grab serial from response (temp solution?);
     const regEx = new RegExp(/SerNum:(\d{4}-\d{4}-\d{2})/gm);
     const serial = res.match(regEx);

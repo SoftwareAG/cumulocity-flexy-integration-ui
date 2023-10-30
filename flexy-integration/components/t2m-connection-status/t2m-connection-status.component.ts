@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Talk2MService } from '@flexy/services';
+import { PluginService, Talk2mSessionService } from '@flexy/services';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -11,8 +11,9 @@ export class T2mConnectionStatusComponent implements OnDestroy {
 
   private subscription: Subscription;
 
-  constructor(private t2m: Talk2MService) {
-    this.subscription = this.t2m.session$.subscribe((sessionID) => (this.t2mConnected = !!sessionID));
+  constructor(private t2mSession: Talk2mSessionService, private pluginService: PluginService) {
+    this.subscription = this.t2mSession.session$.subscribe((sessionID) => (this.t2mConnected = !!sessionID));
+    void this.pluginService.checkForActiveSession();
   }
 
   ngOnDestroy(): void {

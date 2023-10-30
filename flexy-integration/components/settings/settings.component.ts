@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertService } from '@c8y/ngx-components';
 import { FlexySettings } from '@flexy/models/flexy.model';
-import { CerdentialsService, MicroserviceIntegrationService, Talk2MService } from '@flexy/services';
+import { CerdentialsService, MicroserviceIntegrationService, Talk2mSessionService } from '@flexy/services';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -10,10 +10,6 @@ import { Observable } from 'rxjs';
   styleUrls: ['settings.component.less']
 })
 export class SettingsComponent implements OnInit {
-  private _config: FlexySettings = {};
-  isSessionConnected = false;
-  isMicroserviceEnabled = false;
-
   set config(config: FlexySettings) {
     this._config = config;
   }
@@ -21,56 +17,25 @@ export class SettingsComponent implements OnInit {
     return this._config;
   }
 
+  isSessionConnected = false;
+  isMicroserviceEnabled = false;
+
+  private _config: FlexySettings = {};
+
   constructor(
     private alert: AlertService,
-    private talk2m: Talk2MService,
-    private credentialsService: CerdentialsService,
-    private c8yMicroservice: MicroserviceIntegrationService
-  ) {}
-
-  ngOnInit(): void {
-    this.checkMsEnabled();
-    this.checkCredentials();
+    private c8yMicroservice: MicroserviceIntegrationService,
+    private talk2mSession: Talk2mSessionService,
+    private credentialsService: CerdentialsService
+  ) {
+    if (!this.config.tenant) this.config.tenant = 'cumulocity.com';
   }
 
-  private async checkMsEnabled(): Promise<void> {
+  async ngOnInit(): Promise<void> {
     this.isMicroserviceEnabled = await this.c8yMicroservice.isMicroserviceEnabled();
   }
 
-  // Check credentials from tenant options
-  private checkCredentials(): void {
-    this.credentialsService.getCredentials().then(
-      async (options) => {
-        options.forEach((option) => (this.config[option.key] = option.value));
-
-        //Default tenant option
-        if (!this.config.tenant) this.config.tenant = 'cumulocity.com';
-
-        // Is session still active
-        if (this.config && this.config.session) {
-          this.isSessionConnected = await this.talk2m.isSessionActive(this.config.session);
-        }
-      },
-      (error) => this.alert.warning('Get credentials failed.', JSON.stringify(error.res))
-    );
-  }
-
-  logout() {
-    if (!this.isSessionConnected) {
-      this.alert.warning('No connection established.');
-      return;
-    }
-
-    this.talk2m.logout(this.config.session).then(
-      () => {
-        this.isSessionConnected = false;
-        this.alert.add({ text: 'Session logout.', type: 'info', timeout: 3000 });
-      },
-      (error) => this.alert.danger('Logout failed.', error)
-    );
-  }
-
-  connect(config: FlexySettings): boolean | Promise<boolean> | Observable<boolean> {
+  login(config: FlexySettings): boolean | Promise<boolean> | Observable<boolean> {
     if (!config || !config.account || !config.password || !config.tenant || !config.username) {
       this.alert.warning('Login Talk2M failed. Missing parameter.');
     }
@@ -80,15 +45,15 @@ export class SettingsComponent implements OnInit {
       () => {
         // Logout before establish new session
         if (config.session && this.isSessionConnected) {
-          this.talk2m.logout(config.session).then(() => {
+          this.talk2mSession.logout(config.session).then(() => {
             this.isSessionConnected = false;
             // Login
-            this.talk2m.login(config.account, config.username, config.password).then(
+            this.talk2mSession.login(config.account, config.username, config.password).then(
               async (session) => {
                 this.isSessionConnected = true;
 
                 this.config.session = session;
-                const account = await this.talk2m.getAccount(this.config.session);
+                const account = await this.talk2mSession.getAccount(this.config.session);
 
                 let toUpdate = { session };
                 // remove all "" after stringify
@@ -107,7 +72,7 @@ export class SettingsComponent implements OnInit {
           });
           // Login
         } else {
-          this.talk2m.login(config.account, config.username, config.password).then(
+          this.talk2mSession.login(config.account, config.username, config.password).then(
             (session) => {
               this.isSessionConnected = true;
               this.config.session = session;
@@ -123,6 +88,24 @@ export class SettingsComponent implements OnInit {
       },
       (error) => this.alert.warning('Update credentials failed. ', JSON.stringify(error))
     );
+
     return true;
+  }
+
+  logout(): void {
+    console.log('logout', { isSessionConnected: this.isSessionConnected, config: this.config });
+
+    if (!this.isSessionConnected) {
+      this.alert.warning('No connection established.');
+      return;
+    }
+
+    this.talk2mSession.logout(this.config.session).then(
+      () => {
+        this.isSessionConnected = false;
+        this.alert.add({ text: 'Session logout.', type: 'info', timeout: 3000 });
+      },
+      (error) => this.alert.danger('Logout failed.', error)
+    );
   }
 }

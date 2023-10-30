@@ -6,7 +6,7 @@ import {
   GET_OPTIONS,
   ONLOAD_OPTIONS
 } from '@flexy/constants/flexy-integration.constants';
-import { TALK2M_DEVELOPERID } from '@flexy/models/talk-2-m.model';
+import { TALK2M_DEVELOPERID } from '@flexy/models/talk2m.model';
 
 @Injectable({ providedIn: 'root' })
 export class MicroserviceIntegrationService {

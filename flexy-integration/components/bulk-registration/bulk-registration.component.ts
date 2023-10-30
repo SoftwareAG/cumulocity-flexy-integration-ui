@@ -15,7 +15,7 @@ import {
 } from '@flexy/constants/flexy-integration.constants';
 import { InstallAgentForm, ProgressMessage } from '@flexy/models/c8y-custom-objects.model';
 import { EwonFlexyStructure, FlexyIntegrated, FlexySettings } from '@flexy/models/flexy.model';
-import { T2MAccount } from '@flexy/models/talk-2-m.model';
+import { Talk2MAccount } from '@flexy/models/talk2m.model';
 import {
   CerdentialsService,
   EWONFlexyDeviceRegistrationService,
@@ -24,6 +24,7 @@ import {
   RegisterFlexyManualService,
   Talk2MService
 } from '@flexy/services';
+import { Talk2mSessionService } from '@flexy/services/talk2m-session.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { AgentInstallOverlayComponent } from '../agent-install-overlay/agent-install-overlay.component';
 
@@ -88,7 +89,7 @@ export class BulkRegistrationComponent implements OnInit {
 
   constructor(
     private alert: AlertService,
-    private talk2m: Talk2MService,
+    private talk2mSession: Talk2mSessionService,
     private credentialsService: CerdentialsService,
     private flexyRegistration: EWONFlexyDeviceRegistrationService,
     private modalService: BsModalService,
@@ -288,7 +289,7 @@ export class BulkRegistrationComponent implements OnInit {
     return ewon;
   }
 
-  private async digestDevices(devices: EwonFlexyStructure[], account: T2MAccount): Promise<EwonFlexyStructure[]> {
+  private async digestDevices(devices: EwonFlexyStructure[], account: Talk2MAccount): Promise<EwonFlexyStructure[]> {
     this.devLog('digestDevices', { devices, account });
     let t2mDevices: EwonFlexyStructure[];
 
@@ -304,7 +305,7 @@ export class BulkRegistrationComponent implements OnInit {
   }
 
   // TODO refactor
-  private async fetchCredentials(): Promise<T2MAccount> {
+  private async fetchCredentials(): Promise<Talk2MAccount> {
     this.devLog('fetchCredentials');
 
     try {
@@ -317,7 +318,7 @@ export class BulkRegistrationComponent implements OnInit {
       if (!this.config.session) throw new Error('Session is no longer active. Please re-connect.');
 
       // account
-      const account = await this.talk2m.getAccount(this.config.session);
+      const account = await this.talk2mSession.getAccount(this.config.session);
       this.devLog('fetchCredentials|account', account);
       if (!account) throw new Error('Could not retrieve Talk2M Account details. Please reconnect.');
       this.isSessionConnected = true; // TODO move to app service

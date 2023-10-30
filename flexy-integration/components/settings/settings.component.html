@@ -1,13 +1,4 @@
 <c8y-title>{{ 'Ewon Flexy Settings' | translate }}</c8y-title>
-<!--Action Bar-->
-<c8y-action-bar-item [placement]="'right'">
-  <div class="c8y-realtime">
-    <span
-      [ngClass]="isSessionConnected ? 'c8y-pulse active' : 'c8y-pulse inactive'"
-    ></span>
-    Talk2M Session
-  </div>
-</c8y-action-bar-item>
 
 <!--Settings Card-->
 <div class="card">
@@ -18,50 +9,32 @@
     <h4>{{ 'Talk2M Login' | translate }}</h4>
     <div class="form-group">
       <label>{{ 'Account' | translate }}</label>
-      <input
-        class="form-control"
-        type="text"
-        [(ngModel)]="config.account"
-        placeholder="Account name"
-      />
+      <input class="form-control" type="text" [(ngModel)]="config.account" placeholder="Account name" />
     </div>
     <div class="form-group">
       <label>{{ 'Username' | translate }}</label>
-      <input
-        class="form-control"
-        type="text"
-        [(ngModel)]="config.username"
-        placeholder="User"
-      />
+      <input class="form-control" type="text" [(ngModel)]="config.username" placeholder="User" />
     </div>
     <div class="form-group">
       <label>{{ 'Password' | translate }}</label>
-      <input
-        class="form-control"
-        type="password"
-        [(ngModel)]="config.password"
-        placeholder="Password"
-      />
+      <input class="form-control" type="password" [(ngModel)]="config.password" placeholder="Password" />
       <p id="helpinput" class="help-block">
         {{
-          "Password won't be saved. If the session disconnect, you may have to re-enter your password once again."
-            | translate
+        "Password won't be saved. If the session disconnect, you may have to re-enter your password once again."
+        | translate
         }}
       </p>
     </div>
   </div>
 
+  <!-- TODO move somewhere else? -->
   <div class="card-block" *ngIf="isMicroserviceEnabled">
     <h4>{{ 'Data Mailbox' | translate }}</h4>
 
     <div class="form-group">
       <label>{{ 'Token' | translate }}</label>
-      <input
-        class="form-control"
-        type="text"
-        [(ngModel)]="config.token"
-        placeholder="589645ijtebgogsaite348t34t34bt834qu343348t5b4"
-      />
+      <input class="form-control" type="text" [(ngModel)]="config.token"
+        placeholder="589645ijtebgogsaite348t34t34bt834qu343348t5b4" />
     </div>
   </div>
 
@@ -71,11 +44,7 @@
       <label for="exampleSelect">{{ 'Management Tenant' | translate }}</label>
       <div class="form-group">
         <div class="c8y-select-wrapper">
-          <select
-            id="exampleSelect"
-            class="form-control"
-            [(ngModel)]="config.tenant"
-          >
+          <select id="exampleSelect" class="form-control" [(ngModel)]="config.tenant">
             <option selected="selected" value="cumulocity.com">
               cumulocity.com
             </option>
@@ -89,17 +58,7 @@
     </div>
   </div>
   <div class="card-footer separator">
-    <input
-      type="submit"
-      value="Save & Connect"
-      class="btn btn-primary"
-      (click)="connect(config)"
-    />
-    <input
-      type="submit"
-      value="Logout"
-      class="btn btn-warning"
-      (click)="logout(config)"
-    />
+    <input type="submit" value="Save & Connect" class="btn btn-primary" (click)="login(config)" />
+    <input type="submit" value="Logout" class="btn btn-warning" (click)="logout()" />
   </div>
 </div>
