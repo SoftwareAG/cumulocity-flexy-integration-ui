@@ -5,20 +5,18 @@
   "appPort": [4000, 4200, 4433, 5000, 8080, 9876],
   "postCreateCommand": "npm install",
   "extensions": [
-    "devondcarew.bazel-code",
-    "gkalpak.aio-docs-utils",
-    "ms-vscode.vscode-typescript-tslint-plugin",
-    "xaver.clang-format",
-    "eamodio.gitlens",
-    "angular.ng-template",
-    "dbaeumer.vscode-eslint",
-    "formulahendry.auto-rename-tag",
-    "coenraads.bracket-pair-colorizer-2",
-    "gruntfuggly.todo-tree",
-    "esbenp.prettier-vscode",
-    "Angular.ng-template",
-    "alexiv.vscode-angular2-files",
-    "withfig.fig"
+    // sort by order of extention name
+    "alexiv.vscode-angular2-files", // Angular Files
+    "Angular.ng-template", // Angular Language Service
+    "mikehanson.auto-barrel", // Auto Barrel
+    "formulahendry.auto-rename-tag", // Auto Rename Tag
+    "dbaeumer.vscode-eslint", // ESLint
+    "withfig.fig", // Fig
+    "eamodio.gitlens", // GitLens
+    "esbenp.prettier-vscode", // Prettier - Code Formatter
+    "2gua.rainbow-brackets", // Rainbow Brackets
+    "ms-vscode.vscode-typescript-tslint-plugin", // TSLint
+    "gruntfuggly.todo-tree" // Todo Tree
   ],
   "settings": {
     "editor.tabSize": 2,
