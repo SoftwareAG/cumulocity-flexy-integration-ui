@@ -91,7 +91,6 @@ export class RegistrationDeviceGridComponent implements OnInit {
   }
 
   resetSelection() {
-    console.log('resetSelection');
     this.dataGrid.cancel();
   }
 
