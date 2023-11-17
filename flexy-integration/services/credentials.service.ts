@@ -2,25 +2,19 @@ import { Injectable } from '@angular/core';
 import { ITenantOption, TenantOptionsService, UserService } from '@c8y/client';
 import { FLEXY_TENANTOPTIONS_CATEGORY } from '@flexy/constants/flexy-integration.constants';
 import { FlexySettings } from '@flexy/models/flexy.model';
-import { DevlogService } from './devlog.service';
 
 @Injectable({ providedIn: 'root' })
-export class CerdentialsService extends DevlogService {
-  constructor(private tenantOptionsService: TenantOptionsService, private userService: UserService) {
-    super();
-    this.devLogEnabled = false;
-    this.devLogPrefix = 'C.S';
-  }
+export class CerdentialsService {
+  constructor(private tenantOptionsService: TenantOptionsService, private userService: UserService) {}
 
   protected async getCategory(): Promise<string> {
-    this.devLog('getCategory');
     const user = await this.userService.current();
     const base64 = btoa(user.data.id).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+
     return FLEXY_TENANTOPTIONS_CATEGORY + '_' + base64;
   }
 
   async updateCredentials(config: Partial<FlexySettings>): Promise<void> {
-    this.devLog('updateCredentials', config);
     const category = await this.getCategory();
     const listKeys = Object.keys(config);
 
@@ -28,6 +22,7 @@ export class CerdentialsService extends DevlogService {
       if (iterate === 'password') {
         continue;
       }
+
       const option: ITenantOption = {
         category,
         key: iterate,
@@ -38,15 +33,12 @@ export class CerdentialsService extends DevlogService {
   }
 
   async getCredentials(): Promise<ITenantOption[]> {
-    this.devLog('getCredentials');
-
     const category = await this.getCategory();
     const filter = {
       category,
       pageSize: 100,
       withTotalPages: true
     };
-
     const { data } = await this.tenantOptionsService.list(filter);
     const filteredData = data
       .filter((tmp) => tmp.category === category)

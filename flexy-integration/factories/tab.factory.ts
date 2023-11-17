@@ -4,8 +4,7 @@ import { Tab, TabFactory } from '@c8y/ngx-components';
 import {
   FLEXY_DATAMAILBOX_PATH,
   FLEXY_PATH,
-  FLEXY_REGISTRATION_PATH,
-  FLEXY_SETTINGS_PATH
+  FLEXY_REGISTRATION_PATH
 } from '@flexy/constants/flexy-integration.constants';
 import { MicroserviceIntegrationService } from '@flexy/services';
 
@@ -17,11 +16,6 @@ export class FlexyTabFactory implements TabFactory {
     if (this.router.url.includes(`${FLEXY_PATH}`)) {
       const isMicroserviceEnabled = await this.c8yMicroservice.isMicroserviceEnabled();
       let tabs = [
-        {
-          path: `${FLEXY_PATH}/${FLEXY_SETTINGS_PATH}`,
-          label: 'Settings',
-          icon: 'cog'
-        },
         {
           path: `${FLEXY_PATH}/${FLEXY_REGISTRATION_PATH}`,
           label: 'Registration',

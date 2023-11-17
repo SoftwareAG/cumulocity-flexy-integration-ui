@@ -12,11 +12,10 @@ import {
 import { IdentityService, InventoryService } from '@c8y/ngx-components/api';
 import { FLEXY_DEVICETYPE, FLEXY_EXTERNALID_TALK2M_PREFIX } from '@flexy/constants/flexy-integration.constants';
 import { EwonFlexyStructure } from '@flexy/models/flexy.model';
-import { DevlogService } from './devlog.service';
 import { ExternalIDService } from './external-id.service';
 
 @Injectable({ providedIn: 'root' })
-export class EWONFlexyDeviceRegistrationService extends DevlogService {
+export class EWONFlexyDeviceRegistrationService {
   private registrations: IDeviceRegistration[] = [];
   private registrationsRequested: number = null;
 
@@ -25,11 +24,7 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
     private identityService: IdentityService,
     private deviceRegistration: DeviceRegistrationService,
     private externalIDService: ExternalIDService
-  ) {
-    super();
-    this.devLogEnabled = true;
-    this.devLogPrefix = 'EFDR.S';
-  }
+  ) { }
 
   // InventoryService
   async createDeviceInventory(ewon: EwonFlexyStructure): Promise<IManagedObject> {
@@ -69,35 +64,34 @@ export class EWONFlexyDeviceRegistrationService extends DevlogService {
   }
 
   async getDeviceGroupInventoryList(): Promise<IManagedObject[]> {
-    const filter: object = {
+    const { data } = await this.inventoryService.list({
       pageSize: 100,
       withTotalPages: true,
       fragmentType: 'c8y_IsDeviceGroup'
-    };
-    const { data } = await this.inventoryService.list(filter);
+    });
+
     return data;
   }
 
   async getGroupInventoryListOfDevice(deviceId: string): Promise<IManagedObject[]> {
-    const filter: object = {
-      pageSize: 100,
+    const { data } = await this.inventoryService.list({
+      pageSize: 2000,
       childAssetId: deviceId,
       withTotalPages: false,
       withChildren: false,
       withParents: true
-    };
+    });
 
-    const { data } = await this.inventoryService.list(filter);
     return data;
   }
 
   async getDeviceEwonFlexyInventoryList(): Promise<IManagedObject[]> {
-    const filter: object = {
-      pageSize: 100,
+    const { data } = await this.inventoryService.list({
+      pageSize: 2000,
       withTotalPages: true,
       type: FLEXY_DEVICETYPE
-    };
-    const { data } = await this.inventoryService.list(filter);
+    });
+
     return data;
   }
 

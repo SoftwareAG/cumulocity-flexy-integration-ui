@@ -1,0 +1,16 @@
+<ng-container *ngIf="device; else noDevice">
+  <ul>
+    <li>
+      <span class="text-muted" [ngClass]="{'text-success': device.talk2m_integrated === 'yes'}">
+        Talk2M
+      </span>
+    </li>
+    <li>
+      <span class="text-muted" [ngClass]="{'text-success': device.registered === 'yes'}">
+        Cumulocity
+      </span>
+    </li>
+  </ul>
+</ng-container>
+
+<ng-template #noDevice>-</ng-template>

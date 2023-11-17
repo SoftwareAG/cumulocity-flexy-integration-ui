@@ -55,7 +55,7 @@ export class RegistrationModalComponent implements OnInit {
   onRegister(config?: FlexySettings) {
     if (config && config.deviceUsername && config.devicePassword) {
       this.deviceRegistered = false;
-      this.flexyService.getSerial(config.deviceName, config).then(
+      this.flexyService.getSerial(config.deviceName, config.deviceUsername, config.devicePassword).then(
         (response) => {
           if (response.indexOf('SerNum:') >= 0) {
             let serial: string = '';

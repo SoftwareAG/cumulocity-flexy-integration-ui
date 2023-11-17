@@ -1,102 +1,155 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { IExternalIdentity, IManagedObject } from '@c8y/client';
+import { PluginConfig } from '@flexy/models/plugin.model';
 import {
-  EXTERNALID_TALK2M_SERIALTYPE,
-  FLEXY_EXTERNALID_TALK2M_PREFIX
-} from '@flexy/constants/flexy-integration.constants';
-import { FlexySettings } from '@flexy/models/flexy.model';
-import { DevlogService } from './devlog.service';
-import { ExternalIDService } from './external-id.service';
-import { Talk2mRequestService } from './talk2m-request.service';
+  Talk2MAccount,
+  Talk2MUrlOptions,
+  TALK2M_BASEURL,
+  TALK2M_DEVELOPERID,
+  Talk2mParameterParams
+} from '@flexy/models/talk2m.model';
+import { has } from 'lodash';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class Talk2MService extends DevlogService {
-  constructor(
-    private http: HttpClient,
-    private externalIDService: ExternalIDService,
-    private t2mRequest: Talk2mRequestService
-  ) {
-    super();
-    // this.devLogEnabled = false;
-    this.devLogPrefix = 'T2M.S';
+export class Talk2mService {
+  // session (id)
+  set session(session: PluginConfig['session']) {
+    this._session = session;
+    this.session$.next(session);
+  }
+  get session(): PluginConfig['session'] {
+    return this._session;
   }
 
-  async execScript(command: string, deviceName: string, config: FlexySettings): Promise<string> {
-    this.devLog('execScript', { command, deviceName, config });
-    const url = this.t2mRequest.buildUrl(`get/${deviceName}/rcgi.bin/ExeScriptForm`, {
-      session: config.session,
-      account: config.account,
-      deviceUsername: config.deviceUsername,
-      devicePassword: config.devicePassword,
-      Command1: command
+  set account(account: Talk2MAccount) {
+    this._account = account;
+    this.account$.next(account);
+  }
+  get account(): Talk2MAccount {
+    return this._account;
+  }
+
+  // observables
+  session$: BehaviorSubject<PluginConfig['session']>;
+
+  account$: BehaviorSubject<Talk2MAccount>;
+
+  private _session: PluginConfig['session'];
+
+  private _account: Talk2MAccount;
+
+  constructor(private httpClient: HttpClient) {
+    this.session$ = new BehaviorSubject(this.session);
+    this.account$ = new BehaviorSubject(this.account);
+  }
+
+  async login(
+    account: Talk2MAccount['accountName'],
+    username: Talk2MUrlOptions['username'],
+    password: Talk2MUrlOptions['password']
+  ): Promise<PluginConfig['session']> {
+    const url = this.buildUrl('login', { account, username, password });
+    const response = await this.get<any>(url, this.generateObserverHeader());
+    const session =
+      !!response && response.hasOwnProperty('body') && response.body.hasOwnProperty('t2msession')
+        ? response.body.t2msession
+        : null;
+
+    this.session = session;
+
+    return session;
+  }
+
+  async logout(session = this.session): Promise<HttpResponse<any>> {
+    if (!session) throw Error('No session provided');
+
+    const url = this.buildUrl('logout');
+    const response = await this.get<any>(url, this.generateObserverHeader());
+
+    this.session = null;
+
+    return response;
+  }
+
+  async isSessionActive(session = this.session): Promise<boolean> {
+    if (!session) return false;
+
+    const account = await this.getAccount(session);
+
+    return !!account;
+  }
+
+  async getAccount(session = this.session, useCache = true): Promise<Talk2MAccount> {
+    if (!session) throw Error('No session provided');
+
+    if (useCache && this.account) return this.account;
+
+    try {
+      const response = await this.get<any>(this.buildUrl('getaccountinfo', { session }), this.generateObserverHeader());
+
+      this.account = response.body as Talk2MAccount;
+
+      return this.account;
+    } catch (error: any) {
+      this.session = null;
+      console.error(error.message);
+
+      return null;
+    }
+  }
+
+  buildUrl(
+    path: string,
+    config: Talk2MUrlOptions = {},
+    session = this.session,
+    developerId = TALK2M_DEVELOPERID
+  ): string {
+    let url = `/${path}`;
+    const params = [];
+    const keyList = {
+      // TODO refactor
+      session: Talk2mParameterParams.SESSION,
+      account: Talk2mParameterParams.ACCOUNT,
+      username: Talk2mParameterParams.USERNAME,
+      password: Talk2mParameterParams.PASSWORD,
+      deviceUsername: Talk2mParameterParams.DEVICE_USERNAME,
+      devicePassword: Talk2mParameterParams.DEVICE_PASSWORD,
+      c8yUser: 'username', // TODO move to enum
+      c8yPass: 'password'
+    };
+
+    // inject parameters
+    config[Talk2mParameterParams.DEVELOPER_ID] = developerId;
+    if (!!session && !has(config, 'session')) config[Talk2mParameterParams.SESSION] = session;
+
+    Object.keys(config).forEach((key) => {
+      if (keyList.hasOwnProperty(key)) params.push(`${keyList[key]}=${config[key]}`);
+      else params.push(`${key}=${config[key]}`);
     });
 
-    return await this.http.get<any>(url, this.t2mRequest.generateHeaderOptions()).toPromise();
+    if (params.length) {
+      url += '?' + params.join('&');
+    }
+
+    return TALK2M_BASEURL + url;
   }
 
-  async restart(deviceName: string, config: FlexySettings): Promise<string> {
-    this.devLog('restart', { deviceName });
-
-    const url = this.t2mRequest.buildUrl(`get/${deviceName}/rcgi.bin/wsdForm`, {
-      session: config.session,
-      account: config.account,
-      deviceUsername: config.deviceUsername,
-      devicePassword: config.devicePassword,
-      AST_ErrorMsg: 'Reboot%20will%20occur...',
-      com_Csave: 1,
-      resetAction: 1,
-      com_BootOp: 0
-    });
-    return await this.http.get<any>(url, this.t2mRequest.generateHeaderOptions()).toPromise();
+  generateHeaderOptions(request = 'text/plain', response = 'text'): Object {
+    // TODO better return type
+    return {
+      headers: new HttpHeaders({ 'Content-Type': request }),
+      responseType: response
+    };
   }
 
-  async downloadFile(filename: string, deviceName: string, config): Promise<string> {
-    const url = this.t2mRequest.buildUrl(`get/${deviceName}/usr/${filename}`, {
-      AST_Param: '$dtIV $ftT $st_m3', // issue #27 - usage unknown
-      session: config.session,
-      account: config.account,
-      deviceUsername: config.deviceUsername,
-      devicePassword: config.devicePassword
-    });
-    return await this.http.get<any>(url, this.t2mRequest.generateHeaderOptions()).toPromise();
+  // TODO move to const or integrate with generateHeaderOptions
+  generateObserverHeader() {
+    return { observe: 'response' };
   }
 
-  // new
-  private getExternalIDString(id): string {
-    this.devLog('getExternalIDString', { id });
-    return FLEXY_EXTERNALID_TALK2M_PREFIX + id;
-  }
-
-  async getExternalID(id): Promise<IExternalIdentity> {
-    this.devLog('getExternalID', { id });
-    return this.externalIDService.getExternalID(this.getExternalIDString(id), EXTERNALID_TALK2M_SERIALTYPE);
-  }
-
-  async createExternalIDForDevice(deviceMO: IManagedObject, externalID: string): Promise<IExternalIdentity> {
-    this.devLog('createExternalIDForDevice', { deviceMO, externalID });
-    return this.externalIDService.createExternalIDForDevice(
-      deviceMO.id,
-      this.getExternalIDString(externalID),
-      EXTERNALID_TALK2M_SERIALTYPE
-    );
-  }
-
-  async sendConfig(deviceName: string, config: FlexySettings): Promise<boolean> {
-    this.devLog('sendConfig', { deviceName, config });
-    const url = this.t2mRequest.buildUrl(`get/${deviceName}/rcgi.bin/jvmForm`, {
-      formName: 'overwriteBootstrapAuth', // 'setBootstrapAuth',
-      session: config.session,
-      account: config.account,
-      deviceUsername: config.deviceUsername,
-      devicePassword: config.devicePassword,
-      port: config.c8yPort,
-      c8yUser: config.c8yUsername,
-      c8yPass: config.c8yPassword,
-      host: config.c8yHost,
-      tenant: config.c8yTenant
-    });
-
-    return await this.http.get<any>(url, this.t2mRequest.generateHeaderOptions()).toPromise();
+  // TODO refactor httpClient.get usage in rest of the app
+  get<T>(url: string, header = this.generateHeaderOptions()): Promise<T> {
+    return this.httpClient.get<T>(url, header).toPromise();
   }
 }

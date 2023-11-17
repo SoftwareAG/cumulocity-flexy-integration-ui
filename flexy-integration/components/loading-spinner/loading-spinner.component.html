@@ -1,12 +1,6 @@
 <ng-container *ngIf="loading">
-  <div class="c8y-empty-state text-center">
-    <div class="spinner" style="position: relative">
-      <div class="rect1"></div>
-      <div class="rect2"></div>
-      <div class="rect3"></div>
-      <div class="rect4"></div>
-      <div class="rect5"></div>
-    </div>
+  <div class="c8y-empty-state">
+    <c8y-loading></c8y-loading>
     <h3 *ngIf="title" translate>{{ title }}</h3>
     <p *ngIf="copy" translate>{{ copy }}</p>
   </div>

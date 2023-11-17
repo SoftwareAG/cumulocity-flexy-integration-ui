@@ -1,26 +1,19 @@
 import { Injectable } from '@angular/core';
 import { ProgressMessage } from 'flexy-integration/models/c8y-custom-objects.model';
 import { Subscriber } from 'rxjs';
-import { DevlogService } from './devlog.service';
 
 @Injectable({ providedIn: 'root' })
-export class ProgressLoggerService extends DevlogService {
+export class ProgressLoggerService {
   total = 0;
   observer$: Subscriber<ProgressMessage>;
 
-  constructor() {
-    super();
-    this.devLogEnabled = false;
-    this.devLogPrefix = 'PL.S';
-  }
+  constructor() {}
 
   generateDeviceLogMessage(deviceName: string, deviceIndex: number, message: string): string {
-    this.devLog('generateDeviceLogMessage', { deviceName, deviceIndex, message });
     return deviceIndex < 0 ? message : `[${deviceIndex + 1}/${this.total}] ${deviceName}: ${message}`;
   }
 
   setLogMessage(message: Partial<ProgressMessage>): void {
-    this.devLog('setLogMessage', { message });
     const defaultConfig: ProgressMessage = {
       date: new Date(),
       message: '',
@@ -30,17 +23,14 @@ export class ProgressLoggerService extends DevlogService {
   }
 
   sendErrorMessage(message: string, details?: string): void {
-    this.devLog('sendErrorMessage', { message, details });
     this.setLogMessage({ message, details, icon: 'high-priority', type: 'error' });
   }
 
   sendSimpleMessage(message: string, icon?: string): void {
-    this.devLog('sendSimpleMessage', { message, icon });
     this.setLogMessage({ message, icon, type: 'info' });
   }
 
   sendDeviceErrorMessage(deviceName: string, deviceIndex: number, message: string, details?: string): void {
-    this.devLog('sendDeviceErrorMessage', { deviceName, deviceIndex, message, details });
     this.setLogMessage({
       message: this.generateDeviceLogMessage(deviceName, deviceIndex, message),
       details,
@@ -50,7 +40,6 @@ export class ProgressLoggerService extends DevlogService {
   }
 
   sendDeviceSimpleMessage(deviceName: string, deviceIndex: number, message: string, icon?: string): void {
-    this.devLog('sendDeviceSimpleMessage', { deviceName, deviceIndex, message, icon });
     this.setLogMessage({
       message: this.generateDeviceLogMessage(deviceName, deviceIndex, message),
       icon

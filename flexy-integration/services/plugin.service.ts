@@ -2,18 +2,16 @@ import { Injectable } from '@angular/core';
 import { AlertService } from '@c8y/ngx-components';
 import { PluginConfig } from '@flexy/models/plugin.model';
 import { CerdentialsService } from './credentials.service';
-import { Talk2mSessionService } from './talk2m-session.service';
+import { Talk2mService } from './talk2m.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class PluginService {
   pluginConfig: PluginConfig;
 
   constructor(
     private alertService: AlertService,
     private credentialsService: CerdentialsService,
-    private talk2mSessionService: Talk2mSessionService
+    private talk2mService: Talk2mService
   ) {}
 
   // Check credentials from tenant options
@@ -29,13 +27,13 @@ export class PluginService {
 
       // Is session still active
       if (config.session) {
-        const isActive = await this.talk2mSessionService.isSessionActive(config.session);
+        const isActive = await this.talk2mService.isSessionActive(config.session);
 
         if (isActive) {
-          this.talk2mSessionService.sessionID = config.session;
+          this.talk2mService.session = config.session;
         } else {
           delete this.pluginConfig.session;
-          this.talk2mSessionService.sessionID = null;
+          this.talk2mService.session = null;
         }
       }
     } catch (error: any) {

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import {
   CoreModule,
   FormsModule,
@@ -24,50 +25,52 @@ import {
   SynchjobCardComponent,
   SynchjobModalComponent
 } from './components';
-import { T2mConnectionStatusComponent } from './components/t2m-connection-status/t2m-connection-status.component';
-import {
-  FLEXY_DATAMAILBOX_PATH,
-  FLEXY_PATH,
-  FLEXY_REGISTRATION_PATH,
-  FLEXY_SETTINGS_PATH
-} from './constants/flexy-integration.constants';
-import { PluginService, Talk2mRequestService, Talk2mSessionService } from './services';
+import { RegisteredCellRendererComponent } from './components/bulk-registration/registration-device-grid/cell-renderer/registered/registered.cell-renderer.component';
+import { RegisteredColumn } from './components/bulk-registration/registration-device-grid/columns/registered.column.component';
+import { RegistrationDeviceGridComponent } from './components/bulk-registration/registration-device-grid/registration-device-grid.component';
+import { Talk2mConnectionStatusComponent } from './components/talk2m-connection-status/talk2m-connection-status.component';
+import { FLEXY_DATAMAILBOX_PATH, FLEXY_PATH, FLEXY_REGISTRATION_PATH } from './constants/flexy-integration.constants';
+import { FlexyNavigationFactory } from './factories/navigation.factory';
+import { Talk2mConnectionStatusActionFactory } from './factories/talk2m-connection-status-action.factory';
 
-const declarations = [
+const components = [
   AgentInstallOverlayComponent,
   BulkRegistrationComponent,
   DataMailboxDownloadComponent,
   LoadingSpinnerComponent,
   RegistrationModalComponent,
+  RegistrationDeviceGridComponent,
   SettingsComponent,
   SynchjobCardComponent,
   SynchjobModalComponent,
-  T2mConnectionStatusComponent
+  Talk2mConnectionStatusComponent,
+  // grid
+  // - columns
+  RegisteredColumn,
+  // - cell renderer
+  RegisteredCellRendererComponent
 ];
 
-const providers = [
-  PluginService,
-  Talk2mRequestService,
-  Talk2mSessionService,
+const hooks = [
+  // plugin
   hookComponent({
     id: 'hms.flex-integration.plugin',
     label: gettext('HMS Flexy Untegration Plugin'),
     description: gettext('Plugin description text'),
     component: BulkRegistrationComponent
   }),
+
   // routes
   hookRoute({
     path: FLEXY_PATH,
     children: [
+      // redirects
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: FLEXY_SETTINGS_PATH
+        redirectTo: FLEXY_REGISTRATION_PATH
       },
-      {
-        path: FLEXY_SETTINGS_PATH,
-        component: SettingsComponent
-      },
+      // paths
       {
         path: FLEXY_REGISTRATION_PATH,
         component: BulkRegistrationComponent
@@ -78,23 +81,16 @@ const providers = [
       }
     ]
   }),
+
   // navigation
-  hookNavigator({
-    parent: gettext('Devices'),
-    priority: 9999,
-    path: FLEXY_PATH,
-    label: 'Flexy Registration',
-    icon: 'wi-fi-router'
-  }),
+  hookNavigator(FlexyNavigationFactory),
   // hookNavigator({
   //   useClass: FlexyTabFactory,
   //   multi: true
   // })
+
   // action bar
-  hookActionBar({
-    placement: 'right',
-    template: T2mConnectionStatusComponent
-  })
+  hookActionBar(Talk2mConnectionStatusActionFactory)
 ];
 
 @NgModule({
@@ -103,13 +99,14 @@ const providers = [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterModule,
     BsDropdownModule,
     CoreModule,
     TooltipModule,
     ButtonsModule,
     ProgressTrackerModule
   ],
-  declarations,
-  providers
+  declarations: components,
+  providers: [...hooks]
 })
 export class FlexyIntegrationPluginModule {}

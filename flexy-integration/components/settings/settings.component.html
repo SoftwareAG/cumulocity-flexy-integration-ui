@@ -1,64 +1,68 @@
-<c8y-title>{{ 'Ewon Flexy Settings' | translate }}</c8y-title>
-
-<!--Settings Card-->
-<div class="card">
-  <div class="card-header separator">
-    <h4 class="card-title">{{ 'Settings' | translate }}</h4>
-  </div>
-  <div class="card-block">
-    <h4>{{ 'Talk2M Login' | translate }}</h4>
-    <div class="form-group">
-      <label>{{ 'Account' | translate }}</label>
-      <input class="form-control" type="text" [(ngModel)]="config.account" placeholder="Account name" />
-    </div>
-    <div class="form-group">
-      <label>{{ 'Username' | translate }}</label>
-      <input class="form-control" type="text" [(ngModel)]="config.username" placeholder="User" />
-    </div>
-    <div class="form-group">
-      <label>{{ 'Password' | translate }}</label>
-      <input class="form-control" type="password" [(ngModel)]="config.password" placeholder="Password" />
-      <p id="helpinput" class="help-block">
-        {{
-        "Password won't be saved. If the session disconnect, you may have to re-enter your password once again."
-        | translate
-        }}
-      </p>
-    </div>
-  </div>
-
-  <!-- TODO move somewhere else? -->
-  <div class="card-block" *ngIf="isMicroserviceEnabled">
-    <h4>{{ 'Data Mailbox' | translate }}</h4>
-
-    <div class="form-group">
-      <label>{{ 'Token' | translate }}</label>
-      <input class="form-control" type="text" [(ngModel)]="config.token"
-        placeholder="589645ijtebgogsaite348t34t34bt834qu343348t5b4" />
-    </div>
-  </div>
-
-  <div class="card-block">
-    <h4>{{ 'Cumulocity' | translate }}</h4>
-    <div class="form-group">
-      <label for="exampleSelect">{{ 'Management Tenant' | translate }}</label>
-      <div class="form-group">
-        <div class="c8y-select-wrapper">
-          <select id="exampleSelect" class="form-control" [(ngModel)]="config.tenant">
-            <option selected="selected" value="cumulocity.com">
-              cumulocity.com
-            </option>
-            <option value="eu-latest.cumulocity.com">
-              eu-latest.cumulocity.com
-            </option>
-            <option value="emea.cumulocity.com">emea.cumulocity.com</option>
-          </select>
+<c8y-modal [title]="'Settings' | translate" [customFooter]="true">
+  <form (ngSubmit)="submit()">
+    <div class="modal-body">
+      <fieldset>
+        <div class="legend form-block" translate>Talk2M Login</div>
+        <div class="form-group">
+          <label translate>Account</label>
+          <input type="text" name="account" class="form-control" [disabled]="talk2mConnected"
+            [(ngModel)]="config.account" placeholder="Account name" />
         </div>
-      </div>
+        <div class="form-group">
+          <label translate>Username</label>
+          <input type="text" name="username" class="form-control" [disabled]="talk2mConnected"
+            [(ngModel)]="config.username" placeholder="User" />
+        </div>
+        <div class="form-group">
+          <label translate>Password</label>
+          <input type="password" name="password" class="form-control" [disabled]="talk2mConnected"
+            [(ngModel)]="config.password" placeholder="Password" />
+          <p id="helpinput" class="help-block" translate>
+            Password won't be saved. If the session disconnects, you have to re-enter your password.
+          </p>
+        </div>
+      </fieldset>
+
+      <!-- TODO move somewhere else? -->
+      <fieldset *ngIf="isMicroserviceEnabled">
+        <div class="legend form-block" translate>Data Mailbox</div>
+
+        <div class="form-group">
+          <label translate>Token</label>
+          <input type="text" name="token" class="form-control"
+            placeholder="589645ijtebgogsaite348t34t34bt834qu343348t5b4" [disabled]="talk2mConnected"
+            [(ngModel)]="config.token" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <div class="legend form-block" translate>Cumulocity</div>
+        <div class="form-group">
+          <label for="exampleSelect" translate>Management Tenant</label>
+          <div class="form-group">
+            <div class="c8y-select-wrapper">
+              <select id="exampleSelect" name="tenant" class="form-control" [disabled]="talk2mConnected"
+                [(ngModel)]="config.tenant">
+                <option selected="selected" value="cumulocity.com">cumulocity.com</option>
+                <option value="eu-latest.cumulocity.com">eu-latest.cumulocity.com</option>
+                <option value="emea.cumulocity.com">emea.cumulocity.com</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </fieldset>
     </div>
-  </div>
-  <div class="card-footer separator">
-    <input type="submit" value="Save & Connect" class="btn btn-primary" (click)="login(config)" />
-    <input type="submit" value="Logout" class="btn btn-warning" (click)="logout()" />
-  </div>
-</div>
+
+    <div class="card-footer separator">
+      <button *ngIf="!talk2mConnected" type="submit" class="btn btn-primary" [disabled]="actionInProgress"
+        (click)="login()" translate>
+        Save & Connect
+      </button>
+      <button *ngIf="talk2mConnected" type="submit" value="" class="btn btn-danger" [disabled]="actionInProgress"
+        (click)="logout()" translate>
+        Logout
+      </button>
+      <button type="button" class="btn btn-default" [disabled]="actionInProgress" (click)="close()">Cancel</button>
+    </div>
+  </form>
+</c8y-modal>
