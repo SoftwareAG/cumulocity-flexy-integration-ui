@@ -181,8 +181,8 @@ export class FlexyService implements OnDestroy {
 
       console.log('fetchConnectorReleases|data', data);
       // releases.push(...data);
-    } catch (err) {
-      console.log('fetchConnectorReleases|error', err);
+    } catch (error: any) {
+      console.log('fetchConnectorReleases|error', error.message);
     }
 
     // TODO remove on successful data pull
