@@ -47,9 +47,7 @@ export class BulkRegistrationComponent {
     private alert: AlertService,
     // private registerManuallyService: RegisterFlexyManualService,
     private flexyService: FlexyService
-  ) {
-    console.clear(); // TODO remove after dev
-  }
+  ) {}
 
   async ngOnInit() {
     this.talk2mConnected = !!this.talk2mService.session;
