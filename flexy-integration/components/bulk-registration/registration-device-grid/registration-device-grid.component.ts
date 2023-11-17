@@ -142,9 +142,9 @@ export class RegistrationDeviceGridComponent implements OnInit {
     }
 
     // add indicator for pending device registration
-    if (registrations.length) {
-      console.log('registrations', registrations, ewons); // TODO
-    }
+    // if (registrations.length) {
+    //   console.log('registrations', registrations, ewons); // TODO
+    // }
 
     return ewons;
   }
