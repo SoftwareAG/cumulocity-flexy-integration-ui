@@ -1,7 +1,7 @@
 {
   "name": "hms-flexy-integration-plugin",
   "version": "2.0.0",
-  "description": "",
+  "description": "Provides an interface to register HMS Flexy devices from Talk2M into Cumulocity.",
   "scripts": {
     "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "start:cp": "npm start -- --shell cockpit",
@@ -10,9 +10,9 @@
     "deploy": "c8ycli deploy -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "postinstall": "ngcc"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["cumulocity", "cumulocity-iot", "hms-flexy", "talk2m", "device-registration"],
+  "author": "softwareAG",
+  "license": "MIT",
   "dependencies": {
     "@angular/animations": "14.0.6",
     "@angular/cdk": "14.1.2",
@@ -60,6 +60,7 @@
       "contextPath": "flexy-integration",
       "key": "flexy-integration-plugin-key",
       "globalTitle": "Flexy Integration",
+      "requieredplattformversion": "10.17",
       "tabsHorizontal": true,
       "isPackage": true,
       "noAppSwitcher": true,
