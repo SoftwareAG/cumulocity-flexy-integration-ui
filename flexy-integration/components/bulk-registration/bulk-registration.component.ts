@@ -40,15 +40,14 @@ export class BulkRegistrationComponent {
   private sessionSubscription: Subscription;
 
   constructor(
-    private talk2mService: Talk2mService, // private alert: AlertService,
+    private talk2mService: Talk2mService,
     // private flexyRegistration: EWONFlexyDeviceRegistrationService,
     private modalService: BsModalService,
     private installAgentService: InstallAgentService,
-    private alert: AlertService
+    private alert: AlertService,
     // private registerManuallyService: RegisterFlexyManualService,
-    // private flexyService: FlexyService,
-  )
-  {
+    private flexyService: FlexyService
+  ) {
     console.clear(); // TODO remove after dev
   }
 
@@ -68,18 +67,17 @@ export class BulkRegistrationComponent {
 
   // actions
   reboot(devices: EwonFlexyStructure[]): void {
-    console.log('rebootDevices', devices);
-
-    /*
     const reboots: Promise<string>[] = [];
     const config = { ...this.config, ...{ deviceUsername: 'adm', devicePassword: 'adm' } };
 
     devices.forEach((device) => reboots.push(this.flexyService.reboot(device.encodedName, config)));
 
     Promise.all(reboots)
-      .then(() => this.alert.add({ text: `${devices.length} device(s) rebooting`, type: 'success', timeout: 3000 }))
+      .then(() => {
+        this.alert.add({ text: `${devices.length} device(s) rebooting`, type: 'success', timeout: 3000 });
+        this.deviceGrid.resetSelection();
+      })
       .catch((reason) => this.alert.danger('Reboot failed', reason));
-    */
   }
 
   register(devices: EwonFlexyStructure[]): void {

@@ -53,6 +53,7 @@
   <!-- list devices -->
   <div class="card">
     <registration-device-grid
+      #grid
       (onInstall)="install($event)"
       (onRegister)="register($event)"
       (onReboot)="reboot($event)"
