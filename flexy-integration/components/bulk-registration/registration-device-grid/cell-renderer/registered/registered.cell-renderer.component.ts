@@ -13,7 +13,6 @@ export class RegisteredCellRendererComponent {
 
   constructor(private deviceRegistrationService: DeviceRegistrationService, private alertService: AlertService, public context: CellRendererContext) {
     this.device = context.item as EwonFlexyStructure;
-    console.log(this.device);
   }
 
   async acceptRegistration(registrationId: IDeviceRegistration['id']): Promise<void> {
