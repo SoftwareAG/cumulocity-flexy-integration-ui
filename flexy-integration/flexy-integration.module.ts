@@ -20,18 +20,19 @@ import {
   BulkRegistrationComponent,
   DataMailboxDownloadComponent,
   LoadingSpinnerComponent,
+  RegisteredCellRendererComponent,
+  RegisteredColumn,
+  RegistrationDeviceGridComponent,
   RegistrationModalComponent,
   SettingsComponent,
   SynchjobCardComponent,
-  SynchjobModalComponent
+  SynchjobModalComponent,
+  Talk2mConnectionStatusComponent
 } from './components';
-import { RegisteredCellRendererComponent } from './components/bulk-registration/registration-device-grid/cell-renderer/registered/registered.cell-renderer.component';
-import { RegisteredColumn } from './components/bulk-registration/registration-device-grid/columns/registered.column.component';
-import { RegistrationDeviceGridComponent } from './components/bulk-registration/registration-device-grid/registration-device-grid.component';
-import { Talk2mConnectionStatusComponent } from './components/talk2m-connection-status/talk2m-connection-status.component';
 import { FLEXY_DATAMAILBOX_PATH, FLEXY_PATH, FLEXY_REGISTRATION_PATH } from './constants/flexy-integration.constants';
-import { FlexyNavigationFactory } from './factories/navigation.factory';
-import { Talk2mConnectionStatusActionFactory } from './factories/talk2m-connection-status-action.factory';
+import {
+  FlexyNavigationFactory, Talk2mConnectionStatusActionFactory
+} from './factories';
 
 const components = [
   AgentInstallOverlayComponent,

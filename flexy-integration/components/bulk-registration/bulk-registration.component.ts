@@ -34,11 +34,11 @@ export class BulkRegistrationComponent {
   private sessionSubscription: Subscription;
 
   constructor(
-    private talk2mService: Talk2mService,
-    private modalService: BsModalService,
-    private installAgentService: InstallAgentService,
     private alertService: AlertService,
-    private flexyService: FlexyService
+    private flexyService: FlexyService,
+    private installAgentService: InstallAgentService,
+    private modalService: BsModalService,
+    private talk2mService: Talk2mService
   ) {}
 
   async ngOnInit() {

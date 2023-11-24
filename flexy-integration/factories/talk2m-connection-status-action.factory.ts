@@ -9,7 +9,7 @@ export class Talk2mConnectionStatusActionFactory implements ExtensionFactory<Act
   private readonly actions: ActionBarItem[] = [
     {
       placement: 'right',
-      priority: 1000,
+      priority: 1,
       template: Talk2mConnectionStatusComponent
     }
   ];
