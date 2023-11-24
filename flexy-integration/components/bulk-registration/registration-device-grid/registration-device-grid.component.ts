@@ -55,14 +55,6 @@ export class RegistrationDeviceGridComponent implements OnInit {
       icon: 'download-archive',
       callback: (selected) => this.onInstall.emit(this.getSelectedDevices(selected))
     },
-    /*
-    {
-      type: 'REGISTER',
-      text: 'Register',
-      icon: 'plus-circle',
-      callback: (selected) => this.onRegister.emit(this.getSelectedDevices(selected))
-    },
-    */
     {
       type: 'REBOOT',
       text: 'Reboot',

@@ -3,7 +3,6 @@ export * from './bulk-registration/bulk-registration.component';
 export * from './bulk-registration/registration-device-grid/cell-renderer/registered/registered.cell-renderer.component';
 export * from './bulk-registration/registration-device-grid/columns/registered.column.component';
 export * from './bulk-registration/registration-device-grid/registration-device-grid.component';
-export * from './bulk-registration/registration-modal/registration-modal.component';
 export * from './datamailbox-download/datamailbox-download.component';
 export * from './datamailbox-download/synchjob-card/synchjob-card.component';
 export * from './datamailbox-download/synchjob-modal/synchjob-modal.component';

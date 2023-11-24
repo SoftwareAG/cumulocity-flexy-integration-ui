@@ -17,27 +17,20 @@ import { RegistrationDeviceGridComponent } from './registration-device-grid/regi
 export class BulkRegistrationComponent {
   @ViewChild('grid', { static: false }) deviceGrid: RegistrationDeviceGridComponent;
 
-  poolGroupList: Map<string, string> = new Map();
-
   // ui
   talk2mConnected = false;
   installInProgress = false;
   installProgressText: ProgressMessage[] = [];
   installError = false;
-  report = {
-    failed: [],
-    successfull: []
-  };
-  completionPercent = 0;
 
   private config: FlexySettings = {};
   private sessionSubscription: Subscription;
 
   constructor(
     private alertService: AlertService,
+    private modalService: BsModalService,
     private flexyService: FlexyService,
     private installAgentService: InstallAgentService,
-    private modalService: BsModalService,
     private talk2mService: Talk2mService
   ) {}
 
@@ -86,6 +79,7 @@ export class BulkRegistrationComponent {
     this.installProgressText = [];
 
     this.config = { ...this.config, ...form.config };
+    // TODO check for need of config in service
     this.installAgentService.install(form.devices, this.config).subscribe(
       (message) => {
         this.installProgressText.push(message);
@@ -102,94 +96,4 @@ export class BulkRegistrationComponent {
       }
     );
   }
-
-  /*
-  // TODO move to action bar component
-  registerManually(devices: EwonFlexyStructure[]): void {
-    this.registerManuallyService.openModalRegistration().subscribe((newFlexy) => {
-      newFlexy.registered = FlexyIntegrated.Integrated;
-      newFlexy.talk2m_integrated = FlexyIntegrated.Not_integrated;
-      console.log(newFlexy);
-  reload grid
-      this.rows = this.rows.concat(newFlexy);
-    });
-  }
-
-  // TODO evaluate
-  // register
-  async register(devices: EwonFlexyStructure[]) {
-    const groups = await this.flexyRegistrationService.getDeviceGroupInventoryList();
-
-    for (const ewon of devices) {
-      if (this.poolGroupList.has(ewon.pool)) continue;
-
-      const group = groups.find((group) => group.name == ewon.pool);
-
-      if (ewon.pool && group) {
-        this.poolGroupList.set(ewon.pool, group.id);
-      } else if (ewon.pool && !group) {
-        const createdGroup = await this.flexyRegistrationService.createDeviceGroupInventory(ewon.pool);
-        this.poolGroupList.set(ewon.pool, createdGroup.id);
-      }
-    }
-
-    await this.registerSelectedDevices(devices);
-
-    this.handleReportFeedback();
-  }
-
-  private async registerSelectedDevices(selectedItems: EwonFlexyStructure[]) {
-    const promises = selectedItems.map((item) =>
-      this.registerDevice(item, false)
-        .then(
-          () => this.report.successfull.push(item),
-          () => this.report.failed.push(item)
-        )
-        .then(
-          () =>
-            (this.completionPercent =
-              ((this.report.failed.length + this.report.successfull.length) / selectedItems.length) * 100)
-        )
-    );
-
-    await Promise.all(promises);
-
-    this.deviceGrid.reload();
-  }
-
-  private async registerDevice(ewon: EwonFlexyStructure, reload = true): Promise<void> {
-    const poolGroupId = this.poolGroupList.get(ewon.pool);
-
-    try {
-      await this.flexyService.registerFlexy(ewon, poolGroupId);
-
-      if (reload) this.deviceGrid.reload();
-    } catch (error: any) {
-      console.log('ERROR', error.data.message);
-    }
-  }
-
-  private handleReportFeedback(report = this.report) {
-    const details: string[] = [];
-    const successfullCounter = report.successfull.length;
-    const failedCounter = report.failed.length;
-
-    if (successfullCounter) {
-      report.successfull.forEach((item: EwonFlexyStructure) => {
-        details.push(`${item.name} (${item.description})`);
-      });
-
-      this.alertService.success(`${successfullCounter} device successful registered`, details.join('\n'));
-    }
-
-    if (failedCounter) {
-      report.successfull.forEach((item: EwonFlexyStructure) => {
-        this.alertService.danger(
-          `Registeration failed: ${item.name}`,
-          `#${item.id}: ${item.name} (${item.description})`
-        );
-      });
-    }
-  }
-  */
 }

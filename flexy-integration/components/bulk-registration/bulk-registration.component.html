@@ -1,18 +1,6 @@
 <c8y-title>{{ 'Ewon Flexy Registration' | translate }}</c8y-title>
 
 <ng-container *ngIf="talk2mConnected; else notConnected">
-  <!--
-  <ng-container *ngIf="installInProgress">
-    <div class="d-block">
-      <div class="progress progress-striped active">
-        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
-          [style.width.%]="completionPercent"></div>
-      </div>
-    </div>
-    <pre>{{ report | json }}</pre>
-  </ng-container>
-  -->
-
   <ng-container *ngIf="installInProgress">
     <div class="alert alert-warning" role="alert" style="max-width: initial">
       <strong>Please keep this page open until the install for all devices is handled.</strong>
@@ -20,22 +8,24 @@
   </ng-container>
 
   <ng-container *ngIf="installProgressText.length">
-    <button class="clear-log-button btn-icon btn-clean" tooltip="Clear Log"
-      (click)="installProgressText = []; installError = false; installInProgress = false">
-      <i c8yIcon="times"></i>
-    </button>
+    <header>
+      <button class="clear-log-button btn btn-icon" tooltip="Clear Log"
+        (click)="installProgressText = []; installError = false; installInProgress = false">
+        <i c8yIcon="times"></i>
+      </button>
 
-    <div class="alert" role="alert" style="max-width: initial" [ngClass]="{
-      'alert-info': installInProgress,
-      'alert-danger': installError,
-      'alert-success': !installInProgress && !installError
-    }">
-      <strong>
-        <ng-container *ngIf="installInProgress">Agent install in progress</ng-container>
-        <ng-container *ngIf="installError">Agent install failed</ng-container>
-        <ng-container *ngIf="!installInProgress && !installError">Install Process finished</ng-container>
-      </strong>
-    </div>
+      <div class="alert" role="alert" style="max-width: initial" [ngClass]="{
+        'alert-info': installInProgress,
+        'alert-danger': installError,
+        'alert-success': !installInProgress && !installError
+      }">
+        <strong>
+          <ng-container *ngIf="installInProgress">Agent install in progress</ng-container>
+          <ng-container *ngIf="installError">Agent install failed</ng-container>
+          <ng-container *ngIf="!installInProgress && !installError">Install Process finished</ng-container>
+        </strong>
+      </div>
+    </header>
 
     <c8y-list-group class="m-b-16">
       <c8y-li-timeline *ngFor="let log of installProgressText.slice().reverse()">

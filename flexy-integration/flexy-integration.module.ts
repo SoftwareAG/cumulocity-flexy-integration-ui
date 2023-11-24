@@ -3,8 +3,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
-  CoreModule,
-  FormsModule,
+  CoreModule, FormsModule,
   gettext,
   hookActionBar,
   hookComponent,
@@ -23,7 +22,6 @@ import {
   RegisteredCellRendererComponent,
   RegisteredColumn,
   RegistrationDeviceGridComponent,
-  RegistrationModalComponent,
   SettingsComponent,
   SynchjobCardComponent,
   SynchjobModalComponent,
@@ -39,7 +37,6 @@ const components = [
   BulkRegistrationComponent,
   DataMailboxDownloadComponent,
   LoadingSpinnerComponent,
-  RegistrationModalComponent,
   RegistrationDeviceGridComponent,
   SettingsComponent,
   SynchjobCardComponent,
