@@ -178,9 +178,7 @@ export class FlexyService implements OnDestroy {
           responseType: 'json'
         })
         .toPromise();
-
-      console.log('fetchConnectorReleases|data', data);
-      // releases.push(...data);
+      releases.push(...data);
     } catch (error: any) {
       console.log('fetchConnectorReleases|error', error.message);
     }
