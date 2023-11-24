@@ -1,14 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { DeviceRegistrationService, IDeviceRegistration, IManagedObject } from '@c8y/client';
-import {
-  ActionControl,
-  AlertService,
-  BulkActionControl,
-  Column,
-  DataGridComponent,
-  Pagination,
-  Row
-} from '@c8y/ngx-components';
+import { AlertService, BulkActionControl, Column, DataGridComponent, Pagination, Row } from '@c8y/ngx-components';
 import {
   EXTERNALID_TALK2M_SERIALTYPE,
   FLEXY_EXTERNALID_TALK2M_PREFIX
@@ -29,7 +21,6 @@ export class RegistrationDeviceGridComponent implements OnInit {
   @Output() onInstall = new EventEmitter<EwonFlexyStructure[]>();
   @Output() onRegister = new EventEmitter<EwonFlexyStructure[]>();
   @Output() onReboot = new EventEmitter<EwonFlexyStructure[]>();
-  @Output() onReload = new EventEmitter<void>(); // needed?
 
   // from template
   @ViewChild('grid', { static: false }) set dataGrid(grid: DataGridComponent) {
@@ -45,7 +36,6 @@ export class RegistrationDeviceGridComponent implements OnInit {
 
   // grid
   rows: Row[] = [];
-  actionControls: ActionControl[] = [];
   columns: Column[] = FLEXY_GRID_COLUMNS;
   pagination: Pagination = FLEXY_GRID_PAGINATION;
   bulkActionControls: BulkActionControl[] = [
@@ -64,6 +54,7 @@ export class RegistrationDeviceGridComponent implements OnInit {
   ];
 
   private _dataGrid: DataGridComponent;
+  private account: Talk2MAccount;
   private session: FlexySettings['session'];
 
   constructor(
@@ -74,14 +65,14 @@ export class RegistrationDeviceGridComponent implements OnInit {
     private talk2mService: Talk2mService
   ) {}
 
-  ngOnInit() {
+  async ngOnInit(): Promise<void> {
     this.session = this.talk2mService.session;
-    void this.fetchContent();
+    this.account = await this.talk2mService.getAccount();
+    await this.fetchContent();
   }
 
   async reload(): Promise<void> {
     await this.fetchContent();
-    this.onReload.emit();
   }
 
   resetSelection() {
@@ -93,21 +84,21 @@ export class RegistrationDeviceGridComponent implements OnInit {
     this.rows = [];
     this.isLoading = true;
 
-    const [account, openRegistrations] = await Promise.all([
-      this.talk2mService.getAccount(),
+    const [cumulocityDevices, talk2mDevices, openRegistrations] = await Promise.all([
+      this.fetchCumulocityDevices(),
+      this.fetchTalk2mDevices(),
       this.deviceRegistrationService.list()
     ]);
 
-    const [c8yDevices, talk2mDevices] = await Promise.all([this.fetchC8yDevices(), this.fetchTalk2mDevices(account)]);
-
-    this.rows = this.removeDuplicates(
-      await this.digestC8yDevices(c8yDevices, openRegistrations.data),
-      talk2mDevices
+    this.rows = this.attachRegistrationData(
+      this.removeDuplicateDevices(await this.digestCumulocityDevices(cumulocityDevices), talk2mDevices),
+      openRegistrations.data
     ) as Row[];
+
     this.isLoading = false;
   }
 
-  private async fetchC8yDevices(): Promise<IManagedObject[]> {
+  private async fetchCumulocityDevices(): Promise<IManagedObject[]> {
     // get already created devices in c8y with type c8y_EwonFlexy
     try {
       return await this.flexyRegistration.getDeviceEwonFlexyInventoryList();
@@ -117,10 +108,7 @@ export class RegistrationDeviceGridComponent implements OnInit {
     }
   }
 
-  private async digestC8yDevices(
-    devices: IManagedObject[],
-    registrations: IDeviceRegistration[]
-  ): Promise<EwonFlexyStructure[]> {
+  private async digestCumulocityDevices(devices: IManagedObject[]): Promise<EwonFlexyStructure[]> {
     const ewonPromises: Promise<EwonFlexyStructure>[] = [];
     let ewons: EwonFlexyStructure[];
 
@@ -133,15 +121,10 @@ export class RegistrationDeviceGridComponent implements OnInit {
       return [];
     }
 
-    // add indicator for pending device registration
-    if (registrations.length) {
-    //   console.log('registrations', registrations, ewons); // TODO
-    }
-
     return ewons;
   }
 
-  private async fetchTalk2mDevices(account: Talk2MAccount): Promise<EwonFlexyStructure[]> {
+  private async fetchTalk2mDevices(account = this.account): Promise<EwonFlexyStructure[]> {
     if (!account) return [];
 
     return account && has(account, 'pools') && account.pools.length
@@ -149,7 +132,7 @@ export class RegistrationDeviceGridComponent implements OnInit {
       : ((await this.flexyService.getEwons(this.session)).body.ewons as EwonFlexyStructure[]);
   }
 
-  private removeDuplicates(c8y: EwonFlexyStructure[], t2m: EwonFlexyStructure[]): EwonFlexyStructure[] {
+  private removeDuplicateDevices(c8y: EwonFlexyStructure[], t2m: EwonFlexyStructure[]): EwonFlexyStructure[] {
     const uniques = t2m.map((ewon) => {
       const duplicate = c8y.find((element) => element.id == ewon.id);
       if (duplicate) {
@@ -160,6 +143,22 @@ export class RegistrationDeviceGridComponent implements OnInit {
     });
 
     return [...c8y, ...uniques];
+  }
+
+  private attachRegistrationData(
+    devices: EwonFlexyStructure[],
+    registrations: IDeviceRegistration[]
+  ): EwonFlexyStructure[] {
+    if (!registrations.length) return devices;
+
+    // add pending device registration id
+    registrations.forEach((r) => {
+      const d = devices.find((d) => r.customProperties.talk2m === d.id);
+
+      if (!!d) d.c8yRegistration = r;
+    });
+
+    return devices;
   }
 
   // TODO refactor

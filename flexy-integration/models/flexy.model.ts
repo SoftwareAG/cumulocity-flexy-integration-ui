@@ -1,3 +1,4 @@
+import { IDeviceRegistration } from '@c8y/client';
 import { FlexyInstallSteps } from './install.model';
 
 export interface FlexySettings {
@@ -24,6 +25,7 @@ export interface FlexySettings {
   installProcessSkipSteps?: FlexyInstallSteps[];
 }
 
+// TODO cleanup and refactor model
 export interface EwonFlexyStructure {
   id?: string; //ewon ids
   serial?: string;
@@ -59,6 +61,7 @@ export interface EwonFlexyStructure {
   }>;
   dmLastSyncDate?: Date;
   c8yLastSyncDate?: Date;
+  c8yRegistration?: IDeviceRegistration;
 }
 
 export interface FlexyCommandFile {

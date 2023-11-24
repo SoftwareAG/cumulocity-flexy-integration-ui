@@ -1,7 +1,7 @@
 <!-- List of ewon items -->
 <ng-container *ngIf="!isLoading">
   <c8y-data-grid #grid [title]="'Talk2M Flexy Devices' | translate" [columns]="columns" [pagination]="pagination"
-    [actionControls]="actionControls" [bulkActionControls]="bulkActionControls" [rows]="rows" [selectable]="true">
+    [actionControls]="[]" [bulkActionControls]="bulkActionControls" [rows]="rows" [selectable]="true">
     <!-- c8y groups -->
     <c8y-column name="groups">
       <ng-container *c8yCellRendererDef="let groups">

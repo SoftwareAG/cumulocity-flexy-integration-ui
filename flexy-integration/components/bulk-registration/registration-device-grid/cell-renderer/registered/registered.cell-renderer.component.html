@@ -1,16 +1,32 @@
 <ng-container *ngIf="device; else noDevice">
-  <ul>
-    <li>
-      <span class="text-muted" [ngClass]="{'text-success': device.talk2m_integrated === 'yes'}">
-        Talk2M
+  <ng-container [ngSwitch]="device.c8yRegistration?.status">
+    <ng-container *ngSwitchCase="'PENDING_ACCEPTANCE'">
+      <button type="button" class="btn btn-primary btn-sm" [tooltip]="'Accept pending device registration'"
+        [container]="'body'" [disabled]="actionInProgress" [ngClass]="{ 'btn-pending': actionInProgress}"
+        (click)="acceptRegistration(device.c8yRegistration.id)">
+        Accept
+      </button>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'WAITING_FOR_CONNECTION'">
+      <span class="text-warning">
+        Waiting for Connection
       </span>
-    </li>
-    <li>
-      <span class="text-muted" [ngClass]="{'text-success': device.registered === 'yes'}">
-        Cumulocity
-      </span>
-    </li>
-  </ul>
+    </ng-container>
+
+    <ng-container *ngSwitchDefault>
+      <ng-container *ngIf="device.registered === 'yes'; else notRegistered">
+        <span class="text-success">
+          Registered
+        </span>
+      </ng-container>
+      <ng-template #notRegistered>
+        <span class="text-muted">
+          Not in cumulocity registered
+        </span>
+      </ng-template>
+    </ng-container>
+  </ng-container>
 </ng-container>
 
 <ng-template #noDevice>-</ng-template>

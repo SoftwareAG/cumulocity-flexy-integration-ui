@@ -228,7 +228,7 @@ export class FlexyService implements OnDestroy {
       return Promise.reject('Device registration already existing.');
     }
 
-    const registration = await this.deviceRegistrationService.create({ id: prefixedEwonId });
+    const registration = await this.deviceRegistrationService.create({ id: prefixedEwonId, customProperties: { talk2m: ewon.id } });
 
     if (!registration.data) {
       return Promise.reject('Could not create device registration.');

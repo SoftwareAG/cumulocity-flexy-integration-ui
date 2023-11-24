@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { CellRendererContext } from '@c8y/ngx-components';
+import { DeviceRegistrationService, IDeviceRegistration } from '@c8y/client';
+import { AlertService, CellRendererContext } from '@c8y/ngx-components';
 import { EwonFlexyStructure } from '@flexy/models/flexy.model';
 
 @Component({
@@ -8,8 +9,25 @@ import { EwonFlexyStructure } from '@flexy/models/flexy.model';
 })
 export class RegisteredCellRendererComponent {
   device: EwonFlexyStructure;
+  actionInProgress = false;
 
-  constructor(public context: CellRendererContext) {
+  constructor(private deviceRegistrationService: DeviceRegistrationService, private alertService: AlertService, public context: CellRendererContext) {
     this.device = context.item as EwonFlexyStructure;
+    console.log(this.device);
+  }
+
+  async acceptRegistration(registrationId: IDeviceRegistration['id']): Promise<void> {
+    this.actionInProgress = true;
+
+    try {
+      await this.deviceRegistrationService.accept(registrationId);
+      delete this.device.c8yRegistration;
+      this.device.registered = 'yes';
+      this.alertService.success('Device Registration Accepted');
+    } catch(error: any) {
+      this.alertService.danger('Could accepted not device registration', error.message);
+    }
+
+    this.actionInProgress = false;
   }
 }
