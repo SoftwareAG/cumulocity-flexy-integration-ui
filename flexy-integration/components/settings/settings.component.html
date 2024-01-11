@@ -35,6 +35,7 @@
         </div>
       </fieldset>
 
+      <!-- TODO deprecated/obsolete?
       <fieldset>
         <div class="legend form-block" translate>Cumulocity</div>
         <div class="form-group">
@@ -43,6 +44,7 @@
             <div class="c8y-select-wrapper">
               <select id="exampleSelect" name="tenant" class="form-control" [disabled]="talk2mConnected"
                 [(ngModel)]="config.tenant">
+                <option value="">none</option>
                 <option selected="selected" value="cumulocity.com">cumulocity.com</option>
                 <option value="eu-latest.cumulocity.com">eu-latest.cumulocity.com</option>
                 <option value="emea.cumulocity.com">emea.cumulocity.com</option>
@@ -51,15 +53,16 @@
           </div>
         </div>
       </fieldset>
+      -->
     </div>
 
     <div class="card-footer separator">
-      <button *ngIf="!talk2mConnected" type="submit" class="btn btn-primary" [disabled]="actionInProgress"
-        (click)="login()" translate>
+      <button *ngIf="!talk2mConnected" type="submit" class="btn btn-primary"
+        [disabled]="actionInProgress || !config.account || !config.username || !config.password" translate>
         Save & Connect
       </button>
       <button *ngIf="talk2mConnected" type="submit" value="" class="btn btn-danger" [disabled]="actionInProgress"
-        (click)="logout()" translate>
+        translate>
         Logout
       </button>
       <button type="button" class="btn btn-default" [disabled]="actionInProgress" (click)="close()">Cancel</button>

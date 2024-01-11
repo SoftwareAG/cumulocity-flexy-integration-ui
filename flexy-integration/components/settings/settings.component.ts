@@ -45,7 +45,7 @@ export class SettingsComponent implements OnInit {
   }
 
   async login(config = this.config): Promise<void> {
-    if (!config || !config.account || !config.password || !config.tenant || !config.username) {
+    if (!config || !config.account || !config.username || !config.password) {
       this.alert.warning('Login Talk2M failed. Missing parameter.');
       return;
     }

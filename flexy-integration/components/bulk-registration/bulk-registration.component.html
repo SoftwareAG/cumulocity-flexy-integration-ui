@@ -42,11 +42,8 @@
 
   <!-- list devices -->
   <div class="card">
-    <registration-device-grid
-      #grid
-      (onInstall)="install($event)"
-      (onReboot)="reboot($event)"
-    ></registration-device-grid>
+    <registration-device-grid #grid (onInstall)="install($event)" (onReboot)="reboot($event)">
+    </registration-device-grid>
   </div>
 </ng-container>
 
@@ -54,6 +51,6 @@
   <div class="c8y-empty-state">
     <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device-protocols"></h1>
     <h3 translate>You are not connected to Talk2M</h3>
-    <p>Please use the "Talk2M Session" config, in the action bar, to log in.</p>
+    <p>Please use the <button type="button" class="btn btn-link" (click)="showSettings()">Talk2M Session config</button>, in the action bar, to log in.</p>
   </div>
 </ng-template>

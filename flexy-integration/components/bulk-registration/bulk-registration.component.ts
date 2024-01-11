@@ -6,6 +6,7 @@ import { FlexyService, InstallAgentService, Talk2mService } from '@flexy/service
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { Subscription } from 'rxjs';
 import { AgentInstallOverlayComponent } from '../agent-install-overlay/agent-install-overlay.component';
+import { SettingsComponent } from '../settings/settings.component';
 import { RegistrationDeviceGridComponent } from './registration-device-grid/registration-device-grid.component';
 
 @Component({
@@ -43,11 +44,6 @@ export class BulkRegistrationComponent {
     if (this.sessionSubscription) this.sessionSubscription.unsubscribe();
   }
 
-  showSettings() {
-    // TODO
-    this.alertService.add({ type: 'info', text: 'Not yet implemented', timeout: 3000 });
-  }
-
   // actions
   reboot(devices: EwonFlexyStructure[]): void {
     const reboots: Promise<string>[] = [];
@@ -70,6 +66,10 @@ export class BulkRegistrationComponent {
     dialog.content.closeSubject.subscribe((response: InstallAgentForm) => {
       if (response) this.handleInstallAgentDialog(response);
     });
+  }
+
+  showSettings(): void {
+    this.modalService.show(SettingsComponent, { class: 'modal-sm' });
   }
 
   private handleInstallAgentDialog(form: InstallAgentForm): void {
