@@ -289,7 +289,7 @@ export class InstallAgentService {
         return true;
       } else {
         // next attempt or failure
-        if (i === attempts) {
+        if (i >= attempts) {
           this.progressLogger.sendDeviceSimpleMessage(
             device.name,
             index,
@@ -299,7 +299,6 @@ export class InstallAgentService {
           return false;
         } else {
           await this.sleep(timeout);
-          return null;
         }
       }
     }
