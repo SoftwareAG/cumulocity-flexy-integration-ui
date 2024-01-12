@@ -132,8 +132,8 @@ export class RegistrationDeviceGridComponent implements OnInit {
       : ((await this.flexyService.getEwons(this.session)).body.ewons as EwonFlexyStructure[]);
   }
 
-  private removeDuplicateDevices(c8y: EwonFlexyStructure[], t2m: EwonFlexyStructure[]): EwonFlexyStructure[] {
-    const uniques = t2m.map((ewon) => {
+  private removeDuplicateDevices(c8y: EwonFlexyStructure[], talk2m: EwonFlexyStructure[]): EwonFlexyStructure[] {
+    const uniques = talk2m.map((ewon) => {
       const duplicate = c8y.find((element) => element.id == ewon.id);
       if (duplicate) {
         c8y.splice(c8y.indexOf(duplicate), 1);
