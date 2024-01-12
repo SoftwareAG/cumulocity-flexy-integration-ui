@@ -63,7 +63,7 @@
     <div class="form-group">
       <label for="agent_deviceuser">{{ 'Device Username' | translate }}</label>
       <div class="input-group">
-        <input id="agent_deviceuser" type="text" name="deviceusername" class="form-control"
+        <input id="agent_deviceuser" type="text" name="deviceusername" class="form-control" placeholder="deviceuser"
           [(ngModel)]="config.deviceUsername" />
       </div>
     </div>
@@ -72,7 +72,7 @@
       <label for="agent_devicepass">{{ 'Device Password' | translate }}</label>
       <div class="input-group">
         <input id="agent_devicepass" name="devicepassword" class="form-control"
-          [type]="showPassword ? 'text' : 'password'" [(ngModel)]="config.devicePassword" />
+          [type]="showPassword ? 'text' : 'password'" placeholder="password" [(ngModel)]="config.devicePassword" />
         <button type="button" class="btn btn-clear btn-icon" (click)="showPassword = !showPassword">
           <i [c8yIcon]="showPassword ? 'eye-slash' : 'eye'"></i>
         </button>
@@ -85,36 +85,40 @@
     <div class="form-group">
       <label for="c8y_host">{{ 'Host' | translate }}</label>
       <div class="input-group">
-        <input id="c8y_host" type="text" name="host" class="form-control" [(ngModel)]="config.c8yHost" />
+        <input id="c8y_host" type="text" name="host" class="form-control" placeholder="mqtt.cumulocity.com"
+          [(ngModel)]="config.c8yHost" />
       </div>
     </div>
 
     <div class="form-group">
       <label for="c8y_port">{{ 'Port' | translate }}</label>
       <div class="input-group">
-        <input id="c8y_port" type="text" name="port" class="form-control" [(ngModel)]="config.c8yPort" />
+        <input id="c8y_port" type="text" name="port" class="form-control" placeholder="8333"
+          [(ngModel)]="config.c8yPort" />
       </div>
     </div>
 
     <div class="form-group">
       <label for="c8y_tenant">{{ 'Tenant' | translate }}</label>
       <div class="input-group">
-        <input id="c8y_tenant" type="text" name="tenant" class="form-control" [(ngModel)]="config.c8yTenant" />
+        <input id="c8y_tenant" type="text" name="tenant" class="form-control" placeholder="management"
+          [(ngModel)]="config.c8yTenant" />
       </div>
     </div>
 
     <div class="form-group">
       <label for="c8y_user">{{ 'Username' | translate }}</label>
       <div class="input-group">
-        <input id="c8y_user" type="text" name="username" class="form-control" [(ngModel)]="config.c8yUsername" />
+        <input id="c8y_user" type="text" name="username" class="form-control" placeholder="devicebootstrap"
+          [(ngModel)]="config.c8yUsername" />
       </div>
     </div>
 
     <div class="form-group">
       <label for="c8y_pass">{{ 'Device Password' | translate }}</label>
       <div class="input-group">
-        <input id="c8y_pass" name="password" class="form-control" [type]="showC8YPassword ? 'text' : 'password'"
-          [(ngModel)]="config.c8yPassword" />
+        <input id="c8y_pass" name="password" class="form-control" placeholder="password"
+          [type]="showC8YPassword ? 'text' : 'password'" [(ngModel)]="config.c8yPassword" />
         <button type="button" class="btn btn-clear btn-icon" (click)="showC8YPassword = !showC8YPassword">
           <i [c8yIcon]="showC8YPassword ? 'eye-slash' : 'eye'"></i>
         </button>

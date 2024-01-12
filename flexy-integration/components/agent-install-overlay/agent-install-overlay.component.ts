@@ -96,17 +96,13 @@ export class AgentInstallOverlayComponent implements OnInit {
       },
       deviceUsername: '',
       devicePassword: '',
-      c8yHost: 'mqtt.eu-latest.cumulocity.com',
-      c8yPort: 8883,
-      c8yTenant: 'management',
-      c8yUsername: 'devicebootstrap',
-      c8yPassword: 'Fhdt1bb1f',
+      c8yHost: '',
+      c8yPort: null,
+      c8yTenant: '',
+      c8yUsername: '',
+      c8yPassword: '',
       installProcessSkipSteps: []
     };
-
-    // TODO remove after dev
-    this._config.deviceUsername = 'adm'; // TODO remove after dev
-    this._config.devicePassword = 'adm'; // TODO remove after dev
   }
 
   async ngOnInit(): Promise<void> {

@@ -3,7 +3,6 @@ export interface PluginConfig {
   account: string;
   username: string;
   credentialspassword?: string;
-  tenant: string;
   // @deprecated use talk2mSessionService.account instead
   'talk2m.accountName': string; // TODO refactor
   'talk2m.accountReference': string;
