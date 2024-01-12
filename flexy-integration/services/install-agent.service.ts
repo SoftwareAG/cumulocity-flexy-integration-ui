@@ -165,8 +165,6 @@ export class InstallAgentService {
   private async checkIfDeviceConectedViaAgent(device: EwonFlexyStructure): Promise<boolean> {
     const [flexy, talk2m] = await this.getExternalIDs(device);
 
-    console.log(flexy, talk2m);
-
     if (flexy) {
       /*
       If there already is a device MO with the external ID "HMS-Flexy-{SERIAL}" that also has the agent fragment:
@@ -524,7 +522,7 @@ export class InstallAgentService {
       }
 
       // 10. accept registration
-      if (!this.skipStepCheck(FlexyInstallSteps.ADD_EXTERNAL_ID)) {
+      if (!this.skipStepCheck(FlexyInstallSteps.ACCEPT_REGISTRATION)) {
         this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,

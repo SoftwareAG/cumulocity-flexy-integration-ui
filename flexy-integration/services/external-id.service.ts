@@ -37,8 +37,6 @@ export class ExternalIDService {
     externalId: string,
     externalType: string
   ): Promise<IExternalIdentity> {
-    console.log({deviceId, externalId, externalType});
-
     return this.identityService
       .create({
         type: externalType,
