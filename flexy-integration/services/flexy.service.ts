@@ -5,6 +5,7 @@ import {
   EXTERNALID_FLEXY_SERIALTYPE,
   EXTERNALID_TALK2M_SERIALTYPE,
   FLEXY_CONNECTOR_RELEASE_LIST_URL,
+  FLEXY_CONNECTOR_VERSION,
   FLEXY_EXTERNALID_FLEXY_PREFIX,
   FLEXY_EXTERNALID_TALK2M_PREFIX
 } from '@flexy/constants/flexy-integration.constants';
@@ -184,20 +185,20 @@ export class FlexyService implements OnDestroy {
     }
 
     // TODO remove on successful data pull
+    const version = FLEXY_CONNECTOR_VERSION;
     releases.push({
-      name: 'v1.3.6',
+      name: `v${version}`,
       jar: {
-        name: 'flexy-cumulocity-connector-1.3.6-full.jar',
-        download_url:
-          'https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v1.3.6/flexy-cumulocity-connector-1.3.6-full.jar'
+        name: `flexy-cumulocity-connector-${version}-full.jar`,
+        download_url: `https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v${version}/flexy-cumulocity-connector-${version}-full.jar`
       },
       configuration: {
         name: 'CumulocityConnectorConfig.json',
-        download_url: 'https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v1.3.6/CumulocityConnectorConfig.json'
+        download_url: `https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v${version}/CumulocityConnectorConfig.json`
       },
       jvmRun: {
         name: 'jvmrun',
-        download_url: 'https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v1.3.6/jvmrun'
+        download_url: `https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v${version}/jvmrun`
       }
     });
 
@@ -228,7 +229,10 @@ export class FlexyService implements OnDestroy {
       return Promise.reject('Device registration already existing.');
     }
 
-    const registration = await this.deviceRegistrationService.create({ id: prefixedEwonId, customProperties: { talk2m: ewon.id } });
+    const registration = await this.deviceRegistrationService.create({
+      id: prefixedEwonId,
+      customProperties: { talk2m: ewon.id }
+    });
 
     if (!registration.data) {
       return Promise.reject('Could not create device registration.');
@@ -305,15 +309,19 @@ export class FlexyService implements OnDestroy {
   // flexyService EXTERNALID_FLEXY_SERIALTYPE
   // talk2mService » EXTERNALID_TALK2M_SERIALTYPE
   async getExternalID(id, type = EXTERNALID_FLEXY_SERIALTYPE): Promise<IExternalIdentity> {
-    return this.externalIDService.getExternalID(this.getExternalIDString(id), type);
+    return this.externalIDService.getExternalID(this.getExternalIDString(id, type), type);
   }
 
   // flexyService EXTERNALID_FLEXY_SERIALTYPE
   // talk2mService » EXTERNALID_TALK2M_SERIALTYPE
-  async createExternalIDForDevice(deviceMO: IManagedObject, externalID: string, type = EXTERNALID_FLEXY_SERIALTYPE): Promise<IExternalIdentity> {
+  async createExternalIDForDevice(
+    deviceMO: IManagedObject,
+    externalID: string,
+    type = EXTERNALID_FLEXY_SERIALTYPE
+  ): Promise<IExternalIdentity> {
     return this.externalIDService.createExternalIDForDevice(
       deviceMO.id,
-      this.getExternalIDString(externalID),
+      this.getExternalIDString(externalID, type),
       type
     );
   }
@@ -334,7 +342,9 @@ export class FlexyService implements OnDestroy {
     return await this.http.get<any>(url, this.talk2mService.generateHeaderOptions()).toPromise();
   }
 
-  private getExternalIDString(id): string {
-    return FLEXY_EXTERNALID_TALK2M_PREFIX + id;
+  private getExternalIDString(id, type = EXTERNALID_FLEXY_SERIALTYPE): string {
+    return type === EXTERNALID_FLEXY_SERIALTYPE
+      ? FLEXY_EXTERNALID_FLEXY_PREFIX + id
+      : FLEXY_EXTERNALID_TALK2M_PREFIX + id;
   }
 }

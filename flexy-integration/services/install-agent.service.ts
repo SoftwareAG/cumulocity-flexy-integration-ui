@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { IExternalIdentity, IManagedObject } from '@c8y/client';
-import { DEVICE_AGENT_FRAGMENT, EXTERNALID_TALK2M_SERIALTYPE, FLEXY_EXTERNALID_FLEXY_PREFIX } from '@flexy/constants/flexy-integration.constants';
+import {
+  DEVICE_AGENT_FRAGMENT,
+  EXTERNALID_TALK2M_SERIALTYPE,
+  FLEXY_EXTERNALID_FLEXY_PREFIX
+} from '@flexy/constants/flexy-integration.constants';
 import { ProgressMessage } from '@flexy/models/c8y-custom-objects.model';
 import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@flexy/models/flexy.model';
 import { FlexyInstallSteps } from '@flexy/models/install.model';
@@ -161,6 +165,8 @@ export class InstallAgentService {
   private async checkIfDeviceConectedViaAgent(device: EwonFlexyStructure): Promise<boolean> {
     const [flexy, talk2m] = await this.getExternalIDs(device);
 
+    console.log(flexy, talk2m);
+
     if (flexy) {
       /*
       If there already is a device MO with the external ID "HMS-Flexy-{SERIAL}" that also has the agent fragment:
@@ -170,9 +176,13 @@ export class InstallAgentService {
       const deviceMO = await this.externalIDService.getDeviceByIdentity(flexy);
       if (deviceMO && this.deviceHasAgentFragment(deviceMO)) {
         if (!talk2m) {
-          void (await this.flexyService.createExternalIDForDevice(deviceMO, flexy.externalId, EXTERNALID_TALK2M_SERIALTYPE));
+          void (await this.flexyService.createExternalIDForDevice(
+            deviceMO,
+            device.serial,
+            EXTERNALID_TALK2M_SERIALTYPE
+          ));
         }
-        return Promise.reject({ message: 'Already connected: Device MO has an external Flexy ID.' });
+        return Promise.reject('Already connected: Device MO has an external Flexy ID.');
       }
     } else if (talk2m) {
       /*
@@ -458,8 +468,9 @@ export class InstallAgentService {
         );
         const registered = await this.registerFlexy(device, index);
 
-        if (registered) {
+        if (!registered) {
           this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Could not register the device.');
+          return null;
         }
       }
 
@@ -513,7 +524,7 @@ export class InstallAgentService {
       }
 
       // 10. accept registration
-      if (!this.skipStepCheck(FlexyInstallSteps.ACCEPT_REGISTRATION)) {
+      if (!this.skipStepCheck(FlexyInstallSteps.ADD_EXTERNAL_ID)) {
         this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,
