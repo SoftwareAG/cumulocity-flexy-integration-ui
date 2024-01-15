@@ -3,7 +3,8 @@ import { IExternalIdentity, IManagedObject } from '@c8y/client';
 import {
   DEVICE_AGENT_FRAGMENT,
   EXTERNALID_TALK2M_SERIALTYPE,
-  FLEXY_EXTERNALID_FLEXY_PREFIX
+  FLEXY_EXTERNALID_FLEXY_PREFIX,
+  FLEXY_EXTERNALID_TALK2M_PREFIX
 } from '@flexy/constants/flexy-integration.constants';
 import { ProgressMessage } from '@flexy/models/c8y-custom-objects.model';
 import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@flexy/models/flexy.model';
@@ -195,6 +196,37 @@ export class InstallAgentService {
     }
 
     return Promise.resolve(false);
+  }
+
+  private async setExternalID(device): Promise<boolean> {
+    let deviceMO;
+    try {
+      deviceMO = await this.flexyService.getDeviceByExternalID(FLEXY_EXTERNALID_FLEXY_PREFIX + device.serial);
+    }
+    catch(error) {
+      Promise.reject('Could not find Device Managed Object.');
+    }
+    if (!deviceMO) return false;
+
+    let externalIDs;
+    try {
+      externalIDs = await await this.externalIDService.getExternalIDsForDevice(deviceMO);
+    } catch(error) {
+      Promise.reject('Could not find Device by External ID.');
+    }
+    if (!externalIDs) return false;
+
+    const takl2mIDs = externalIDs.filter((id) => id.externalId.indexOf(FLEXY_EXTERNALID_TALK2M_PREFIX) >= 0);
+
+    if (takl2mIDs) Promise.reject('Device already has Talk2M external ID set.');
+
+    const externalID = await this.flexyService.createExternalIDForDevice(
+      deviceMO,
+      device.serial,
+      EXTERNALID_TALK2M_SERIALTYPE
+    );
+
+    return externalID.externalId === FLEXY_EXTERNALID_TALK2M_PREFIX + device.serial;
   }
 
   private async loadFile(
@@ -533,6 +565,22 @@ export class InstallAgentService {
 
         if (!accept) {
           this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Could not accept device registration.');
+        }
+      }
+
+      // 11. add second external id
+      if (!this.skipStepCheck(FlexyInstallSteps.ADD_EXTERNAL_ID)){
+        this.progressLogger.sendDeviceSimpleMessage(
+          device.name,
+          index,
+          '<b>Step 11</b> - Add Talk2M external ID',
+          'add-tag'
+        );
+
+        const externalID = await this.setExternalID(device);
+
+        if (!externalID) {
+          this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Could not add Talk2M external ID.');
         }
       }
 

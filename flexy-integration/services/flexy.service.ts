@@ -255,18 +255,6 @@ export class FlexyService implements OnDestroy {
     return data && !!data.id;
   }
 
-  // async bulkAccept(devices: EwonFlexyStructure[], prefix = FLEXY_EXTERNALID_FLEXY_PREFIX) {
-  //   // build promise.all
-  //   devices.forEach((d) => {
-  //     const ewonId = String(d.serial);
-  //     const prefixedEwonId = prefix + ewonId;
-
-  //     const existingRequest = await this.deviceHasRegisterRequest(prefixedEwonId);
-  //   });
-
-  //   // acceptRegistration();
-  // }
-
   // -------------------
   // old talk2m service port
   // -------------------

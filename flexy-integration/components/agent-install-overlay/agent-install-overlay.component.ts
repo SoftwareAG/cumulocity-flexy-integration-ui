@@ -66,6 +66,11 @@ export class AgentInstallOverlayComponent implements OnInit {
       id: FlexyInstallSteps.ACCEPT_REGISTRATION,
       label: 'Accept device registration',
       selected: true
+    },
+    {
+      id: FlexyInstallSteps.ADD_EXTERNAL_ID,
+      label: 'Add second external ID',
+      selected: true
     }
   ];
 
@@ -94,13 +99,13 @@ export class AgentInstallOverlayComponent implements OnInit {
         jvmrun: '',
         cumulocity: ''
       },
-      deviceUsername: 'adm',
-      devicePassword: 'adm',
-      c8yHost: 'mqtt.eu-latest.cumulocity.com',
-      c8yPort: 8883,
-      c8yTenant: 'management',
-      c8yUsername: 'devicebootstrap',
-      c8yPassword: 'Fhdt1bb1f',
+      deviceUsername: '',
+      devicePassword: '',
+      c8yHost: '',
+      c8yPort: null,
+      c8yTenant: '',
+      c8yUsername: '',
+      c8yPassword: '',
       installProcessSkipSteps: []
     };
   }
