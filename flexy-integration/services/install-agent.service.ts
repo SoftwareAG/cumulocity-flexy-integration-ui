@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { IExternalIdentity, IManagedObject } from '@c8y/client';
+import { DeviceRegistrationService, DeviceRegistrationStatus, IDeviceRegistration, IExternalIdentity, IManagedObject } from '@c8y/client';
 import {
   DEVICE_AGENT_FRAGMENT,
   EXTERNALID_TALK2M_SERIALTYPE,
@@ -10,6 +10,7 @@ import { ProgressMessage } from '@flexy/models/c8y-custom-objects.model';
 import { EwonFlexyStructure, FlexyCommandFile, FlexySettings } from '@flexy/models/flexy.model';
 import { FlexyInstallSteps } from '@flexy/models/install.model';
 import { Observable } from 'rxjs';
+import { EWONFlexyDeviceRegistrationService } from './ewon-flexy-device-registration.service';
 import { ExternalIDService } from './external-id.service';
 import { FlexyService } from './flexy.service';
 import { ProgressLoggerService } from './progress-logger.service';
@@ -27,11 +28,17 @@ export class InstallAgentService {
   private rebootAttempts = 30;
   private rebootInterval = 10; // in sec
   private initialRebootDelay = 10; // in sec
+  private externalIdPollAttempts = 5;
+  private externalIdPollInterval = 15; // in sec
+  private registrationPollAttempts = 5;
+  private registrationPollInterval = 10; // in sec
 
   constructor(
     private flexyService: FlexyService,
     private externalIDService: ExternalIDService,
-    private progressLogger: ProgressLoggerService
+    private progressLogger: ProgressLoggerService,
+    private flexyRegistrationService: EWONFlexyDeviceRegistrationService,
+    private deviceRegistrationService: DeviceRegistrationService
   ) {}
 
   install(devices: EwonFlexyStructure[], config: FlexySettings): Observable<ProgressMessage> {
@@ -198,20 +205,56 @@ export class InstallAgentService {
     return Promise.resolve(false);
   }
 
-  private async setExternalID(device): Promise<boolean> {
+  private async pollForDevice(
+    device: EwonFlexyStructure,
+    index: number,
+    attempts = this.externalIdPollAttempts,
+    timeout = this.externalIdPollInterval
+  ): Promise<IManagedObject> {
     let deviceMO;
-    try {
-      deviceMO = await this.flexyService.getDeviceByExternalID(FLEXY_EXTERNALID_FLEXY_PREFIX + device.serial);
+
+    for (let i = 1; i <= attempts; i++) {
+      this.progressLogger.sendDeviceSimpleMessage(
+        device.name,
+        index,
+        `Polling for Device.<br><b>Attempt ${i} of ${attempts}</b>`,
+        'file-view'
+      );
+
+      try {
+        deviceMO = await this.flexyService.getDeviceByExternalID(FLEXY_EXTERNALID_FLEXY_PREFIX + device.serial);
+      } catch (error) {
+        Promise.reject('Could not find Device Managed Object.');
+      }
+
+      if (deviceMO) {
+        return deviceMO;
+      } else if (i >= attempts) {
+        if (i >= attempts) {
+          this.progressLogger.sendDeviceSimpleMessage(
+            device.name,
+            index,
+            `Device <span class="text-error">not found</span>.`,
+            'times'
+          );
+          return null;
+        } else {
+          await this.sleep(timeout);
+        }
+      }
     }
-    catch(error) {
-      Promise.reject('Could not find Device Managed Object.');
-    }
+
+    return null;
+  }
+
+  private async setExternalID(device: EwonFlexyStructure, index: number): Promise<boolean> {
+    const deviceMO = await this.pollForDevice(device, index);
     if (!deviceMO) return false;
 
     let externalIDs;
     try {
-      externalIDs = await await this.externalIDService.getExternalIDsForDevice(deviceMO);
-    } catch(error) {
+      externalIDs = await this.externalIDService.getExternalIDsForDevice(deviceMO);
+    } catch (error) {
       Promise.reject('Could not find Device by External ID.');
     }
     if (!externalIDs) return false;
@@ -380,8 +423,44 @@ export class InstallAgentService {
     return await this.flexyService.sendConfig(device.name, config);
   }
 
-  private async acceptRegistration(device: EwonFlexyStructure): Promise<boolean> {
-    return await this.flexyService.acceptRegistration(device);
+  private async acceptRegistration(device: EwonFlexyStructure, index: number, attempts = this.registrationPollAttempts, interval = this.registrationPollInterval): Promise<boolean> {
+    let openRegistration: IDeviceRegistration;
+
+    for (let i = 1; i <= attempts; i++) {
+      try {
+        this.progressLogger.sendDeviceSimpleMessage(
+          device.name,
+          index,
+          `Polling for open Device Registration.<br><b>Attempt ${i} of ${attempts}</b>`,
+          'file-view'
+        );
+
+        openRegistration = await this.flexyRegistrationService.getOpenRegistrationsForDevice(device.serial, true);
+      } catch(error) {
+        console.log(error);
+      }
+
+      if (openRegistration && openRegistration.status === DeviceRegistrationStatus.PENDING_ACCEPTANCE) {
+        return true;
+      } else if (i >= attempts) {
+        return false;
+      } else {
+        await this.sleep(interval);
+      }
+    }
+
+    if (!openRegistration) return false;
+
+    await this.deviceRegistrationService.accept(openRegistration.id);
+
+    this.progressLogger.sendDeviceSimpleMessage(
+      device.name,
+      index,
+      `Device <span class="text-success">Registration accepted</span>.`,
+      'device-connect'
+    );
+
+    return true;
   }
 
   private skipStepCheck(step: FlexyInstallSteps, config = this.config.installProcessSkipSteps): boolean {
@@ -535,6 +614,7 @@ export class InstallAgentService {
 
         if (!connectionConfig) {
           this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Could not send config to device.');
+          return null;
         }
       }
 
@@ -561,15 +641,16 @@ export class InstallAgentService {
           'check'
         );
 
-        const accept = await this.acceptRegistration(device);
+        const acceptRegistration = await this.acceptRegistration(device, index);
 
-        if (!accept) {
+        if (!acceptRegistration) {
           this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Could not accept device registration.');
+          return null;
         }
       }
 
       // 11. add second external id
-      if (!this.skipStepCheck(FlexyInstallSteps.ADD_EXTERNAL_ID)){
+      if (!this.skipStepCheck(FlexyInstallSteps.ADD_EXTERNAL_ID)) {
         this.progressLogger.sendDeviceSimpleMessage(
           device.name,
           index,
@@ -577,7 +658,7 @@ export class InstallAgentService {
           'add-tag'
         );
 
-        const externalID = await this.setExternalID(device);
+        const externalID = await this.setExternalID(device, index);
 
         if (!externalID) {
           this.progressLogger.sendDeviceErrorMessage(device.name, index, 'Could not add Talk2M external ID.');

@@ -10,7 +10,7 @@ import {
   IManagedObject
 } from '@c8y/client';
 import { IdentityService, InventoryService } from '@c8y/ngx-components/api';
-import { FLEXY_DEVICETYPE, FLEXY_EXTERNALID_TALK2M_PREFIX } from '@flexy/constants/flexy-integration.constants';
+import { FLEXY_DEVICETYPE, FLEXY_EXTERNALID_FLEXY_PREFIX, FLEXY_EXTERNALID_TALK2M_PREFIX } from '@flexy/constants/flexy-integration.constants';
 import { EwonFlexyStructure } from '@flexy/models/flexy.model';
 import { ExternalIDService } from './external-id.service';
 
@@ -167,7 +167,7 @@ export class EWONFlexyDeviceRegistrationService {
   //--------
 
   // DeviceRegistrationService
-  async getDeviceRequestRegistration(ignoreCache = false): Promise<IDeviceRegistration[]> {
+  async getOpenDeviceRegistrations(ignoreCache = false): Promise<IDeviceRegistration[]> {
     const now = new Date().getTime();
     const filter: object = {
       pageSize: 1000,
@@ -184,6 +184,12 @@ export class EWONFlexyDeviceRegistrationService {
     this.registrationsRequested = now;
 
     return data;
+  }
+
+  async getOpenRegistrationsForDevice(deviceSerial: EwonFlexyStructure['serial'], ignoreCache = false): Promise<IDeviceRegistration> {
+    const openRegistrations = await this.getOpenDeviceRegistrations(ignoreCache);
+
+    return openRegistrations.find((registration) => registration.id === FLEXY_EXTERNALID_FLEXY_PREFIX + deviceSerial);
   }
 
   async createDeviceRequestRegistration(

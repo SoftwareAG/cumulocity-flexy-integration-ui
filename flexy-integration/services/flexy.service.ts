@@ -117,7 +117,7 @@ export class FlexyService implements OnDestroy {
     if (ewon.registered !== FlexyIntegrated.Not_integrated)
       return Promise.reject(`Device with ewonId "${ewonId}" is already registered.`);
 
-    const requests = await this.flexyRegistrationService.getDeviceRequestRegistration();
+    const requests = await this.flexyRegistrationService.getOpenDeviceRegistrations();
     const existingRequest = requests.find((element) => element.id == FLEXY_EXTERNALID_TALK2M_PREFIX + ewonId);
 
     if (!existingRequest) {
@@ -210,7 +210,7 @@ export class FlexyService implements OnDestroy {
   }
 
   async deviceHasRegisterRequest(ewonId: string): Promise<boolean> {
-    const requests = await this.flexyRegistrationService.getDeviceRequestRegistration(true);
+    const requests = await this.flexyRegistrationService.getOpenDeviceRegistrations(true);
 
     return !!requests.find((element) => element.id == ewonId);
   }
@@ -241,6 +241,7 @@ export class FlexyService implements OnDestroy {
     return ewon;
   }
 
+  // TODO check / fixme
   async acceptRegistration(ewon: EwonFlexyStructure, prefix = FLEXY_EXTERNALID_FLEXY_PREFIX): Promise<boolean> {
     const ewonId = String(ewon.serial);
     const prefixedEwonId = prefix + ewonId;
