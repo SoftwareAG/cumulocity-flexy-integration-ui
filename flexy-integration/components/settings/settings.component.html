@@ -1,0 +1,51 @@
+<c8y-modal [title]="'Settings' | translate" [customFooter]="true">
+  <form (ngSubmit)="submit()">
+    <div class="modal-body">
+      <fieldset>
+        <div class="legend form-block" translate>Talk2M Login</div>
+        <div class="form-group">
+          <label for="talk2m-account" translate>Account</label>
+          <input type="text" id="talk2m-account" name="account" autocomplete="account" class="form-control" [disabled]="talk2mConnected"
+            [(ngModel)]="config.account" placeholder="Account name" />
+        </div>
+        <div class="form-group">
+          <label for="talk2m-username" translate>Username</label>
+          <input type="text" id="talk2m-username" name="username" autocomplete="username" class="form-control" [disabled]="talk2mConnected"
+            [(ngModel)]="config.username" placeholder="User" />
+        </div>
+        <div class="form-group">
+          <label for="talk2m-password" translate>Password</label>
+          <input type="password" id="talk2m-password" name="password" autocomplete="current-password" class="form-control" [disabled]="talk2mConnected"
+            [(ngModel)]="config.password" placeholder="Password" />
+          <p id="helpinput" class="help-block" translate>
+            Password won't be saved. If the session disconnects, you have to re-enter your password.
+          </p>
+        </div>
+      </fieldset>
+
+      <!-- TODO move somewhere else? -->
+      <fieldset *ngIf="isMicroserviceEnabled">
+        <div class="legend form-block" translate>Data Mailbox</div>
+
+        <div class="form-group">
+          <label for="mailbox-token" translate>Token</label>
+          <input type="text" id="mailbox-token" name="token" class="form-control"
+            placeholder="589645ijtebgogsaite348t34t34bt834qu343348t5b4" [disabled]="talk2mConnected"
+            [(ngModel)]="config.token" />
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="card-footer separator">
+      <button *ngIf="!talk2mConnected" type="submit" class="btn btn-primary"
+        [disabled]="actionInProgress || !config.account || !config.username || !config.password" translate>
+        Save & Connect
+      </button>
+      <button *ngIf="talk2mConnected" type="submit" value="" class="btn btn-danger" [disabled]="actionInProgress"
+        translate>
+        Logout
+      </button>
+      <button type="button" class="btn btn-default" [disabled]="actionInProgress" (click)="close()">Cancel</button>
+    </div>
+  </form>
+</c8y-modal>

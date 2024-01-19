@@ -1,0 +1,52 @@
+<!-- List of ewon items -->
+<ng-container *ngIf="!isLoading">
+  <c8y-data-grid #grid [title]="'Talk2M Flexy Devices' | translate" [columns]="columns" [pagination]="pagination"
+    [actionControls]="[]" [bulkActionControls]="bulkActionControls" [rows]="rows" [selectable]="true">
+    <!-- c8y groups -->
+    <c8y-column name="groups">
+      <ng-container *c8yCellRendererDef="let groups">
+        <span *ngFor="let group of groups.value">
+          <a [routerLink]="['/group', group.id]">{{ group.name }}</a>
+        </span>
+      </ng-container>
+    </c8y-column>
+
+    <!-- name -->
+    <c8y-column name="name">
+      <ng-container *c8yCellRendererDef="let context">
+        <ng-container *ngIf="context.item.source; else noLink">
+          <a [routerLink]="['/device', context.item.source]">
+            {{ context.item.name }}
+          </a>
+        </ng-container>
+        <ng-template #noLink>
+          {{ context.item.name }}
+        </ng-template>
+      </ng-container>
+    </c8y-column>
+
+    <!-- online -->
+    <c8y-column name="online">
+      <ng-container *c8yCellRendererDef="let context">
+        <div class="text-center">
+          <ng-container *ngIf="context.value === 'online'; else offline">
+            <i c8yIcon="connected" class="text-success"></i>
+          </ng-container>
+          <ng-template #offline>
+            <i c8yIcon="disconnected" class="text-danger"></i>
+          </ng-template>
+        </div>
+      </ng-container>
+    </c8y-column>
+
+    <!-- empty -->
+    <c8y-ui-empty-state [icon]="'search'" [title]="'No devices to display.' | translate"
+      [subtitle]="'Refine your search terms or check your spelling.' | translate" [horizontal]="true">
+    </c8y-ui-empty-state>
+  </c8y-data-grid>
+</ng-container>
+
+<!-- loading spinner -->
+<loading-spinner [loading]="isLoading" [title]="'Loading Ewon devices'"
+  [copy]="'This process may take some few seconds.'">
+</loading-spinner>

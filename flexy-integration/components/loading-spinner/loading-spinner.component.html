@@ -1,0 +1,7 @@
+<ng-container *ngIf="loading">
+  <div class="c8y-empty-state">
+    <c8y-loading></c8y-loading>
+    <h3 *ngIf="title" translate>{{ title }}</h3>
+    <p *ngIf="copy" translate>{{ copy }}</p>
+  </div>
+</ng-container>

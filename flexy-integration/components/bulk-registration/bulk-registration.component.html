@@ -1,0 +1,56 @@
+<c8y-title>{{ 'Ewon Flexy Registration' | translate }}</c8y-title>
+
+<ng-container *ngIf="talk2mConnected; else notConnected">
+  <ng-container *ngIf="installInProgress">
+    <div class="alert alert-warning" role="alert" style="max-width: initial">
+      <strong>Please keep this page open until the install for all devices is handled.</strong>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="installProgressText.length">
+    <header>
+      <button class="clear-log-button btn btn-icon" tooltip="Clear Log"
+        (click)="installProgressText = []; installError = false; installInProgress = false">
+        <i c8yIcon="times"></i>
+      </button>
+
+      <div class="alert" role="alert" style="max-width: initial" [ngClass]="{
+        'alert-info': installInProgress,
+        'alert-danger': installError,
+        'alert-success': !installInProgress && !installError
+      }">
+        <strong>
+          <ng-container *ngIf="installInProgress">Agent install in progress</ng-container>
+          <ng-container *ngIf="installError">Agent install failed</ng-container>
+          <ng-container *ngIf="!installInProgress && !installError">Install Process finished</ng-container>
+        </strong>
+      </div>
+    </header>
+
+    <c8y-list-group class="m-b-16">
+      <c8y-li-timeline *ngFor="let log of installProgressText.slice().reverse()">
+        {{ log.date | date: 'HH:mm:ss' }}<br />
+        {{ log.date | date: '.SSS' }}
+        <c8y-li>
+          <c8y-li-icon *ngIf="log.icon" [icon]="log.icon"></c8y-li-icon>
+          <div [innerHTML]="log.message"></div>
+          <c8y-li-footer *ngIf="log.details">{{ log.details }}</c8y-li-footer>
+        </c8y-li>
+      </c8y-li-timeline>
+    </c8y-list-group>
+  </ng-container>
+
+  <!-- list devices -->
+  <div class="card">
+    <registration-device-grid #grid (onInstall)="install($event)" (onReboot)="reboot($event)">
+    </registration-device-grid>
+  </div>
+</ng-container>
+
+<ng-template #notConnected>
+  <div class="c8y-empty-state">
+    <h1 class="c8y-icon c8y-icon-duocolor c8y-icon-device-protocols"></h1>
+    <h3 translate>You are not connected to Talk2M</h3>
+    <p>Please use the <button type="button" class="btn btn-link" (click)="showSettings()">Talk2M Session config</button>, in the action bar, to log in.</p>
+  </div>
+</ng-template>
