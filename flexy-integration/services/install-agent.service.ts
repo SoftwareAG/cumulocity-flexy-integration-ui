@@ -620,7 +620,7 @@ export class InstallAgentService {
 
       // step 9 wait a bit
       if (
-        !this.skipStepCheck(FlexyInstallSteps.SEND_CONFIG) ||
+        !this.skipStepCheck(FlexyInstallSteps.SEND_CONFIG) &&
         !this.skipStepCheck(FlexyInstallSteps.ACCEPT_REGISTRATION)
       ) {
         this.progressLogger.sendDeviceSimpleMessage(

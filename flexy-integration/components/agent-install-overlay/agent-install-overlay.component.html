@@ -71,7 +71,7 @@
     <div class="form-group">
       <label for="agent_devicepass">{{ 'Device Password' | translate }}</label>
       <div class="input-group">
-        <input id="agent_devicepass" name="devicepassword" class="form-control"
+        <input id="agent_devicepass" name="devicepassword" autocomplete="on" class="form-control"
           [type]="showPassword ? 'text' : 'password'" placeholder="password" [(ngModel)]="config.devicePassword" />
         <button type="button" class="btn btn-clear btn-icon" (click)="showPassword = !showPassword">
           <i [c8yIcon]="showPassword ? 'eye-slash' : 'eye'"></i>
@@ -109,7 +109,7 @@
     <div class="form-group">
       <label for="c8y_user">{{ 'Username' | translate }}</label>
       <div class="input-group">
-        <input id="c8y_user" type="text" name="username" class="form-control" placeholder="devicebootstrap"
+        <input id="c8y_user" type="text" name="username" autocomplete="username" class="form-control" placeholder="devicebootstrap"
           [(ngModel)]="config.c8yUsername" />
       </div>
     </div>
@@ -117,7 +117,7 @@
     <div class="form-group">
       <label for="c8y_pass">{{ 'Device Password' | translate }}</label>
       <div class="input-group">
-        <input id="c8y_pass" name="password" class="form-control" placeholder="password"
+        <input id="c8y_pass" name="password" autocomplete="current-password" class="form-control" placeholder="password"
           [type]="showC8YPassword ? 'text' : 'password'" [(ngModel)]="config.c8yPassword" />
         <button type="button" class="btn btn-clear btn-icon" (click)="showC8YPassword = !showC8YPassword">
           <i [c8yIcon]="showC8YPassword ? 'eye-slash' : 'eye'"></i>

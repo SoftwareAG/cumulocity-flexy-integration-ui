@@ -69,7 +69,7 @@ export class AgentInstallOverlayComponent implements OnInit {
     },
     {
       id: FlexyInstallSteps.ADD_EXTERNAL_ID,
-      label: 'Add second external ID',
+      label: 'Add Talk2M external ID',
       selected: true
     }
   ];
