@@ -21,7 +21,7 @@
     1. Submit the dialog by clicking "Duplicate", without making further changes.  
       ![](_media/device-management-config.png)
 1. Wait a short moment for the device management, including the added plugin, being created.
-1. Access the duplicated "Devcie management" application via the app switcher.  
+1. Access the duplicated "Device management" application via the app switcher.  
   ![](_media/app-switcher.png)
 1.  The "Devices" » "Flexy Registration" navigation item should now be avilable to you.
   ![](_media/plugin-navigation.png)
