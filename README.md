@@ -2,7 +2,7 @@
 
 ## How to install the Plugin
 
-1. Navigate to the "Ecosystem" » "Extesions" page in the administration app (path: `/apps/administration/index.html#/ecosystem/extension/extensions`).  
+1. Navigate to the "Ecosystem" » "Extensions" page in the administration app (path: `/apps/administration/index.html#/ecosystem/extension/extensions`).  
   ![Screenshot of the administration app to highlight the button in the top right corner of the screen](./_media/add-extension-button.png)
   Click on the "Add extension package" button, located on the right side of the action bar, to open the dialog.
 1. Select the package (.zip) by clicking on the "Drop file here" area, or drag and drop it in the same place.  
@@ -14,14 +14,14 @@
 1. Click on the "add application" button, again on the right side of the action bar.  
   ![Screenshot highlighting the position of the button in the top right of the page](_media/add-application-button.png)
 1. In the "Add application" dialog, proceed through following steps as following:
-    1. Choose "Duplicate Application"  
+    1. Choose "Duplicate existing application"  
       ![](_media/add-application-dialog.png)
-    1. Click on "Device Certification"  
+    1. Click on "Device management"  
       ![](_media/device-certification-option.png)
     1. Submit the dialog by clicking "Duplicate", without making further changes.  
       ![](_media/device-management-config.png)
 1. Wait a short moment for the device management, including the added plugin, being created.
-1. Access the duplicated "Devcie manegement" application via the app switcher.  
+1. Access the duplicated "Devcie management" application via the app switcher.  
   ![](_media/app-switcher.png)
 1.  The "Devices" » "Flexy Registration" navigation item should now be avilable to you.
   ![](_media/plugin-navigation.png)
