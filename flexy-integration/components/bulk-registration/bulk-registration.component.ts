@@ -47,7 +47,7 @@ export class BulkRegistrationComponent {
   // actions
   reboot(devices: EwonFlexyStructure[]): void {
     const reboots: Promise<string>[] = [];
-    const config = { ...this.config, ...{ deviceUsername: 'adm', devicePassword: 'adm' } };
+    const config = { ...this.config, ...{ deviceUsername: 'adm', devicePassword: 'adm' } }; // TODO remove
 
     devices.forEach((device) => reboots.push(this.flexyService.reboot(device.encodedName, config)));
 
