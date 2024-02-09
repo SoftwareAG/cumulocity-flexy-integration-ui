@@ -128,8 +128,6 @@ export class AgentInstallOverlayComponent implements OnInit {
   }
 
   setRelease(release = this.selectedRelease): void {
-    console.log('setRelease', release);
-
     this._config.url = {
       connector: release.jar.download_url,
       jvmrun: release.jvmRun.download_url,
