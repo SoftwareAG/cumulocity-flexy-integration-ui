@@ -13,6 +13,14 @@
   "keywords": ["cumulocity", "cumulocity-iot", "hms-flexy", "talk2m", "device-registration"],
   "author": "softwareAG",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SoftwareAG/cumulocity-flexy-integration-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui/issues"
+  },
+  "homepage": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui#readme",
   "dependencies": {
     "@angular/animations": "14.0.6",
     "@angular/cdk": "14.1.2",
