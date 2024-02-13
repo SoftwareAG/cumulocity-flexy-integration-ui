@@ -16,6 +16,8 @@ export class AgentInstallOverlayComponent implements OnInit {
   showPassword = false;
   showC8YPassword = false;
   loadingReleases = false;
+  offcialReleases: FlexyConnectorRelease[];
+  selectedRelease: FlexyConnectorRelease;
   labels: ModalLabels = {
     ok: 'Install Agent',
     cancel: 'Cancel'
@@ -125,20 +127,21 @@ export class AgentInstallOverlayComponent implements OnInit {
     this.closeSubject.next(null);
   }
 
+  setRelease(release = this.selectedRelease): void {
+    this._config.url = {
+      connector: release.jar.download_url,
+      jvmrun: release.jvmRun.download_url,
+      cumulocity: release.configuration.download_url
+    };
+  }
+
   private async fetchReleases(): Promise<void> {
     this.loadingReleases = true;
 
     try {
-      const releases = await this.flexyService.fetchConnectorReleases();
-      let latestRelease: FlexyConnectorRelease;
-
-      if (releases) latestRelease = releases[0];
-
-      this._config.url = {
-        connector: latestRelease.jar.download_url,
-        jvmrun: latestRelease.jvmRun.download_url,
-        cumulocity: latestRelease.configuration.download_url
-      };
+      this.offcialReleases = await this.flexyService.fetchConnectorReleases();
+      this.selectedRelease = this.offcialReleases[0];
+      this.setRelease();
     } catch (err) {
       console.warn('Could not load release list');
     }
