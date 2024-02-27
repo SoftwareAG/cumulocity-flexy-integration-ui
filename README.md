@@ -21,7 +21,7 @@
     1. Submit the dialog by clicking "Duplicate", without making further changes.  
       ![](_media/device-management-config.png)
 1. Navigate to the "Ecosystem" » "Applications" page in the administration app (path: `/apps/administration/index.html#/ecosystem/application/applications`).  
-  ![Screenshot of the administration app to highlight the button in the top right corner of the screen](./_media/applications-device-management-custom.png)
+  ![Screenshot of the administration app to highlight how to navigate to the custom device management applincation](./_media/applications-device-management-custom.png)
   Click on the Device management application flagged as 'custom' (don't click the "open" button).
 1. Click on the "Plugins" page (path: `/apps/administration/index.html#/ecosystem/application/applications/<ApplcationID>/plugins`)
       ![](_media/navigate-to-plugins.png)
