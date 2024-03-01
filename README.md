@@ -7,7 +7,8 @@
   Click on the "Add extension package" button, located on the right side of the action bar, to open the dialog.
 1. Select the package (.zip) by clicking on the "Drop file here" area, or drag and drop it in the same place.  
   ![Screenshot of the add extension package dialog](./_media/add-extension-dialog.jpg)
-1. TODO after upload dialog/confirm
+1. After a successfull upload the following confirmation should be shown:
+  ![Screenshot showing dialog with sucessful upload feedback](_media/extension-upload-complete.jpg)
 1. Once sucessfully installed the plugin should be listed within the extensions.  
   ![Screenshot of the extensions list including the newly added plugin](_media/plugin-list.png)
 1. Navigate to the "Ecosystem" » "Applications" page (path: `/apps/administration/index.html#/ecosystem/application/applications`)
@@ -24,16 +25,16 @@
   ![Screenshot of the administration app to highlight how to navigate to the custom device management applincation](./_media/applications-device-management-custom.png)
   Click on the Device management application flagged as 'custom' (don't click the "open" button).
 1. Click on the "Plugins" page (path: `/apps/administration/index.html#/ecosystem/application/applications/<ApplcationID>/plugins`)
-      ![](_media/navigate-to-plugins.png)
+      ![Screenshot highlighting the "plugins" tab on the device management application inside the administration UI](_media/navigate-to-plugins.png)
 1. On the "Plugins" page, proceed as follows:
     1. Choose "Install plugins"  
-      ![](_media/install-button.png)
+      ![Screenshot indicating the position of the "install plugin" button in the top right corner of the "plugins" tab](_media/install-button.png)
     1. Select and install "HMS Flexy Integration Plugin".  
-      ![](_media/select-and-install.png)
+      ![Screenshot of the plugin install dialog](_media/select-and-install.png)
 1. Access the duplicated "Device management" application via the app switcher.  
-  ![](_media/app-switcher.png)
+  ![Screenshot of the app switcher highlighting the custom "device management" app](_media/app-switcher.png)
 1.  The "Devices" » "Flexy Registration" navigation item should now be avilable to you.
-  ![](_media/plugin-navigation.png)
+  ![Screenshot of the updated navigation in the device management, highlighting the added menu entry](_media/plugin-navigation.png)
 
 
 ------------------------------
