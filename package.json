@@ -1,18 +1,34 @@
 {
   "name": "hms-flexy-integration-plugin",
-  "version": "2.0.10",
+  "version": "2.1.1",
   "description": "Provides an interface to register HMS Flexy devices from Talk2M into Cumulocity.",
   "scripts": {
     "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "start:cp": "npm start -- --shell cockpit",
     "start:dm": "npm start -- --shell devicemanagement",
-    "build": "rimraf dist && c8ycli build",
+    "build": "c8ycli build",
+    "prebuild": "rimraf dist",
+    "postbuild": "zip -r ./dist/${npm_package_name}_${npm_package_version}.zip ./dist/apps/${npm_package_name}",
     "deploy": "c8ycli deploy -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "postinstall": "ngcc"
   },
-  "keywords": ["cumulocity", "cumulocity-iot", "hms-flexy", "talk2m", "device-registration"],
+  "keywords": [
+    "cumulocity",
+    "cumulocity-iot",
+    "hms-flexy",
+    "talk2m",
+    "device-registration"
+  ],
   "author": "softwareAG",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SoftwareAG/cumulocity-flexy-integration-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui/issues"
+  },
+  "homepage": "https://github.com/SoftwareAG/cumulocity-flexy-integration-ui#readme",
   "dependencies": {
     "@angular/animations": "14.0.6",
     "@angular/cdk": "14.1.2",

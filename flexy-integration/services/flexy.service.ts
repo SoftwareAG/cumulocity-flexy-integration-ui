@@ -5,7 +5,6 @@ import {
   EXTERNALID_FLEXY_SERIALTYPE,
   EXTERNALID_TALK2M_SERIALTYPE,
   FLEXY_CONNECTOR_RELEASE_LIST_URL,
-  FLEXY_CONNECTOR_VERSION,
   FLEXY_EXTERNALID_FLEXY_PREFIX,
   FLEXY_EXTERNALID_TALK2M_PREFIX
 } from '@flexy/constants/flexy-integration.constants';
@@ -162,7 +161,6 @@ export class FlexyService implements OnDestroy {
     return this.externalIDService.getDeviceByExternalID(externalID, EXTERNALID_FLEXY_SERIALTYPE);
   }
 
-  // TODO – CORS on request
   async fetchConnectorReleases(): Promise<FlexyConnectorRelease[]> {
     const releases: FlexyConnectorRelease[] = [];
 
@@ -183,24 +181,6 @@ export class FlexyService implements OnDestroy {
     } catch (error: any) {
       console.log('fetchConnectorReleases|error', error.message);
     }
-
-    // TODO remove on successful data pull
-    const version = FLEXY_CONNECTOR_VERSION;
-    releases.push({
-      name: `v${version}`,
-      jar: {
-        name: `flexy-cumulocity-connector-${version}-full.jar`,
-        download_url: `https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v${version}/flexy-cumulocity-connector-${version}-full.jar`
-      },
-      configuration: {
-        name: 'CumulocityConnectorConfig.json',
-        download_url: `https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v${version}/CumulocityConnectorConfig.json`
-      },
-      jvmRun: {
-        name: 'jvmrun',
-        download_url: `https://cumulocity-connector.s3.eu-central-1.amazonaws.com/v${version}/jvmrun`
-      }
-    });
 
     return releases;
   }

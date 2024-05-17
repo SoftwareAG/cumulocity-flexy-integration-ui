@@ -229,7 +229,7 @@ export class InstallAgentService {
 
       if (deviceMO) {
         return deviceMO;
-      } else if (i >= attempts) {
+      } else {
         if (i >= attempts) {
           this.progressLogger.sendDeviceSimpleMessage(
             device.name,
@@ -423,7 +423,12 @@ export class InstallAgentService {
     return await this.flexyService.sendConfig(device.name, config);
   }
 
-  private async acceptRegistration(device: EwonFlexyStructure, index: number, attempts = this.registrationPollAttempts, interval = this.registrationPollInterval): Promise<boolean> {
+  private async pollForDeviceRegistration(
+    device: EwonFlexyStructure,
+    index: number,
+    attempts = this.registrationPollAttempts,
+    interval = this.registrationPollInterval
+  ): Promise<IDeviceRegistration> {
     let openRegistration: IDeviceRegistration;
 
     for (let i = 1; i <= attempts; i++) {
@@ -436,29 +441,39 @@ export class InstallAgentService {
         );
 
         openRegistration = await this.flexyRegistrationService.getOpenRegistrationsForDevice(device.serial, true);
-      } catch(error) {
+      } catch (error) {
         console.log(error);
       }
 
       if (openRegistration && openRegistration.status === DeviceRegistrationStatus.PENDING_ACCEPTANCE) {
-        return true;
+        return openRegistration;
       } else if (i >= attempts) {
-        return false;
+        return null;
       } else {
         await this.sleep(interval);
       }
     }
 
+    return null;
+  }
+
+  private async acceptRegistration(device: EwonFlexyStructure, index: number): Promise<boolean> {
+    const openRegistration = await this.pollForDeviceRegistration(device, index);
+
     if (!openRegistration) return false;
 
-    await this.deviceRegistrationService.accept(openRegistration.id);
+    try {
+      await this.deviceRegistrationService.accept(openRegistration.id);
 
-    this.progressLogger.sendDeviceSimpleMessage(
-      device.name,
-      index,
-      `Device <span class="text-success">Registration accepted</span>.`,
-      'device-connect'
-    );
+      this.progressLogger.sendDeviceSimpleMessage(
+        device.name,
+        index,
+        `Device <span class="text-success">Registration accepted</span>.`,
+        'device-connect'
+      );
+    } catch (error) {
+      this.progressLogger.sendDeviceErrorMessage(device.name, index, 'ERR.');
+    }
 
     return true;
   }
