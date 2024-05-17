@@ -6,11 +6,19 @@
     "start": "c8ycli server -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "start:cp": "npm start -- --shell cockpit",
     "start:dm": "npm start -- --shell devicemanagement",
-    "build": "rimraf dist && c8ycli build",
+    "build": "c8ycli build",
+    "prebuild": "rimraf dist",
+    "postbuild": "zip -r ./dist/${npm_package_name}_${npm_package_version}.zip ./dist/apps/${npm_package_name}",
     "deploy": "c8ycli deploy -u https://devicecert-testtenant.eu-latest.cumulocity.com",
     "postinstall": "ngcc"
   },
-  "keywords": ["cumulocity", "cumulocity-iot", "hms-flexy", "talk2m", "device-registration"],
+  "keywords": [
+    "cumulocity",
+    "cumulocity-iot",
+    "hms-flexy",
+    "talk2m",
+    "device-registration"
+  ],
   "author": "softwareAG",
   "license": "MIT",
   "repository": {
